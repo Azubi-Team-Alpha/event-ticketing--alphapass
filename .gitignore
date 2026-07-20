@@ -1,4 +1,69 @@
-# node modules
+# ==============================================================================
+# ALPHAPASS (TICKET HUB) - UNIFIED GITIGNORE
+# ==============================================================================
 
-/frontend/node_modules
+# --- OS Specific Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.db-journal
 
+# --- Frontend / Node.js ---
+node_modules/
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- Backend / Python ---
+.venv/
+/backend/.venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+/backend/.pytest_cache/
+.coverage
+/backend/.coverage
+htmlcov/
+/backend/htmlcov/
+.mypy_cache/
+/backend/.mypy_cache/
+.ruff_cache/
+/backend/.ruff_cache/
+.ipynb_checkpoints
+/backend/test.db
+/backend/.env
+/backend/pyright_output.txt
+
+# --- Terraform / Infrastructure ---
+.terraform/
+/infra/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# --- Generated Archives ---
+*.zip
+/infra/modules/lambda/lambda.zip
