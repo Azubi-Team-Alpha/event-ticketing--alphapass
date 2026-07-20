@@ -1,0 +1,1568 @@
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/config.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/config.py:38:12 - error: Arguments missing for parameters "DATABASE_URL", "SECRET_KEY" (reportCallIssue)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/pdf.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/pdf.py:210:21 - error: "policies" is not a known attribute of "None" (reportOptionalMemberAccess)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/qr.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/qr.py:11:33 - error: "constants" is not a known attribute of module "qrcode" (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/core/qr.py:20:22 - error: No parameter named "format" (reportCallIssue)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/db/seed.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/db/seed.py:25:40 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/db/seed.py:39:42 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/db/seed.py:70:55 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/models/models.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/models/models.py:466:47 - error: Argument of type "list[str]" cannot be assigned to parameter "foreign_keys" of type "_ORMColCollectionArgument | None" in function "relationship"
+    Type "str" is not assignable to type "_ORMColCollectionElement"
+      "str" is not assignable to "ColumnClause[Any]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+      "str" is not assignable to "DMLColumnRole"
+      "str" is not assignable to "Mapped[Any]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/models/models.py:467:57 - error: Argument of type "list[str | None]" cannot be assigned to parameter "foreign_keys" of type "_ORMColCollectionArgument | None" in function "relationship"
+    Type "str | None" is not assignable to type "_ORMColCollectionElement"
+      Type "str" is not assignable to type "_ORMColCollectionElement"
+        "str" is not assignable to "ColumnClause[Any]"
+        "str" is incompatible with protocol "_HasClauseElement[Any]"
+          "__clause_element__" is not present
+        "str" is not assignable to "DMLColumnRole"
+        "str" is not assignable to "Mapped[Any]" (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:33:52 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:35:47 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:36:43 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:37:44 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:39:65 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:40:62 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:44:78 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:70:30 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:74:47 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:76:28 - error: Cannot access attribute "in_" for class "str"
+    Attribute "in_" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:77:17 - error: No overloads for "query" match the provided arguments (reportCallIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:77:26 - error: Argument of type "str" cannot be assigned to parameter "entities" of type "_ColumnsClauseArgument[Any]" in function "query"
+    Type "str" is not assignable to type "_ColumnsClauseArgument[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      "str" is not assignable to "ColumnsClauseRole"
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "Type[Any]"
+      "str" is not assignable to "Inspectable[_HasClauseElement[Any]]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:79:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:96:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:99:43 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:113:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:137:30 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:139:46 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:148:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:174:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:187:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:223:42 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:239:56 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:248:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:268:47 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:285:49 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:306:60 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:324:37 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:351:49 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:373:42 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:393:31 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:425:30 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:427:55 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:438:46 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:468:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:470:46 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:481:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:520:20 - error: Argument of type "str" cannot be assigned to parameter "expression" of type "_ColumnExpressionArgument[Any] | _StarOrOne | None" in function "__init__"
+    Type "str" is not assignable to type "_ColumnExpressionArgument[Any] | _StarOrOne | None"
+      "str" is not assignable to "ColumnElement[Any]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "ExpressionElementRole[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      Type "str" is not assignable to type "() -> ColumnElement[Any]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:526:20 - error: Argument of type "str" cannot be assigned to parameter "expression" of type "_ColumnExpressionArgument[Any] | _StarOrOne | None" in function "__init__"
+    Type "str" is not assignable to type "_ColumnExpressionArgument[Any] | _StarOrOne | None"
+      "str" is not assignable to "ColumnElement[Any]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "ExpressionElementRole[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      Type "str" is not assignable to type "() -> ColumnElement[Any]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:528:14 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:531:18 - error: No overloads for "query" match the provided arguments (reportCallIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:532:9 - error: Argument of type "str" cannot be assigned to parameter "entities" of type "_ColumnsClauseArgument[Any]" in function "query"
+    Type "str" is not assignable to type "_ColumnsClauseArgument[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      "str" is not assignable to "ColumnsClauseRole"
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "Type[Any]"
+      "str" is not assignable to "Inspectable[_HasClauseElement[Any]]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:532:19 - error: Argument of type "str" cannot be assigned to parameter "entities" of type "_ColumnsClauseArgument[Any]" in function "query"
+    Type "str" is not assignable to type "_ColumnsClauseArgument[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      "str" is not assignable to "ColumnsClauseRole"
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "Type[Any]"
+      "str" is not assignable to "Inspectable[_HasClauseElement[Any]]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:543:49 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/admin.py:545:32 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:32:31 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:54:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:74:35 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:94:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:126:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:141:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/auth.py:153:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/checkin.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/checkin.py:15:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/checkin.py:71:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:58:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:62:17 - error: Argument of type "bool" cannot be assigned to parameter "initial_clause" of type "_ColumnExpressionArgument[bool] | Literal[False]" in function "or_"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool] | Literal[False]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:62:49 - error: Argument of type "bool" cannot be assigned to parameter "clauses" of type "_ColumnExpressionArgument[bool]" in function "or_"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:65:41 - error: Cannot access attribute "ilike" for class "str"
+    Attribute "ilike" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:65:41 - error: "ilike" is not a known attribute of "None" (reportOptionalMemberAccess)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:68:29 - error: Cannot access attribute "ilike" for class "str"
+    Attribute "ilike" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:68:69 - error: Cannot access attribute "ilike" for class "str"
+    Attribute "ilike" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:68:69 - error: "ilike" is not a known attribute of "None" (reportOptionalMemberAccess)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:71:53 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool] | None" in function "any"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool] | None"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:73:53 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool] | None" in function "any"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool] | None"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:77:34 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:83:34 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]" (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:88:47 - error: Cannot access attribute "desc" for class "bool"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:88:55 - error: Argument of type "datetime" cannot be assigned to parameter "clauses" of type "_ColumnExpressionOrStrLabelArgument[Any]" in function "order_by"
+    Type "datetime" is not assignable to type "_ColumnExpressionOrStrLabelArgument[Any]"
+      "datetime" is not assignable to "str"
+      "datetime" is not assignable to "ColumnElement[Any]"
+      "datetime" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+      "datetime" is not assignable to "SQLCoreOperations[Any]"
+      "datetime" is not assignable to "ExpressionElementRole[Any]"
+      "datetime" is not assignable to "TypedColumnsClauseRole[Any]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:94:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:111:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:113:46 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:123:47 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:139:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:139:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:150:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:150:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:168:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:168:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:186:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:186:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:200:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:200:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:214:34 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:214:56 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:251:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:251:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:267:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:267:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:282:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:282:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:285:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:285:62 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:300:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:300:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:303:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:303:62 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:321:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:321:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:348:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:348:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/events.py:351:39 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:35:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:36:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:37:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:61:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:72:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:73:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:74:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:93:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:94:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:95:13 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:185:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:195:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:196:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:205:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:226:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:229:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:248:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:251:16 - error: No overloads for "query" match the provided arguments (reportCallIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:251:25 - error: Argument of type "str" cannot be assigned to parameter "entities" of type "_ColumnsClauseArgument[Any]" in function "query"
+    Type "str" is not assignable to type "_ColumnsClauseArgument[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      "str" is not assignable to "ColumnsClauseRole"
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "Type[Any]"
+      "str" is not assignable to "Inspectable[_HasClauseElement[Any]]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:253:43 - error: Cannot access attribute "in_" for class "str"
+    Attribute "in_" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:255:44 - error: Cannot access attribute "in_" for class "str"
+    Attribute "in_" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:266:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/orders.py:299:46 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:26:32 - error: No overloads for "query" match the provided arguments (reportCallIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:26:41 - error: Argument of type "str" cannot be assigned to parameter "entities" of type "_ColumnsClauseArgument[Any]" in function "query"
+    Type "str" is not assignable to type "_ColumnsClauseArgument[Any]"
+      "str" is not assignable to "TypedColumnsClauseRole[Any]"
+      "str" is not assignable to "ColumnsClauseRole"
+      "str" is not assignable to "SQLCoreOperations[Any]"
+      "str" is not assignable to "Type[Any]"
+      "str" is not assignable to "Inspectable[_HasClauseElement[Any]]"
+      "str" is incompatible with protocol "_HasClauseElement[Any]"
+        "__clause_element__" is not present
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:30:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:30:39 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:34:24 - error: Cannot access attribute "in_" for class "str"
+    Attribute "in_" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:34:40 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:44:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:45:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:52:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:71:36 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:71:58 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:76:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:76:37 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:81:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:81:37 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:117:35 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:117:57 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:119:37 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:130:35 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:130:57 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:136:17 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:136:45 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/organizer.py:183:45 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:24:44 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:29:51 - error: Cannot access attribute "desc" for class "datetime"
+    Attribute "desc" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:34:46 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:46:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:59:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:60:30 - error: Cannot access attribute "in_" for class "ResaleStatus"
+    Attribute "in_" is unknown (reportAttributeAccessIssue)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:73:66 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:74:55 - error: "lower" is not a known attribute of "None" (reportOptionalMemberAccess)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:94:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:99:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:100:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:101:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:120:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:121:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/resale.py:167:37 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/tickets.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/tickets.py:15:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/tickets.py:23:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/tickets.py:46:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py:25:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py:53:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py:54:9 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py:91:38 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+  /home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/ticket-hub/backend/app/routers/transfers.py:94:44 - error: Argument of type "bool" cannot be assigned to parameter "criterion" of type "_ColumnExpressionArgument[bool]" in function "filter"
+    Type "bool" is not assignable to type "_ColumnExpressionArgument[bool]"
+      "bool" is not assignable to "ColumnElement[bool]"
+      "bool" is incompatible with protocol "_HasClauseElement[bool]"
+        "__clause_element__" is not present
+      "bool" is not assignable to "SQLCoreOperations[bool]"
+      "bool" is not assignable to "ExpressionElementRole[bool]"
+      "bool" is not assignable to "TypedColumnsClauseRole[bool]"
+      Type "bool" is not assignable to type "() -> ColumnElement[bool]"
+    ... (reportArgumentType)
+179 errors, 0 warnings, 0 informations
