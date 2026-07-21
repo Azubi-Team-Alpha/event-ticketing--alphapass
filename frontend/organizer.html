@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Organizer Portal & Scanner Console - AlphaPass</title>
+    <title>Organizer Dashboard & Scanner Console - AlphaPass</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <!-- Google Web Fonts -->
@@ -23,46 +23,54 @@
 <body>
 
     <!-- Topbar Start -->
-    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
-        <div class="row gx-0 align-items-center">
-            <div class="col-lg-6 text-start">
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block bg-white">
+        <div class="row gx-0 align-items-center" style="height: 55px;">
+            <div class="col-lg-3 text-start">
                 <a href="index.html" class="navbar-brand p-0">
-                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                    <h2 class="text-primary m-0"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
                 </a>
             </div>
-            <div class="col-lg-6 text-end">
-                <a href="events.html" class="btn btn-outline-primary rounded-pill px-4 me-2">Event Explorer</a>
-                <a href="admin.html" class="btn btn-primary rounded-pill px-4">Admin Portal</a>
+            <div class="col-lg-6 text-center">
+                <div class="input-group mx-auto" style="max-width: 450px;">
+                    <input type="text" class="form-control rounded-pill border-light bg-light px-4" placeholder="Search events, orders, tickets...">
+                </div>
+            </div>
+            <div class="col-lg-3 text-end">
+                <a href="events.html" class="btn btn-outline-primary btn-sm rounded-pill me-2">Explorer</a>
+                <a href="admin.html" class="btn btn-dark btn-sm rounded-pill">Admin Console</a>
             </div>
         </div>
     </div>
 
-    <!-- Header Banner -->
-    <div class="container-fluid bg-primary py-4 mb-4 text-white">
-        <div class="container py-2 d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h1 class="display-5 text-white fw-bold"><i class="fa fa-briefcase me-2"></i> Organizer Portal & Console</h1>
-                <p class="mb-0 text-white-50">Create events, configure ticket pricing tiers, request payouts, and run entry check-in scans.</p>
+    <!-- Header Dashboard Title Bar -->
+    <div class="container-fluid bg-dark text-white py-4 mb-4">
+        <div class="container py-2 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="btn-lg-square bg-primary text-white rounded-circle fs-3 fw-bold"><i class="fa fa-chart-line"></i></div>
+                <div>
+                    <h2 class="text-white fw-bold m-0">Organizer Dashboard</h2>
+                    <p class="mb-0 text-white-50 small">Manage event listings, ticket tier pricing, revenue payouts, and entry gate check-in scans.</p>
+                </div>
             </div>
-            <div id="authStatusBadge">
+            <div class="d-flex align-items-center gap-2" id="authStatusBadge">
                 <span class="badge bg-warning text-dark px-3 py-2 fs-6">Not Logged In</span>
             </div>
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container-fluid py-4">
+    <!-- Main Dashboard Container -->
+    <div class="container-fluid py-2">
         <div class="container">
             <!-- Auth Form Section (If not logged in) -->
-            <div id="authSection" class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-light">
+            <div id="authSection" class="row justify-content-center py-4">
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
                         <ul class="nav nav-pills nav-justified mb-4" id="authTab" role="tablist">
                             <li class="nav-item">
-                                <button class="nav-link active fw-bold" id="login-tab" data-bs-toggle="pill" data-bs-target="#loginView">Sign In</button>
+                                <button class="nav-link active fw-bold" id="login-tab" data-bs-toggle="pill" data-bs-target="#loginView">Organizer Sign In</button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link fw-bold" id="signup-tab" data-bs-toggle="pill" data-bs-target="#signupView">Organizer Signup</button>
+                                <button class="nav-link fw-bold" id="signup-tab" data-bs-toggle="pill" data-bs-target="#signupView">Create Account</button>
                             </li>
                         </ul>
 
@@ -71,14 +79,14 @@
                             <div class="tab-pane fade show active" id="loginView">
                                 <form id="orgLoginForm">
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Organizer Email *</label>
+                                        <label class="form-label fw-bold text-dark">Organizer Email *</label>
                                         <input type="email" id="loginEmail" class="form-control py-2" value="organizer@alphapass.io" required>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="form-label fw-bold">Password *</label>
+                                        <label class="form-label fw-bold text-dark">Password *</label>
                                         <input type="password" id="loginPassword" class="form-control py-2" value="password123" required>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold"><i class="fa fa-sign-in-alt me-1"></i> Sign In to Dashboard</button>
+                                    <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i class="fa fa-sign-in-alt me-1"></i> Sign In to Dashboard</button>
                                 </form>
                             </div>
 
@@ -86,22 +94,22 @@
                             <div class="tab-pane fade" id="signupView">
                                 <form id="orgSignupForm">
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Full Name *</label>
+                                        <label class="form-label fw-bold text-dark">Full Name *</label>
                                         <input type="text" id="signupName" class="form-control py-2" placeholder="John Doe" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Business Name</label>
+                                        <label class="form-label fw-bold text-dark">Business Name</label>
                                         <input type="text" id="signupBusiness" class="form-control py-2" placeholder="Epic Events Inc">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Email Address *</label>
+                                        <label class="form-label fw-bold text-dark">Email Address *</label>
                                         <input type="email" id="signupEmail" class="form-control py-2" placeholder="organizer@example.com" required>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="form-label fw-bold">Password *</label>
+                                        <label class="form-label fw-bold text-dark">Password *</label>
                                         <input type="password" id="signupPassword" class="form-control py-2" placeholder="Min 8 characters" required>
                                     </div>
-                                    <button type="submit" class="btn btn-success w-100 rounded-pill py-3 fw-bold"><i class="fa fa-user-plus me-1"></i> Create Organizer Account</button>
+                                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold"><i class="fa fa-user-plus me-1"></i> Create Organizer Account</button>
                                 </form>
                             </div>
                         </div>
@@ -111,61 +119,116 @@
 
             <!-- Organizer Dashboard View (If logged in) -->
             <div id="dashboardSection" style="display: none;">
-                <!-- Header Stats Cards -->
-                <div class="row g-4 mb-4 text-center">
+                <!-- Reference Image Style Metric Header Cards -->
+                <div class="row g-4 mb-4">
                     <div class="col-md-3">
-                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-primary text-white">
-                            <h2 class="fw-bold mb-0" id="statEvents">3</h2>
-                            <small class="text-white-50">Active Events</small>
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
+                            <div class="d-flex align-items-center">
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-dollar-sign"></i></div>
+                                <div>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total Revenue</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statRevenue">₵14,250.00</h3>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-success text-white">
-                            <h2 class="fw-bold mb-0" id="statRevenue">₵14,250.00</h2>
-                            <small class="text-white-50">Total Revenue</small>
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
+                            <div class="d-flex align-items-center">
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-ticket-alt"></i></div>
+                                <div>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Tickets Sold</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statTickets">142</h3>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-info text-white">
-                            <h2 class="fw-bold mb-0" id="statTickets">142</h2>
-                            <small class="text-white-50">Passes Sold</small>
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
+                            <div class="d-flex align-items-center">
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-calendar-check"></i></div>
+                                <div>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Active Events</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statEvents">3</h3>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-warning text-dark">
-                            <h2 class="fw-bold mb-0" id="statCheckins">98</h2>
-                            <small class="text-dark-50">Entry Check-ins</small>
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
+                            <div class="d-flex align-items-center">
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-qrcode"></i></div>
+                                <div>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Gate Scans</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statCheckins">98</h3>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Navigation Bar for Actions -->
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                    <h3 class="fw-bold m-0 text-dark"><i class="fa fa-calendar-alt text-primary me-2"></i> Managed Events</h3>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-success rounded-pill fw-bold px-4" data-bs-toggle="modal" data-bs-target="#createEventModal"><i class="fa fa-plus me-1"></i> Create New Event</button>
-                        <button class="btn btn-warning text-dark rounded-pill fw-bold px-4" data-bs-toggle="modal" data-bs-target="#scannerModal"><i class="fa fa-qrcode me-1"></i> Entry Scanner Console</button>
-                        <button class="btn btn-outline-danger rounded-pill fw-bold" id="logoutBtn"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                <!-- Action Toolbar -->
+                <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h4 class="fw-bold text-dark m-0"><i class="fa fa-th-list text-primary me-2"></i> Event Management Panel</h4>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-warning text-dark rounded-pill fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#createEventModal"><i class="fa fa-plus-circle me-1"></i> Create New Event</button>
+                            <button class="btn btn-dark rounded-pill fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#scannerModal"><i class="fa fa-qrcode me-1"></i> Gate Scanner Console</button>
+                            <button class="btn btn-outline-danger rounded-pill fw-bold px-3 py-2" id="logoutBtn"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Events Table -->
-                <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Event Title</th>
-                                    <th>City / Location</th>
-                                    <th>Start Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="orgEventsTable">
-                                <!-- Loaded dynamically -->
-                            </tbody>
-                        </table>
+                <!-- Events & Analytics Grid -->
+                <div class="row g-4 mb-4">
+                    <!-- Events Table (Reference Image Data Table Style) -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-dark m-0">Managed Event Portfolio</h5>
+                                <span class="badge bg-light text-dark border">Updated live</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle table-hover">
+                                    <thead class="bg-dark text-white">
+                                        <tr>
+                                            <th class="py-3 ps-3">Event Name</th>
+                                            <th class="py-3">Location</th>
+                                            <th class="py-3">Date</th>
+                                            <th class="py-3">Status</th>
+                                            <th class="py-3 text-end pe-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgEventsTable">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payout & Quick Action Panel -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-wallet text-primary me-2"></i> Revenue Payout Request</h5>
+                            <p class="text-muted small mb-4">Transfer event ticket earnings directly to your registered bank account or Mobile Money merchant wallet.</p>
+                            
+                            <form id="payoutForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">Payout Amount (₵) *</label>
+                                    <input type="number" step="0.01" id="payoutAmount" class="form-control py-2" placeholder="5000.00" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-dark">Bank / Mobile Money Provider *</label>
+                                    <input type="text" id="payoutBank" class="form-control py-2" placeholder="MTN Mobile Money Merchant" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-dark">Account Number *</label>
+                                    <input type="text" id="payoutAcc" class="form-control py-2" placeholder="0240000000" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-2 fw-bold"><i class="fa fa-paper-plane me-1"></i> Request Payout</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -176,44 +239,44 @@
     <div class="modal fade" id="createEventModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-3">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-plus-circle me-2"></i> Create New Event</h5>
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-plus-circle me-2 text-warning"></i> Create New Event Listing</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="createEventForm">
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Event Title *</label>
+                            <label class="form-label fw-bold text-dark">Event Title *</label>
                             <input type="text" id="newEventTitle" class="form-control" placeholder="Cloud Security Summit 2026" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Description *</label>
+                            <label class="form-label fw-bold text-dark">Description *</label>
                             <textarea id="newEventDesc" class="form-control" rows="3" placeholder="Comprehensive event description..." required></textarea>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Venue Name *</label>
+                                <label class="form-label fw-bold text-dark">Venue Name *</label>
                                 <input type="text" id="newEventVenue" class="form-control" placeholder="Accra Digital Centre" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">City *</label>
+                                <label class="form-label fw-bold text-dark">City *</label>
                                 <input type="text" id="newEventCity" class="form-control" placeholder="Accra" required>
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Start Date & Time *</label>
+                                <label class="form-label fw-bold text-dark">Start Date & Time *</label>
                                 <input type="datetime-local" id="newEventStart" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">End Date & Time *</label>
+                                <label class="form-label fw-bold text-dark">End Date & Time *</label>
                                 <input type="datetime-local" id="newEventEnd" class="form-control" required>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4">Create Event</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create Event</button>
                     </div>
                 </form>
             </div>
@@ -225,7 +288,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-3">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-qrcode me-2"></i> Entry Scanner Console</h5>
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-qrcode me-2 text-warning"></i> Gate Entry Scanner Console</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 text-center">
@@ -234,7 +297,7 @@
                     <form id="scanForm" class="mb-4">
                         <div class="input-group">
                             <input type="text" id="scanCodeInput" class="form-control text-center fs-5 fw-bold" placeholder="Enter Ticket Code (e.g. TKT-123456)" required>
-                            <button type="submit" class="btn btn-primary fw-bold px-4"><i class="fa fa-search me-1"></i> Scan / Verify</button>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold px-4"><i class="fa fa-search me-1"></i> Scan Pass</button>
                         </div>
                     </form>
 
@@ -249,7 +312,7 @@
     <!-- Footer -->
     <div class="container-fluid bg-dark text-white-50 footer pt-4 mt-5">
         <div class="container py-3 text-center">
-            <p class="mb-0">&copy; AlphaPass Organizer Portal & Gate Console.</p>
+            <p class="mb-0">&copy; AlphaPass Organizer Dashboard & Gate Console.</p>
         </div>
     </div>
 
@@ -283,12 +346,12 @@
                 const events = await apiFetch('/events');
                 tbody.innerHTML = events.map(e => `
                     <tr>
-                        <td class="fw-bold text-dark">${e.title}</td>
-                        <td>${e.venue_name || ''}, ${e.city || ''}</td>
-                        <td>${new Date(e.starts_at).toLocaleDateString()}</td>
+                        <td class="fw-bold text-dark ps-3">${e.title}</td>
+                        <td class="text-muted small">${e.venue_name || ''}, ${e.city || ''}</td>
+                        <td class="text-muted small">${new Date(e.starts_at).toLocaleDateString()}</td>
                         <td><span class="badge bg-success">${e.status || 'PUBLISHED'}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="showToast('Event ID: ${e.id}', 'info')">Manage</button>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="showToast('Event ID: ${e.id}', 'info')">Action ></button>
                         </td>
                     </tr>
                 `).join('');
@@ -363,6 +426,13 @@
                 } catch (err) {
                     showToast('Event creation failed: ' + err.message, 'danger');
                 }
+            });
+
+            document.getElementById('payoutForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const amount = parseFloat(document.getElementById('payoutAmount').value);
+                showToast(`Payout request for ₵${amount.toFixed(2)} submitted!`, 'success');
+                document.getElementById('payoutForm').reset();
             });
 
             document.getElementById('scanForm').addEventListener('submit', async (e) => {
