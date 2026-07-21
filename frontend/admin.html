@@ -9,7 +9,9 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -32,7 +34,8 @@
             </div>
             <div class="col-lg-6 text-center">
                 <div class="input-group mx-auto" style="max-width: 450px;">
-                    <input type="text" class="form-control rounded-pill border-light bg-light px-4" placeholder="Search platform organizers, events, logs...">
+                    <input type="text" class="form-control rounded-pill border-light bg-light px-4"
+                        placeholder="Search platform organizers, events, logs...">
                 </div>
             </div>
             <div class="col-lg-3 text-end">
@@ -46,10 +49,12 @@
     <div class="container-fluid bg-dark text-white py-4 mb-4">
         <div class="container py-2 d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
-                <div class="btn-lg-square bg-warning text-dark rounded-circle fs-3 fw-bold"><i class="fa fa-user-shield"></i></div>
+                <div class="btn-lg-square bg-warning text-dark rounded-circle fs-3 fw-bold"><i
+                        class="fa fa-user-shield"></i></div>
                 <div>
                     <h2 class="text-white fw-bold m-0">Admin Moderation Console</h2>
-                    <p class="mb-0 text-white-50 small">Approve pending organizer events, manage platform categories, process payouts, and inspect security audit logs.</p>
+                    <p class="mb-0 text-white-50 small">Approve pending organizer events, manage platform categories,
+                        process payouts, and inspect security audit logs.</p>
                 </div>
             </div>
             <div id="adminAuthBadge">
@@ -65,17 +70,21 @@
             <div id="adminLoginFormSec" class="row justify-content-center py-4">
                 <div class="col-md-5">
                     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                        <h4 class="fw-bold mb-3 text-center text-dark"><i class="fa fa-lock text-primary me-2"></i> Admin Sign In</h4>
+                        <h4 class="fw-bold mb-3 text-center text-dark"><i class="fa fa-lock text-primary me-2"></i>
+                            Admin Sign In</h4>
                         <form id="adminLoginForm">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-dark">Admin Email *</label>
-                                <input type="email" id="adminEmail" class="form-control py-2" value="admin@alphapass.io" required>
+                                <input type="email" id="adminEmail" class="form-control py-2" value="admin@alphapass.io"
+                                    required>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-dark">Password *</label>
-                                <input type="password" id="adminPassword" class="form-control py-2" value="adminpassword123" required>
+                                <input type="password" id="adminPassword" class="form-control py-2"
+                                    value="adminpassword123" required>
                             </div>
-                            <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i class="fa fa-key me-1"></i> Authenticate Admin</button>
+                            <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i
+                                    class="fa fa-key me-1"></i> Authenticate Admin</button>
                         </form>
                     </div>
                 </div>
@@ -88,9 +97,11 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-calendar text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
+                                        class="fa fa-calendar text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total Events</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total
+                                        Events</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatEvents">12</h3>
                                 </div>
                             </div>
@@ -99,9 +110,11 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-clock text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
+                                        class="fa fa-clock text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Pending Approval</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Pending
+                                        Approval</small>
                                     <h3 class="fw-bold mb-0 text-warning" id="admStatPending">2</h3>
                                 </div>
                             </div>
@@ -110,9 +123,11 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-percentage text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
+                                        class="fa fa-percentage text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Platform Fees</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Platform
+                                        Fees</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatCommission">₵1,425.00</h3>
                                 </div>
                             </div>
@@ -121,7 +136,8 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-users text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
+                                        class="fa fa-users text-dark"></i></div>
                                 <div>
                                     <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Organizers</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatOrganizers">8</h3>
@@ -134,10 +150,14 @@
                 <!-- Admin Action Toolbar -->
                 <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <h4 class="fw-bold text-dark m-0"><i class="fa fa-gavel text-warning me-2"></i> Moderation Governance Queue</h4>
+                        <h4 class="fw-bold text-dark m-0"><i class="fa fa-gavel text-warning me-2"></i> Moderation
+                            Governance Queue</h4>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-warning text-dark rounded-pill fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa fa-tags me-1"></i> Add Category</button>
-                            <button class="btn btn-outline-dark rounded-pill fw-bold px-3 py-2" id="adminLogoutBtn"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                            <button class="btn btn-warning text-dark rounded-pill fw-bold px-4 py-2"
+                                data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa fa-tags me-1"></i>
+                                Add Category</button>
+                            <button class="btn btn-outline-dark rounded-pill fw-bold px-3 py-2" id="adminLogoutBtn"><i
+                                    class="fa fa-sign-out-alt"></i> Logout</button>
                         </div>
                     </div>
                 </div>
@@ -169,8 +189,12 @@
                                             <td class="text-muted small">Accra</td>
                                             <td><span class="badge bg-warning text-dark">PENDING</span></td>
                                             <td class="text-end pe-3">
-                                                <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('evt-mod-1', true)"><i class="fa fa-check me-1"></i> Approve</button>
-                                                <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="approveEvent('evt-mod-1', false)"><i class="fa fa-times me-1"></i> Reject</button>
+                                                <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1"
+                                                    onclick="approveEvent('evt-mod-1', true)"><i
+                                                        class="fa fa-check me-1"></i> Approve</button>
+                                                <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold"
+                                                    onclick="approveEvent('evt-mod-1', false)"><i
+                                                        class="fa fa-times me-1"></i> Reject</button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -182,21 +206,28 @@
                     <!-- Category & Platform Settings Panel -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
-                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-sliders-h text-primary me-2"></i> Platform Fee Configuration</h5>
-                            <p class="text-muted small mb-4">Set global commission fee percentage levied on ticket sales across all organizers.</p>
-                            
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-sliders-h text-primary me-2"></i>
+                                Platform Fee Configuration</h5>
+                            <p class="text-muted small mb-4">Set global commission fee percentage levied on ticket sales
+                                across all organizers.</p>
+
                             <form id="commissionForm">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold small text-dark">Commission Rate (%) *</label>
-                                    <input type="number" step="0.1" id="commissionRate" class="form-control py-2" value="5.0" required>
+                                    <input type="number" step="0.1" id="commissionRate" class="form-control py-2"
+                                        value="5.0" required>
                                 </div>
-                                <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-2 fw-bold mb-4"><i class="fa fa-save me-1"></i> Save Platform Fee</button>
+                                <button type="submit"
+                                    class="btn btn-warning text-dark w-100 rounded-pill py-2 fw-bold mb-4"><i
+                                        class="fa fa-save me-1"></i> Save Platform Fee</button>
                             </form>
 
                             <hr>
 
-                            <h6 class="fw-bold text-dark mb-2"><i class="fa fa-shield-alt text-success me-2"></i> Security Audit Logs</h6>
-                            <p class="text-muted small mb-0">System events logged across DynamoDB tables for security auditing.</p>
+                            <h6 class="fw-bold text-dark mb-2"><i class="fa fa-shield-alt text-success me-2"></i>
+                                Security Audit Logs</h6>
+                            <p class="text-muted small mb-0">System events logged across DynamoDB tables for security
+                                auditing.</p>
                         </div>
                     </div>
                 </div>
@@ -209,23 +240,28 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-3">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-tags me-2 text-warning"></i> Add Platform Event Category</h5>
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-tags me-2 text-warning"></i> Add
+                        Platform Event Category</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="createCatForm">
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label class="form-label fw-bold text-dark">Category Name *</label>
-                            <input type="text" id="catName" class="form-control" placeholder="e.g. AI & Robotics" required>
+                            <input type="text" id="catName" class="form-control" placeholder="e.g. AI & Robotics"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold text-dark">Description</label>
-                            <input type="text" id="catDesc" class="form-control" placeholder="Brief category description">
+                            <input type="text" id="catDesc" class="form-control"
+                                placeholder="Brief category description">
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create Category</button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create
+                            Category</button>
                     </div>
                 </form>
             </div>
