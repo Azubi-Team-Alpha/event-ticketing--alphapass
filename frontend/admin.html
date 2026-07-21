@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Admin Dashboard & Moderation Console - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-6 text-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-lg-6 text-end">
+                <a href="organizer.html" class="btn btn-outline-primary rounded-pill px-4 me-2">Organizer Portal</a>
+                <a href="events.html" class="btn btn-primary rounded-pill px-4">Event Explorer</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Banner -->
+    <div class="container-fluid bg-dark py-4 mb-4 text-white">
+        <div class="container py-2 d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="display-5 text-white fw-bold"><i class="fa fa-user-shield text-warning me-2"></i> Admin Moderation Console</h1>
+                <p class="mb-0 text-white-50">Approve pending organizer events, manage platform categories, process payouts, and audit logs.</p>
+            </div>
+            <div id="adminAuthBadge">
+                <span class="badge bg-danger px-3 py-2 fs-6">Admin Auth Required</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <div class="container">
+            <!-- Login Form (If not logged in) -->
+            <div id="adminLoginFormSec" class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-light">
+                        <h4 class="fw-bold mb-3 text-center"><i class="fa fa-lock text-primary me-2"></i> Admin Sign In</h4>
+                        <form id="adminLoginForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Admin Email *</label>
+                                <input type="email" id="adminEmail" class="form-control py-2" value="admin@alphapass.io" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Password *</label>
+                                <input type="password" id="adminPassword" class="form-control py-2" value="adminpassword123" required>
+                            </div>
+                            <button type="submit" class="btn btn-dark w-100 rounded-pill py-3 fw-bold"><i class="fa fa-key me-1"></i> Authenticate Admin</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Console Dashboard (If logged in) -->
+            <div id="adminDashSec" style="display: none;">
+                <!-- Platform Metrics -->
+                <div class="row g-4 mb-4 text-center">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white">
+                            <h2 class="fw-bold mb-0 text-warning" id="admStatEvents">12</h2>
+                            <small class="text-white-50">Total Platform Events</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-primary text-white">
+                            <h2 class="fw-bold mb-0" id="admStatPending">2</h2>
+                            <small class="text-white-50">Pending Approval</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-success text-white">
+                            <h2 class="fw-bold mb-0" id="admStatCommission">₵1,425.00</h2>
+                            <small class="text-white-50">Platform Fee Revenue</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-info text-white">
+                            <h2 class="fw-bold mb-0" id="admStatOrganizers">8</h2>
+                            <small class="text-white-50">Registered Organizers</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h3 class="fw-bold text-dark m-0"><i class="fa fa-gavel text-warning me-2"></i> Event Moderation Queue</h3>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-dark rounded-pill fw-bold" id="adminLogoutBtn"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                    </div>
+                </div>
+
+                <!-- Pending Events Table -->
+                <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Event Title</th>
+                                    <th>Organizer</th>
+                                    <th>City</th>
+                                    <th>Submission Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingEventsTable">
+                                <tr>
+                                    <td class="fw-bold">Accra Tech & AI Carnival 2026</td>
+                                    <td>Digital Innovators Hub</td>
+                                    <td>Accra</td>
+                                    <td><span class="badge bg-warning text-dark">PENDING APPROVAL</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('evt-mod-1', true)"><i class="fa fa-check me-1"></i> Approve</button>
+                                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="approveEvent('evt-mod-1', false)"><i class="fa fa-times me-1"></i> Reject</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-4 mt-5">
+        <div class="container py-3 text-center">
+            <p class="mb-0">&copy; AlphaPass Admin Security Console.</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        function checkAdminAuth() {
+            const token = localStorage.getItem('admin_token');
+            const badge = document.getElementById('adminAuthBadge');
+            const loginSec = document.getElementById('adminLoginFormSec');
+            const dashSec = document.getElementById('adminDashSec');
+
+            if (token) {
+                badge.innerHTML = '<span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-user-shield me-1"></i> Authenticated Admin</span>';
+                loginSec.style.display = 'none';
+                dashSec.style.display = 'block';
+            } else {
+                badge.innerHTML = '<span class="badge bg-danger px-3 py-2 fs-6">Admin Auth Required</span>';
+                loginSec.style.display = 'flex';
+                dashSec.style.display = 'none';
+            }
+        }
+
+        async function approveEvent(id, isApproved) {
+            try {
+                await apiFetch(`/admin/events/${id}/approve`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ approved: isApproved })
+                });
+                showToast(isApproved ? 'Event Approved & Published!' : 'Event Rejected', isApproved ? 'success' : 'warning');
+            } catch (err) {
+                showToast(isApproved ? 'Event Approved (Demo)' : 'Event Rejected (Demo)', isApproved ? 'success' : 'warning');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+
+            document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('adminEmail').value.trim();
+                const password = document.getElementById('adminPassword').value.trim();
+
+                try {
+                    const res = await apiFetch('/auth/admin/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password })
+                    });
+                    localStorage.setItem('admin_token', res.access_token);
+                    showToast('Admin Authenticated!', 'success');
+                    checkAdminAuth();
+                } catch (err) {
+                    showToast('Admin login failed: ' + err.message, 'danger');
+                }
+            });
+
+            document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('admin_token');
+                checkAdminAuth();
+                showToast('Signed out of Admin console', 'info');
+            });
+        });
+    </script>
+</body>
+
+</html>

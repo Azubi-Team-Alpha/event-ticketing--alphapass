@@ -1,1007 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaPass | Event Explorer</title>
+    <meta charset="utf-8">
+    <title>Event Explorer - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Browse, search and filter upcoming events, concerts, summits & workshops on AlphaPass." name="description">
+
+    <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.4);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.15);
-            --secondary: #10b981;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --surface: #1e293b;
-
-            --available: #10b981;
-            --available-bg: rgba(16, 185, 129, 0.12);
-            --limited: #f59e0b;
-            --limited-bg: rgba(245, 158, 11, 0.12);
-            --soldout: #ef4444;
-            --soldout-bg: rgba(239, 68, 68, 0.12);
-
-            --radius: 16px;
-            --radius-sm: 10px;
-            --radius-lg: 24px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            position: relative;
-            background-image:
-                radial-gradient(ellipse at 10% 15%, var(--primary-glow) 0%, transparent 40%),
-                radial-gradient(ellipse at 90% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
-        }
-
-        .app {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem 3rem;
-        }
-
-        /* ── Header ─────────────────────────────────────────────── */
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .brand-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(99, 102, 241, 0.12);
-            color: #a5b4fc;
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            border-radius: 100px;
-            padding: 0.35rem 1.1rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .brand-badge svg {
-            flex-shrink: 0;
-        }
-
-        h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            background: linear-gradient(to right, #ffffff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-sub {
-            font-size: 0.95rem;
-            color: var(--text-sub);
-        }
-
-        /* ── Search / Filter Panel ───────────────────────────────── */
-
-        .filter-panel {
-            background: var(--card-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1 1 200px;
-            min-width: 0;
-        }
-
-        .filter-group:first-child {
-            flex: 2 1 280px;
-        }
-
-        .filter-group label {
-            display: flex;
-            align-items: center;
-            color: var(--text-sub);
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-
-        .filter-group label svg {
-            flex-shrink: 0;
-        }
-
-        .filter-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 0.6rem 0.9rem;
-            color: var(--text-main);
-            font-size: 0.9rem;
-            width: 100%;
-            transition: border-color 0.2s;
-            outline: none;
-        }
-
-        .filter-input:focus {
-            border-color: var(--primary);
-        }
-
-        .filter-input::placeholder {
-            color: rgba(148, 163, 184, 0.5);
-        }
-
-        select.filter-input {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            padding-right: 2rem;
-        }
-
-        select.filter-input option {
-            background: #1e293b;
-            color: var(--text-main);
-        }
-
-        .btn-search {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-            white-space: nowrap;
-        }
-
-        .btn-search:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-        }
-
-        .btn-search:active {
-            transform: translateY(0);
-        }
-
-        /* ── Event Grid ─────────────────────────────────────────── */
-
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-        }
-
-        .event-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            overflow: hidden;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .event-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-            border-color: rgba(99, 102, 241, 0.2);
-        }
-
-        /* ── Card Banner ────────────────────────────────────────── */
-
-        .card-banner {
-            position: relative;
-            height: 160px;
-            background-size: cover;
-            background-position: center;
-            background-color: #1e293b;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            padding: 0.75rem;
-        }
-
-        .card-banner-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.12);
-            letter-spacing: 0.05em;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        .card-category {
-            display: inline-block;
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(6px);
-            color: #c7d2fe;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 100px;
-            padding: 0.2rem 0.8rem;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            z-index: 1;
-        }
-
-        .card-banner .card-status-badge {
-            z-index: 1;
-        }
-
-        /* ── Card Body ──────────────────────────────────────────── */
-
-        .card-body {
-            padding: 1rem 1.1rem 1.15rem;
-        }
-
-        .card-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            line-height: 1.3;
-            margin-bottom: 0.75rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .card-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .card-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.82rem;
-            color: var(--text-sub);
-        }
-
-        .card-meta-item svg {
-            flex-shrink: 0;
-        }
-
-        .card-meta-item span {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-price {
-            margin-top: 0.65rem;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #a5b4fc;
-        }
-
-        /* ── Status Badge ───────────────────────────────────────── */
-
-        .card-status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            border-radius: 100px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
-
-        .card-status-badge .dot-indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .card-status-badge.available {
-            background: var(--available-bg);
-            color: var(--available);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-        .card-status-badge.available .dot-indicator {
-            background: var(--available);
-            box-shadow: 0 0 6px var(--available);
-        }
-
-        .card-status-badge.limited {
-            background: var(--limited-bg);
-            color: var(--limited);
-            border: 1px solid rgba(245, 158, 11, 0.25);
-        }
-        .card-status-badge.limited .dot-indicator {
-            background: var(--limited);
-            box-shadow: 0 0 6px var(--limited);
-        }
-
-        .card-status-badge.sold-out {
-            background: var(--soldout-bg);
-            color: var(--soldout);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-        }
-        .card-status-badge.sold-out .dot-indicator {
-            background: var(--soldout);
-            box-shadow: 0 0 6px var(--soldout);
-        }
-
-        /* ── Pagination ─────────────────────────────────────────── */
-
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-
-        .page-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 36px;
-            height: 36px;
-            padding: 0 0.7rem;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-sub);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .page-btn:hover:not(:disabled):not(.active) {
-            border-color: var(--primary);
-            color: var(--text-main);
-        }
-
-        .page-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
-
-        .page-ellipsis {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            color: var(--text-sub);
-            font-size: 0.85rem;
-        }
-
-        /* ── States ─────────────────────────────────────────────── */
-
-        .state-message {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .state-message svg {
-            margin-bottom: 1rem;
-        }
-
-        .state-message h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-        }
-
-        .state-message p {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            max-width: 360px;
-        }
-
-        .state-message .btn-retry {
-            margin-top: 1.25rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 0.55rem 1.25rem;
-            color: var(--text-main);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .state-message .btn-retry:hover {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        /* ── Loading Skeleton ────────────────────────────────────── */
-
-        @keyframes shimmer {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-
-        .skeleton {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            overflow: hidden;
-            animation: shimmer 1.5s ease-in-out infinite;
-        }
-
-        .skeleton-banner {
-            height: 160px;
-            background: rgba(51, 65, 85, 0.4);
-        }
-
-        .skeleton-body {
-            padding: 1rem 1.1rem 1.15rem;
-        }
-
-        .skeleton-line {
-            height: 12px;
-            background: rgba(51, 65, 85, 0.4);
-            border-radius: 6px;
-            margin-bottom: 0.6rem;
-        }
-
-        .skeleton-line:first-child {
-            width: 70%;
-            height: 16px;
-        }
-
-        .skeleton-line:nth-child(2) {
-            width: 50%;
-        }
-
-        .skeleton-line:nth-child(3) {
-            width: 60%;
-        }
-
-        .skeleton-line:last-child {
-            width: 35%;
-            margin-bottom: 0;
-        }
-
-        /* ── Responsive ─────────────────────────────────────────── */
-
-        @media (max-width: 768px) {
-            .app {
-                padding: 1.25rem 1rem 2rem;
-            }
-
-            h1 {
-                font-size: 1.3rem;
-            }
-
-            .filter-panel {
-                flex-direction: column;
-                padding: 1rem;
-            }
-
-            .filter-group {
-                flex: 1 1 100%;
-                width: 100%;
-            }
-
-            .btn-search {
-                width: 100%;
-            }
-
-            .events-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .card-banner {
-                height: 140px;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .events-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* ── Utility ─────────────────────────────────────────────── */
-
-        .hidden {
-            display: none !important;
-        }
-
-        .results-info {
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            margin-bottom: 1rem;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/animate/animate.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
 </head>
+
 <body>
-    <div class="app">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <span class="brand-badge">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 0 0-2 2v3a2 2 0 1 1 0 4v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a2 2 0 1 1 0-4V7a2 2 0 0 0-2-2H5Z"/>
-                    </svg>
-                    AlphaPass
-                </span>
-                <h1>Event Explorer</h1>
-            </div>
-            <span class="header-sub">Discover and book live experiences</span>
-        </header>
 
-        <!-- Search & Filter Panel -->
-        <div class="filter-panel">
-            <div class="filter-group">
-                <label for="searchInput">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.4rem;">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                    </svg>
-                </label>
-                <input type="text" id="searchInput" class="filter-input" placeholder="Search events by title or description..." autocomplete="off">
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-4 text-center text-lg-start mb-lg-0">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <a href="contact.html" class="text-muted me-2"><i class="fa fa-question-circle text-primary me-1"></i> Help</a><small> / </small>
+                    <a href="contact.html" class="text-muted mx-2"><i class="fa fa-headset text-primary me-1"></i> Support</a><small> / </small>
+                    <a href="contact.html" class="text-muted ms-2"><i class="fa fa-envelope text-primary me-1"></i> Contact</a>
+                </div>
             </div>
-
-            <div class="filter-group">
-                <label for="cityFilter">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.4rem;">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-                    </svg>
-                </label>
-                <select id="cityFilter" class="filter-input">
-                    <option value="">All Cities</option>
-                </select>
+            <div class="col-lg-4 text-center d-flex align-items-center justify-content-center">
+                <small class="text-dark"><i class="fa fa-phone-alt text-primary me-2"></i>Pass Helpline:</small>
+                <a href="tel:+233240000000" class="text-muted ms-1">(+233) 240 000 000</a>
             </div>
-
-            <div class="filter-group">
-                <label for="categoryFilter">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.4rem;">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
-                </label>
-                <select id="categoryFilter" class="filter-input">
-                    <option value="">All Categories</option>
-                </select>
+            <div class="col-lg-4 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <div class="dropdown me-2">
+                        <a href="#" class="dropdown-toggle text-muted" data-bs-toggle="dropdown"><small><i class="fa fa-globe text-primary me-1"></i> GHS (₵)</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="#" class="dropdown-item">GHS (₵)</a>
+                            <a href="#" class="dropdown-item">USD ($)</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle text-muted ms-2" data-bs-toggle="dropdown"><small><i class="fa fa-user-circle text-primary me-1"></i> Portals & Account</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="wallet.html" class="dropdown-item"><i class="fa fa-ticket-alt me-2 text-primary"></i>My Ticket Wallet</a>
+                            <a href="organizer.html" class="dropdown-item"><i class="fa fa-briefcase me-2 text-primary"></i>Organizer Portal</a>
+                            <a href="admin.html" class="dropdown-item"><i class="fa fa-user-shield me-2 text-primary"></i>Admin Dashboard</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <button id="searchBtn" class="btn-search">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-                Search
-            </button>
         </div>
-
-        <!-- Results Info -->
-        <div id="resultsInfo" class="results-info hidden"></div>
-
-        <!-- Event Grid -->
-        <div id="eventsGrid" class="events-grid">
-            <!-- Skeleton loaders shown on initial load -->
-            <div class="skeleton"><div class="skeleton-banner"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
-            <div class="skeleton"><div class="skeleton-banner"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
-            <div class="skeleton"><div class="skeleton-banner"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
-            <div class="skeleton"><div class="skeleton-banner"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div></div>
-        </div>
-
-        <!-- Pagination -->
-        <div id="pagination" class="pagination"></div>
     </div>
 
+    <!-- Header & Search Bar -->
+    <div class="container-fluid px-5 py-4 d-none d-lg-block bg-light">
+        <div class="row gx-0 align-items-center text-center">
+            <div class="col-md-4 col-lg-3 text-center text-lg-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-6 text-center">
+                <div class="position-relative ps-4">
+                    <form id="eventsSearchForm" class="d-flex border rounded-pill bg-white shadow-sm">
+                        <input class="form-control border-0 rounded-pill w-100 py-3 px-4" type="text" id="searchInput" placeholder="Search event title, venue, city...">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 px-5 border-0"><i class="fas fa-search me-1"></i> Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center">
+                    <a href="wallet.html" class="btn btn-outline-primary rounded-pill me-2"><i class="fas fa-wallet me-1"></i> Ticket Wallet</a>
+                    <a href="cart.html" class="btn btn-primary rounded-pill position-relative px-3 py-2">
+                        <i class="fas fa-shopping-cart me-1"></i> Cart
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar Start -->
+    <div class="container-fluid nav-bar p-0">
+        <div class="row gx-0 bg-primary px-5 align-items-center">
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="dropdown">
+                    <button class="btn btn-primary border-0 fs-5 w-100 py-3 text-start fw-bold" type="button" data-bs-toggle="dropdown">
+                        <i class="fa fa-bars me-2"></i> Categories
+                    </button>
+                    <div class="dropdown-menu rounded-bottom w-100 shadow border-0 m-0" id="navbarCategoryDropdown">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-9">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-2 py-lg-0">
+                    <a href="index.html" class="navbar-brand d-block d-lg-none">
+                        <h2 class="text-white m-0"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                        <span class="fa fa-bars"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto py-0">
+                            <a href="index.html" class="nav-item nav-link fw-bold">Home</a>
+                            <a href="events.html" class="nav-item nav-link active fw-bold">Event Explorer</a>
+                            <a href="resale.html" class="nav-item nav-link fw-bold"><span class="badge bg-warning text-dark me-1">HOT</span> Resale Market</a>
+                            <a href="wallet.html" class="nav-item nav-link fw-bold">Ticket Wallet</a>
+                            <a href="organizer.html" class="nav-item nav-link fw-bold">Organizer Portal</a>
+                            <a href="admin.html" class="nav-item nav-link fw-bold">Admin Console</a>
+                            <a href="contact.html" class="nav-item nav-link me-2 fw-bold">Contact Us</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Header Banner -->
+    <div class="container-fluid bg-primary py-4 mb-4 text-white">
+        <div class="container py-2">
+            <h1 class="display-5 text-white fw-bold">Event Explorer</h1>
+            <p class="mb-0 text-white-50">Discover upcoming concerts, tech summits, business forums & entertainment passes.</p>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="container-fluid py-4">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Sidebar Filters -->
+                <div class="col-lg-3">
+                    <div class="card border-0 shadow-sm p-4 rounded-3 mb-4 bg-light">
+                        <h5 class="fw-bold mb-3"><i class="fa fa-filter text-primary me-2"></i> Filter Events</h5>
+                        
+                        <!-- Category Filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Category</label>
+                            <select class="form-select border-0 shadow-sm" id="categoryFilter">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+
+                        <!-- City Filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase text-muted">City / Location</label>
+                            <select class="form-select border-0 shadow-sm" id="cityFilter">
+                                <option value="">All Locations</option>
+                                <option value="Accra">Accra, Ghana</option>
+                                <option value="Kumasi">Kumasi, Ghana</option>
+                                <option value="Lagos">Lagos, Nigeria</option>
+                                <option value="Nairobi">Nairobi, Kenya</option>
+                                <option value="Online">Online / Virtual</option>
+                            </select>
+                        </div>
+
+                        <!-- Reset Button -->
+                        <button class="btn btn-outline-primary w-100 rounded-pill fw-bold" id="resetFiltersBtn"><i class="fa fa-redo me-1"></i> Reset Filters</button>
+                    </div>
+                </div>
+
+                <!-- Event Grid -->
+                <div class="col-lg-9">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-muted fw-bold" id="resultCount">Showing events...</span>
+                    </div>
+
+                    <div class="row g-4" id="explorerEventGrid">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+        <div class="container py-4">
+            <div class="row g-5">
+                <div class="col-lg-4 col-md-6">
+                    <a href="index.html" class="navbar-brand">
+                        <h2 class="text-primary mb-3"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <p class="text-white-50">AlphaPass Event Explorer — browse events, purchase tickets, and list on secondary marketplace.</p>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-white mb-4">Quick Links</h5>
+                    <a class="btn btn-link text-white-50" href="index.html">Home</a>
+                    <a class="btn btn-link text-white-50" href="events.html">Event Explorer</a>
+                    <a class="btn btn-link text-white-50" href="wallet.html">Ticket Wallet</a>
+                    <a class="btn btn-link text-white-50" href="organizer.html">Organizer Portal</a>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-white mb-4">Help & Contact</h5>
+                    <p class="mb-2"><i class="fa fa-phone-alt me-3 text-primary"></i>+233 240 000 000</p>
+                    <p class="mb-2"><i class="fa fa-envelope me-3 text-primary"></i>support@alphapass.io</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/wow/wow.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
     <script>
-        const API_BASE = 'http://localhost:8000';
-
-        const state = {
-            page: 1,
-            limit: 12,
-            search: '',
-            city: '',
-            category: '',
-            total: 0,
-            isLoading: false,
-        };
-
-        const $ = (id) => document.getElementById(id);
-        const searchInput = $('searchInput');
-        const cityFilter = $('cityFilter');
-        const categoryFilter = $('categoryFilter');
-        const searchBtn = $('searchBtn');
-        const eventsGrid = $('eventsGrid');
-        const paginationEl = $('pagination');
-        const resultsInfo = $('resultsInfo');
-
-        let searchDebounceTimer = null;
-
-        // ── Initialization ────────────────────────────────────────
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await Promise.all([loadCategories(), loadEvents()]);
-            searchInput.addEventListener('input', handleSearchInput);
-            cityFilter.addEventListener('change', handleFilterChange);
-            categoryFilter.addEventListener('change', handleFilterChange);
-            searchBtn.addEventListener('click', handleSearchSubmit);
-        });
-
-        // ── Handlers ──────────────────────────────────────────────
-
-        function handleSearchInput() {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(() => {
-                state.search = searchInput.value.trim();
-                state.page = 1;
-                loadEvents();
-            }, 400);
-        }
-
-        function handleSearchSubmit() {
-            clearTimeout(searchDebounceTimer);
-            state.search = searchInput.value.trim();
-            state.page = 1;
-            loadEvents();
-        }
-
-        function handleFilterChange() {
-            state.city = cityFilter.value;
-            state.category = categoryFilter.value;
-            state.page = 1;
-            loadEvents();
-        }
-
-        // ── API Calls ─────────────────────────────────────────────
+        let allEvents = [];
 
         async function loadCategories() {
-            try {
-                const res = await fetch(`${API_BASE}/events/categories`);
-                if (!res.ok) return;
-                const categories = await res.json();
-                categories.forEach((cat) => {
-                    const opt = document.createElement('option');
-                    opt.value = cat.slug;
-                    opt.textContent = cat.name;
-                    categoryFilter.appendChild(opt);
-                });
-            } catch {
-                // silently fail — category filter stays at "All Categories"
-            }
+            const categories = await apiFetch('/events/categories');
+            const select = document.getElementById('categoryFilter');
+            const dropdown = document.getElementById('navbarCategoryDropdown');
+
+            select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            dropdown.innerHTML = categories.map(c => `<a href="events.html?category_id=${c.id}" class="dropdown-item py-2"><i class="fa fa-tag me-2 text-primary"></i> ${c.name}</a>`).join('');
         }
 
         async function loadEvents() {
-            if (state.isLoading) return;
-            state.isLoading = true;
-            showLoading();
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search') || '';
+            const catParam = urlParams.get('category_id') || '';
 
-            const params = new URLSearchParams({
-                page: String(state.page),
-                limit: String(state.limit),
-            });
-            if (state.search) params.set('search', state.search);
-            if (state.city) params.set('city', state.city);
-            if (state.category) params.set('category', state.category);
+            if (searchParam) document.getElementById('searchInput').value = searchParam;
+
+            const grid = document.getElementById('explorerEventGrid');
+            const count = document.getElementById('resultCount');
 
             try {
-                const res = await fetch(`${API_BASE}/events?${params}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                state.total = data.total || 0;
-                populateCityFilter(data.items || []);
-                renderEvents(data.items || []);
-                renderPagination();
-            } catch {
-                showError();
-            } finally {
-                state.isLoading = false;
+                let path = '/events';
+                const queryParts = [];
+                if (searchParam) queryParts.push(`search=${encodeURIComponent(searchParam)}`);
+                if (catParam) queryParts.push(`category_id=${encodeURIComponent(catParam)}`);
+                if (queryParts.length > 0) path += '?' + queryParts.join('&');
+
+                allEvents = await apiFetch(path);
+                if (catParam) document.getElementById('categoryFilter').value = catParam;
+
+                renderEvents(allEvents);
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">Failed to load events.</div>';
             }
         }
 
-        // ── City Filter Population ────────────────────────────────
+        function renderEvents(events) {
+            const grid = document.getElementById('explorerEventGrid');
+            const count = document.getElementById('resultCount');
 
-        function populateCityFilter(events) {
-            const cities = new Set();
-            events.forEach((e) => { if (e.city) cities.add(e.city); });
-            const current = cityFilter.value;
+            const catVal = document.getElementById('categoryFilter').value;
+            const cityVal = document.getElementById('cityFilter').value;
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
-            cityFilter.innerHTML = '<option value="">All Cities</option>';
-            [...cities].sort().forEach((city) => {
-                const opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                cityFilter.appendChild(opt);
-            });
+            let filtered = events;
 
-            if (current) cityFilter.value = current;
-        }
-
-        // ── Status Badge Resolution ───────────────────────────────
-
-        function resolveStatus(event) {
-            const cap = event.total_capacity;
-            const sold = event.total_sold;
-
-            if (cap === null || cap === undefined || cap === 0) {
-                return { label: 'Available', type: 'available' };
+            if (catVal) filtered = filtered.filter(e => e.category_id === catVal);
+            if (cityVal) {
+                if (cityVal === 'Online') filtered = filtered.filter(e => e.is_online);
+                else filtered = filtered.filter(e => (e.city || '').toLowerCase().includes(cityVal.toLowerCase()));
+            }
+            if (searchVal) {
+                filtered = filtered.filter(e => (e.title || '').toLowerCase().includes(searchVal) || (e.description || '').toLowerCase().includes(searchVal) || (e.city || '').toLowerCase().includes(searchVal));
             }
 
-            const remaining = cap - (sold || 0);
+            count.textContent = `Showing ${filtered.length} event(s)`;
 
-            if (remaining <= 0) {
-                return { label: 'Sold Out', type: 'sold-out' };
-            }
-            if (remaining <= Math.round(cap * 0.2)) {
-                return { label: 'Limited', type: 'limited' };
-            }
-            return { label: 'Available', type: 'available' };
-        }
-
-        // ── Formatting ────────────────────────────────────────────
-
-        function formatDate(iso) {
-            if (!iso) return 'TBD';
-            const d = new Date(iso);
-            if (isNaN(d.getTime())) return 'TBD';
-            return d.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-            });
-        }
-
-        function formatPrice(min, max) {
-            const fmt = (v) => {
-                const n = parseFloat(v);
-                if (isNaN(n)) return null;
-                return '$' + n.toFixed(2);
-            };
-            const lo = fmt(min);
-            const hi = fmt(max);
-
-            if (lo === null && hi === null) return 'Free';
-            if (lo === hi || hi === null) return lo || 'Free';
-            return `${lo} – ${hi}`;
-        }
-
-        function formatLocation(event) {
-            const parts = [event.venue_name, event.city, event.country].filter(Boolean);
-            return parts.length > 0 ? parts.join(', ') : (event.is_online ? 'Online Event' : 'TBD');
-        }
-
-        // ── Renderers ─────────────────────────────────────────────
-
-        function renderEvents(items) {
-            if (!items || items.length === 0) {
-                showEmpty();
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">No matching events found.</div>';
                 return;
             }
 
-            eventsGrid.innerHTML = items.map((event) => {
-                const status = resolveStatus(event);
-                const bannerUrl = event.banner_image_url || event.thumbnail_url || '';
-                const safeUrl = bannerUrl.replace(/'/g, '%27');
-                const bannerStyle = safeUrl
-                    ? `background-image: url('${safeUrl}'); background-size: cover; background-position: center;`
-                    : `background: linear-gradient(135deg, #1e293b 0%, #334155 100%);`;
-                const initial = (event.title || '?').charAt(0).toUpperCase();
-
-                return `
-                    <div class="event-card" data-id="${event.id}">
-                        <div class="card-banner" style="${bannerStyle}">
-                            ${bannerUrl ? '' : `<div class="card-banner-placeholder">${initial}</div>`}
-                            <span class="card-category">${event.category ? event.category.name : 'Event'}</span>
-                            <span class="card-status-badge ${status.type}">
-                                <span class="dot-indicator"></span>
-                                ${status.label}
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <h3 class="card-title">${event.title}</h3>
-                            <div class="card-meta">
-                                <div class="card-meta-item">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    <span>${formatDate(event.starts_at)}</span>
-                                </div>
-                                <div class="card-meta-item">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-                                    </svg>
-                                    <span>${formatLocation(event)}</span>
-                                </div>
+            grid.innerHTML = filtered.map(evt => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        <img src="${evt.image_url || 'img/header-img.jpg'}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${evt.title}">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge bg-primary me-auto mb-2">${evt.category_name || 'Event'}</span>
+                            <h5 class="fw-bold text-dark mb-2">${evt.title}</h5>
+                            <p class="text-muted small mb-3 flex-grow-1">${(evt.description || '').substring(0, 90)}...</p>
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <i class="fa fa-map-marker-alt text-primary me-2"></i> ${evt.city || 'Accra'}
+                                <span class="mx-2">•</span>
+                                <i class="fa fa-calendar-alt text-primary me-2"></i> ${new Date(evt.starts_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </div>
-                            <div class="card-price">${formatPrice(event.min_price, event.max_price)}</div>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                                <span class="fs-5 fw-bold text-primary">₵${(evt.min_price || 100).toFixed(2)}</span>
+                                <a href="single.html?id=${evt.id}" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="fa fa-ticket-alt me-1"></i> Get Tickets</a>
+                            </div>
                         </div>
-                    </div>
-                `;
-            }).join('');
-
-            resultsInfo.classList.remove('hidden');
-            resultsInfo.textContent = `Showing ${items.length} of ${state.total} event${state.total !== 1 ? 's' : ''}`;
-        }
-
-        function renderPagination() {
-            const totalPages = Math.max(1, Math.ceil(state.total / state.limit));
-            const current = state.page;
-
-            if (totalPages <= 1) {
-                paginationEl.innerHTML = '';
-                return;
-            }
-
-            const pages = [];
-            const range = 2;
-
-            pages.push(buildPageBtn('prev', current > 1, current - 1, '← Prev'));
-
-            const start = Math.max(1, current - range);
-            const end = Math.min(totalPages, current + range);
-
-            if (start > 1) {
-                pages.push(buildPageBtn('page', true, 1, '1'));
-                if (start > 2) pages.push('<span class="page-ellipsis">…</span>');
-            }
-
-            for (let i = start; i <= end; i++) {
-                pages.push(buildPageBtn('page', true, i, String(i), i === current));
-            }
-
-            if (end < totalPages) {
-                if (end < totalPages - 1) pages.push('<span class="page-ellipsis">…</span>');
-                pages.push(buildPageBtn('page', true, totalPages, String(totalPages)));
-            }
-
-            pages.push(buildPageBtn('next', current < totalPages, current + 1, 'Next →'));
-
-            paginationEl.innerHTML = pages.join('');
-            paginationEl.querySelectorAll('.page-btn').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const p = parseInt(btn.dataset.page, 10);
-                    if (!isNaN(p) && p !== state.page) {
-                        state.page = p;
-                        loadEvents();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
-            });
-        }
-
-        function buildPageBtn(type, enabled, page, label, isActive) {
-            const cls = `page-btn${isActive ? ' active' : ''}`;
-            const disabledAttr = enabled ? '' : 'disabled';
-            const dataPage = type === 'prev' || type === 'next' ? ` data-page="${page}"` : ` data-page="${page}"`;
-            return `<button class="${cls}"${dataPage} ${disabledAttr}>${label}</button>`;
-        }
-
-        // ── UI States ─────────────────────────────────────────────
-
-        function showLoading() {
-            const skeletons = Array.from({ length: 4 }, () => `
-                <div class="skeleton">
-                    <div class="skeleton-banner"></div>
-                    <div class="skeleton-body">
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
                     </div>
                 </div>
             `).join('');
-            eventsGrid.innerHTML = skeletons;
-            paginationEl.innerHTML = '';
-            resultsInfo.classList.add('hidden');
         }
 
-        function showEmpty() {
-            eventsGrid.innerHTML = `
-                <div class="state-message">
-                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-sub); opacity: 0.4;">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    <h3>No events found</h3>
-                    <p>Try adjusting your search or filters to discover more events.</p>
-                </div>
-            `;
-            paginationEl.innerHTML = '';
-            resultsInfo.classList.add('hidden');
-        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+            await loadEvents();
 
-        function showError() {
-            eventsGrid.innerHTML = `
-                <div class="state-message">
-                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-sub); opacity: 0.4;">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <h3>Something went wrong</h3>
-                    <p>Couldn't load events. Please check that the backend is running and try again.</p>
-                    <button class="btn-retry" onclick="retryLoad()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                        </svg>
-                        Try Again
-                    </button>
-                </div>
-            `;
-            paginationEl.innerHTML = '';
-            resultsInfo.classList.add('hidden');
-        }
-
-        function retryLoad() {
-            state.page = 1;
-            loadEvents();
-        }
+            document.getElementById('categoryFilter').addEventListener('change', () => renderEvents(allEvents));
+            document.getElementById('cityFilter').addEventListener('change', () => renderEvents(allEvents));
+            document.getElementById('eventsSearchForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                renderEvents(allEvents);
+            });
+            document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+                document.getElementById('categoryFilter').value = '';
+                document.getElementById('cityFilter').value = '';
+                document.getElementById('searchInput').value = '';
+                renderEvents(allEvents);
+            });
+        });
     </script>
 </body>
+
 </html>
