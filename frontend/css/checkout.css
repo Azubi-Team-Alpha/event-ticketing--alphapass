@@ -1,0 +1,85 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.field {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+input, select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+input.invalid, select.invalid {
+  border-color: #c0392b;
+}
+
+.error-text {
+  color: #c0392b;
+  font-size: 0.85em;
+  margin: 4px 0 0;
+  min-height: 1em;
+}
+
+.promo-row {
+  display: flex;
+  gap: 8px;
+}
+
+.promo-row button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#submitBtn {
+  width: 100%;
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#submitBtn:disabled {
+  background: #93b4f0;
+  cursor: not-allowed;
+}
+
+.alert {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.alert.success {
+  color: #0a5c2b;
+  background: #d9f2e2;
+  border-color: #0a5c2b;
+}
+
+.alert.error {
+  color: #7a1717;
+  background: #fbdada;
+  border-color: #7a1717;
+}
+
+.hidden {
+  display: none;
+}

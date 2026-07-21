@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout — AlphaPass</title>
+  <link rel="stylesheet" href="css/checkout.css">
+</head>
+<body>
+
+  <form id="checkoutForm" novalidate>
+    <h2>Checkout</h2>
+
+    <!-- Alert placeholder -->
+    <div id="alertBox" class="alert hidden"></div>
+
+    <div class="field">
+      <label for="guestName">Full Name</label>
+      <input type="text" id="guestName" name="guestName">
+      <p class="error-text" id="err-guestName"></p>
+    </div>
+
+    <div class="field">
+      <label for="guestEmail">Email</label>
+      <input type="email" id="guestEmail" name="guestEmail">
+      <p class="error-text" id="err-guestEmail"></p>
+    </div>
+
+    <div class="field">
+      <label for="guestPhone">Phone (optional)</label>
+      <input type="tel" id="guestPhone" name="guestPhone" placeholder="+233240000000">
+      <p class="error-text" id="err-guestPhone"></p>
+    </div>
+
+    <div class="field">
+      <label for="ticketType">Ticket Type</label>
+      <select id="ticketType" name="ticketType">
+        <option value="">-- Select a ticket type --</option>
+        <!-- options injected by JS -->
+      </select>
+      <p class="error-text" id="err-ticketType"></p>
+    </div>
+
+    <div class="field">
+      <label for="quantity">Quantity</label>
+      <input type="number" id="quantity" name="quantity" min="1" value="1">
+      <p class="error-text" id="err-quantity"></p>
+    </div>
+
+    <div class="field promo-field">
+      <label for="promoCode">Promo Code (optional)</label>
+      <div class="promo-row">
+        <input type="text" id="promoCode" name="promoCode">
+        <button type="button" id="applyPromoBtn">Apply</button>
+      </div>
+      <p id="promoStatus"></p>
+    </div>
+
+    <button type="submit" id="submitBtn">Complete Purchase</button>
+  </form>
+
+  <script src="js/apiClient.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>
