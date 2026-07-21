@@ -1,35 +1,20 @@
-# Generate a zip package dynamically for a placeholder python handler
+# Generate a zip package of the backend code
 data "archive_file" "lambda_zip" {
   type        = "zip"
+  source_dir  = "${path.module}/../../../backend"
   output_path = "${path.module}/lambda.zip"
-  source {
-    content  = <<EOF
-import json
-import os
-
-def lambda_handler(event, context):
-    print("Received event: " + json.dumps(event, indent=2))
-    
-    path = event.get("path", "/")
-    method = event.get("httpMethod", "GET")
-    
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-        },
-        "body": json.dumps({
-            "message": "Welcome to AlphaPass Serverless API!",
-            "path": path,
-            "method": method,
-            "status": "online",
-            "environment": os.environ.get("ENV", "unknown")
-        })
-    }
-EOF
-    filename = "index.py"
-  }
+  excludes = [
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    "test.db",
+    "tests",
+    "Dockerfile",
+    "README.md",
+    "TESTING.md",
+    "alembic",
+    "alembic.ini"
+  ]
 }
 
 # IAM Role for Lambda
@@ -80,8 +65,7 @@ resource "aws_iam_policy" "lambda_policy" {
           "dynamodb:Query"
         ]
         Resource = [
-          var.events_table_arn,
-          var.registrations_table_arn
+          "arn:aws:dynamodb:*:*:table/alphapass-*"
         ]
       },
       # SNS Publishing

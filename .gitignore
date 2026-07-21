@@ -67,3 +67,5 @@ terraform.rc
 # --- Generated Archives ---
 *.zip
 /infra/modules/lambda/lambda.zip
+
+.secrets/*
