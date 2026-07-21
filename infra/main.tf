@@ -74,3 +74,12 @@ module "budgets" {
   environment        = var.environment
   notification_email = var.notification_email
 }
+
+# --- Module: Frontend Static Hosting (S3 + CloudFront) ---
+module "frontend_hosting" {
+  source              = "./modules/frontend_hosting"
+  environment         = var.environment
+  price_class         = var.cloudfront_price_class
+  domain_aliases      = var.frontend_domain_aliases
+  acm_certificate_arn = var.frontend_acm_certificate_arn
+}

@@ -1,0 +1,391 @@
+/* ==============================================================================
+   ALPHAPASS (TICKET HUB) — CORE STYLING SYSTEM
+   Team Alpha — Azubi Cloud & AI Academy — Project 2
+   This sheet is the single source of truth for design tokens (colors,
+   typography, spacing) and shared shell/button primitives used across every
+   page of the web client. Feature pages should build on these tokens rather
+   than redefining raw hex values or one-off component styles.
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ---------------------------------------------------------------------
+     Brand colors (Team Alpha)
+     Primary  = Indigo  — CTAs, links, active states
+     Secondary = Emerald — success/confirmation accents, secondary CTAs
+     --------------------------------------------------------------------- */
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-light: #818cf8;
+  --color-primary-glow: rgba(99, 102, 241, 0.15);
+
+  --color-secondary: #10b981;
+  --color-secondary-dark: #059669;
+  --color-secondary-glow: rgba(16, 185, 129, 0.15);
+
+  /* Semantic / status colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #38bdf8;
+
+  /* Surface & background colors */
+  --color-bg: #0f172a;
+  --color-bg-alt: #111c34;
+  --color-surface: rgba(30, 41, 59, 0.4);
+  --color-surface-solid: #1e293b;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text colors */
+  --color-text-main: #f8fafc;
+  --color-text-sub: #94a3b8;
+  --color-text-muted: rgba(148, 163, 184, 0.6);
+  --color-text-on-primary: #ffffff;
+
+  /* ---------------------------------------------------------------------
+     Typography scale
+     Base font: Outfit. Scale follows a ~1.25 (major third) ratio.
+     --------------------------------------------------------------------- */
+  --font-family-base: 'Outfit', system-ui, -apple-system, sans-serif;
+
+  --font-size-xs: 0.75rem;    /* 12px — captions, badges */
+  --font-size-sm: 0.875rem;   /* 14px — secondary text, labels */
+  --font-size-base: 1rem;     /* 16px — body copy */
+  --font-size-md: 1.125rem;   /* 18px — subtitle / lead text */
+  --font-size-lg: 1.5rem;     /* 24px — h3 */
+  --font-size-xl: 2rem;       /* 32px — h2 */
+  --font-size-2xl: 2.5rem;    /* 40px — h1 */
+  --font-size-3xl: 3.25rem;   /* 52px — hero headline */
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 800;
+
+  --line-height-tight: 1.2;
+  --line-height-base: 1.6;
+
+  /* ---------------------------------------------------------------------
+     Spacing scale
+     --------------------------------------------------------------------- */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.2rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  /* ---------------------------------------------------------------------
+     Shape, elevation & motion
+     --------------------------------------------------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 100px;
+
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-btn: 0 4px 12px rgba(99, 102, 241, 0.3);
+  --shadow-btn-hover: 0 6px 20px rgba(99, 102, 241, 0.4);
+
+  --transition-base: all 0.3s ease;
+
+  /* ---------------------------------------------------------------------
+     Layout
+     --------------------------------------------------------------------- */
+  --container-max-width: 600px;
+  --container-max-width-wide: 1120px;
+}
+
+/* ==============================================================================
+   RESET & BASE ELEMENTS
+   ============================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  min-height: 100vh;
+  line-height: var(--line-height-base);
+  background-image:
+    radial-gradient(circle at 10% 20%, var(--color-primary-glow) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, var(--color-secondary-glow) 0%, transparent 40%);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+  background: linear-gradient(to right, #ffffff, #cbd5e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+h4 { font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); }
+
+p {
+  color: var(--color-text-sub);
+}
+
+p.subtitle {
+  font-size: var(--font-size-md);
+  margin-bottom: var(--space-lg);
+}
+
+a {
+  color: var(--color-primary-light);
+  text-decoration: none;
+}
+
+/* ==============================================================================
+   CONTAINER SHELLS
+   ============================================================================== */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.container-wide {
+  width: 100%;
+  max-width: var(--container-max-width-wide);
+  margin-inline: auto;
+  padding: var(--space-lg);
+}
+
+.page-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card {
+  background: var(--color-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl) var(--space-lg);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+}
+
+.card {
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.status-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.online {
+  background-color: var(--color-secondary);
+  box-shadow: 0 0 10px var(--color-secondary);
+}
+
+.dot.pending {
+  background-color: var(--color-warning);
+  box-shadow: 0 0 10px var(--color-warning);
+}
+
+.dot.error {
+  background-color: var(--color-danger);
+  box-shadow: 0 0 10px var(--color-danger);
+}
+
+/* Badge / pill label */
+.badge {
+  display: inline-block;
+  background: var(--color-primary-glow);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 1.2rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-md);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge-secondary {
+  background: var(--color-secondary-glow);
+  color: var(--color-secondary);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.footer {
+  margin-top: var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ==============================================================================
+   BUTTON VARIANTS
+   ============================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.8rem 2rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Primary — main call to action */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-btn);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-btn-hover);
+}
+
+/* Secondary — confirmation / success actions (e.g. checkout, publish) */
+.btn-secondary {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+  color: var(--color-text-on-primary);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Outline — secondary actions on dark surfaces */
+.btn-outline {
+  background: transparent;
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-strong);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-primary-light);
+}
+
+/* Ghost — low-emphasis actions (e.g. cancel, back) */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-sub);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text-main);
+}
+
+/* Danger — destructive actions (e.g. cancel order, delete event) */
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-on-primary);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Button sizing modifiers */
+.btn-sm {
+  padding: 0.5rem 1.2rem;
+  font-size: var(--font-size-sm);
+}
+
+.btn-lg {
+  padding: 1rem 2.5rem;
+  font-size: var(--font-size-md);
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* ==============================================================================
+   UTILITIES
+   ============================================================================== */
+
+.text-center { text-align: center; }
+.text-sub { color: var(--color-text-sub); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
