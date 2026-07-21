@@ -23,12 +23,63 @@ The system utilizes a fully serverless AWS architecture:
 * **AWS SNS:** Dispatches real-time booking alerts and verification links.
 
 ```mermaid
-graph TD
-    Client[Web Browser / Client] -->|HTTP Requests| APIGW[API Gateway]
-    APIGW -->|Proxy| Lambda[AWS Lambda: FastAPI + Mangum]
-    Lambda -->|Read/Write| DynamoDB[(Amazon DynamoDB: 12 Tables)]
-    Lambda -->|Upload Assets| S3[(Amazon S3: PDFs & QR Images)]
-    Lambda -->|Publish Alerts| SNS[AWS SNS / SES]
+graph TB
+    subgraph Client Tier [🌐 Client Tier]
+        C[Web Browser / React Client]
+        M[Mobile Device]
+        S[Entry Scanner Console]
+    end
+
+    subgraph API Gateway & Compute Tier [⚡ Compute Tier]
+        GW[Amazon API Gateway <br> HTTP REST Proxy]
+        subgraph LambdaFn [AWS Lambda Function]
+            MG[Mangum ASGI Adapter]
+            FA[FastAPI App Router]
+            Auth[JWT Auth Verification]
+        end
+    end
+
+    subgraph AWS Storage & Database Tier [🗄️ Database & Storage Tier]
+        subgraph DynamoDB [Amazon DynamoDB]
+            T1[(Events Table)]
+            T2[(Registrations Table)]
+            T3[(Organizers Table)]
+            T4[(Admins Table)]
+            T5[(Orders Table)]
+            T6[(Tickets Table)]
+            T7[(Promo Codes Table)]
+            T8[(Resale Table)]
+            T9[(Transfers Table)]
+            T10[(Payouts Table)]
+            T11[(Settings Table)]
+            T12[(Logs Table)]
+        end
+        
+        S3[(Amazon S3 Bucket <br> PDFs & QR Codes)]
+        SNS[Amazon SNS / SES <br> Notifications]
+    end
+
+    %% Flows
+    C & M & S -->|HTTP Requests| GW
+    GW -->|Proxy Event| MG
+    MG --> FA
+    FA -->|Validate JWT| Auth
+    FA -->|Read/Write CRUD| DynamoDB
+    FA -->|Upload Tickets/QR| S3
+    FA -->|Publish Notifications| SNS
+
+    %% Custom Styling
+    classDef client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+    classDef gw fill:#1e293b,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
+    classDef lambda fill:#1e293b,stroke:#ff9900,stroke-width:2px,color:#f8fafc;
+    classDef db fill:#1e293b,stroke:#4f46e5,stroke-width:2px,color:#f8fafc;
+    classDef storage fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+
+    class C,M,S client;
+    class GW gw;
+    class MG,FA,Auth,LambdaFn lambda;
+    class T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,DynamoDB db;
+    class S3,SNS storage;
 ```
 
 ---
