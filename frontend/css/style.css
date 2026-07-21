@@ -867,3 +867,126 @@
     background: var(--bs-primary) !important;
 }
 /*** copyright end ***/
+
+/*** AlphaPass Official Design System Palette ***/
+:root {
+    --bs-primary: #2563EB;
+    --bs-primary-dark: #1D4ED8;
+    --bs-secondary: #FFFFFF;
+    --bs-accent: #F59E0B;
+    --bs-accent-hover: #D97706;
+    --bs-bg-light: #F8FAFC;
+    --bs-dark: #1E293B;
+}
+
+body {
+    background-color: #F8FAFC !important;
+    color: #1E293B !important;
+}
+
+.card {
+    background-color: #FFFFFF !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px !important;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(30, 41, 59, 0.1) !important;
+}
+
+.badge {
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
+.badge-accent, .badge.bg-warning {
+    background-color: #F59E0B !important;
+    color: #1E293B !important;
+}
+
+.event-card-img {
+    height: 220px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Primary Royal Blue Buttons & Elements */
+.btn-primary, .bg-primary {
+    background-color: #2563EB !important;
+    border-color: #2563EB !important;
+    color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+    background-color: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
+}
+
+.text-primary {
+    color: #2563EB !important;
+}
+
+.border-primary {
+    border-color: #2563EB !important;
+}
+
+.btn-outline-primary {
+    color: #2563EB !important;
+    border-color: #2563EB !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+}
+
+/* Accent Amber CTAs ("Buy Ticket", "Get Pass", "Checkout") */
+.btn-accent, .btn-warning, .btn-buy-ticket {
+    background-color: #F59E0B !important;
+    border-color: #F59E0B !important;
+    color: #1E293B !important;
+    font-weight: 700 !important;
+}
+
+.btn-accent:hover, .btn-warning:hover, .btn-buy-ticket:hover {
+    background-color: #D97706 !important;
+    border-color: #D97706 !important;
+    color: #FFFFFF !important;
+}
+
+.text-accent, .text-warning {
+    color: #F59E0B !important;
+}
+
+.bg-accent {
+    background-color: #F59E0B !important;
+}
+
+/* Dark Slate Text and Headers */
+.bg-dark, .footer {
+    background-color: #1E293B !important;
+}
+
+.text-dark {
+    color: #1E293B !important;
+}
+
+.bg-light {
+    background-color: #F8FAFC !important;
+}
+
+@media (max-width: 768px) {
+    .container-fluid.px-5 {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+    .display-3 {
+        font-size: 2.2rem;
+    }
+    .display-5 {
+        font-size: 1.8rem;
+    }
+}
