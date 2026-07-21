@@ -1,110 +1,141 @@
 # 🎟️ AlphaPass (Ticket Hub)
+**Serverless Event Ticketing & Resale Platform**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](#-technology-stack--integrations)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](#-technology-stack--integrations)
+[![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
+[![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](#)
+[![DynamoDB](https://img.shields.io/badge/Amazon%20DynamoDB-4053D6?style=for-the-badge&logo=amazondynamodb&logoColor=white)](#)
 
-**AlphaPass (Ticket Hub)** is a secure, high-performance, containerized ticketing platform built for managing events, generating digital QR-code tickets, and facilitating safe secondary ticket transfers and resales. 
+**AlphaPass (Ticket Hub)** is a secure, high-performance, serverless event management and ticketing platform. It is designed to handle user registration, event creation, secure checkout, PDF ticket generation, and a secondary market featuring capped-price ticket resales and transfers.
 
-This repository is part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team Alpha)**.
-
----
-
-## 📢 Current Project State: Backend-Only
-
-> [!NOTE]
-> **Active Implementation Phase:** Currently, only the **Backend API** is implemented. 
-> The `frontend` directory is reserved for future web application development. The platform is currently managed and accessed directly via the containerized FastAPI backend endpoints.
+This project is part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team Alpha)**.
 
 ---
 
-## 📁 Repository Structure
+## 🏛️ Platform Architecture
+
+The system utilizes a fully serverless AWS architecture:
+* **API Gateway:** Proxies all HTTP traffic to the backend Lambda execution handler.
+* **AWS Lambda (Python 3.12 + FastAPI + Mangum):** Serves API logic dynamically without persistent instance overhead, wrapped using the `Mangum` ASGI adapter.
+* **Amazon DynamoDB:** Serves as the serverless database layer using 12 specialized tables for structured data records.
+* **AWS S3:** Houses generated ticket PDFs, QR code images, and uploaded event banners.
+* **AWS SNS:** Dispatches real-time booking alerts and verification links.
+
+```mermaid
+graph TD
+    Client[Web Browser / Client] -->|HTTP Requests| APIGW[API Gateway]
+    APIGW -->|Proxy| Lambda[AWS Lambda: FastAPI + Mangum]
+    Lambda -->|Read/Write| DynamoDB[(Amazon DynamoDB: 12 Tables)]
+    Lambda -->|Upload Assets| S3[(Amazon S3: PDFs & QR Images)]
+    Lambda -->|Publish Alerts| SNS[AWS SNS / SES]
+```
+
+---
+
+## 📁 Repository Directory Structure
 
 ```text
 alphapass/
-├── backend/            # FastAPI REST API, database migrations, and backend tests
-│   ├── app/            # Application core code (models, schemas, routers, CRUD)
-│   ├── alembic/        # Database migration scripts
-│   ├── tests/          # Comprehensive pytest suite
-│   ├── Dockerfile      # Production-ready Docker build configuration
-│   └── README.md       # Detailed setup & API guide for the backend
-└── frontend/           # [Placeholder] Reserved for the web client
+├── backend/                  # FastAPI Application Code
+│   ├── app/                  # Main business logic
+│   │   ├── core/             # JWT Security, config settings
+│   │   ├── db/               # DynamoDB database helper & session configuration
+│   │   ├── routers/          # API Controllers (Events, Checkin, Payouts, Resale, etc.)
+│   │   └── schemas/          # Pydantic validation schemas
+│   ├── tests/                # Test suite (SQL database and Moto DynamoDB tests)
+│   ├── index.py              # AWS Lambda Entrypoint (Mangum ASGI Handler)
+│   └── requirements.txt      # Python dependencies
+├── frontend/                 # Client UI
+│   ├── index.html            # Web entry point
+│   └── frontend_guide.md     # Detailed SPA integration guide
+├── infra/                    # Terraform Infrastructure-as-code
+│   ├── modules/              # Infrastructure Modules (DynamoDB, Lambda, SNS, S3, APIGW)
+│   ├── main.tf               # Global orchestration
+│   └── variables.tf          # Variable parameters
+└── .secrets/                 # Trello task mapping configurations
 ```
 
 ---
 
-## ⚡ Backend Core Features
+## 💾 Serverless Database Schema (DynamoDB)
 
-* **Role-Based Authentication:** Secure JWT-based registration and login flows for **Admins**, **Organizers**, and **Guests**.
-* **Event Management:** Organizers can draft, set ticket availability, define transfer/resale rules, and publish events.
-* **Guest Checkout & Purchase:** Public users can purchase tickets using promo codes without needing to register first.
-* **PDF Ticket & QR Code Generation:** Generates print-ready PDFs containing unique QR codes for event check-in.
-* **Secondary Market (Transfers & Resales):**
-  * **Secure Transfer:** Safe peer-to-peer ticket transfers with defined deadlines.
-  * **Capped Resale:** Secure resale marketplace with price-markup limits enforced at the database level to prevent scalping.
-* **Organizer & Admin Dashboards:** Access real-time event analytics, manage event approvals, and adjust platform fees.
+The system deploys 12 dedicated DynamoDB tables defined in Terraform:
 
----
-
-## 🛠️ Technology Stack & Integrations
-
-| Layer | Technology / Service | Description |
+| Table Name | Primary Hash Key | Description |
 |---|---|---|
-| **Framework** | **FastAPI** | High-performance asynchronous REST API framework |
-| **Database** | **PostgreSQL** / **SQLite** | PostgreSQL (Docker/Production) and SQLite (Local development) |
-| **ORM & Migrations** | **SQLAlchemy 2.0** + **Alembic** | Object-Relational Mapper & schema migration control |
-| **Storage** | **AWS S3** | Persistent storage for event banner images & generated QR codes |
-| **Messaging** | **AWS SES** | Transactional emails for order confirmations & transfer notifications |
-| **PDF Engine** | **ReportLab** | Dynamically constructs ticket receipt and pass PDFs |
-| **Testing** | **pytest** + **moto** | Test suite with mocked AWS services |
+| `alphapass-events-[env]` | `EventID` | Event metadata, schedule, and nested ticket types |
+| `alphapass-registrations-[env]` | `RegistrationID` | Attendee reservations linked to orders |
+| `alphapass-organizers-[env]` | `OrganizerID` | Registered event organizer profiles and status |
+| `alphapass-admins-[env]` | `AdminID` | Platform administrator profiles and superuser status |
+| `alphapass-orders-[env]` | `OrderID` | Financial orders, payment references, and total counts |
+| `alphapass-tickets-[env]` | `TicketID` | Unique tickets, validation keys, and scanned status |
+| `alphapass-promo-codes-[env]` | `Code` | Discount codes, type (percentage/fixed), and usage bounds |
+| `alphapass-resale-listings-[env]` | `ListingID` | Listed tickets for secondary market purchase |
+| `alphapass-transfers-[env]` | `TransferID` | Log of historical ticket transfers between users |
+| `alphapass-payouts-[env]` | `PayoutID` | Pending and approved organizer payouts |
+| `alphapass-platform-settings-[env]` | `SettingKey` | Core configuration limits (e.g. commission rate) |
+| `alphapass-audit-logs-[env]` | `LogID` | Action logs tracking platform-wide changes |
 
 ---
 
-## 🚀 Quick Start (Backend)
+## 🚀 Local Development Setup
 
-For full instructions on local execution, environment configuration, database seeding, and testing, please refer to the detailed [Backend README](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/backend/README.md).
+### 1. Backend API Execution
+1. Navigate to the backend directory, create a virtual environment, and install dependencies:
+   ```bash
+   cd backend
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+2. Copy environment template and configure settings:
+   ```bash
+   cp .env.example .env
+   ```
+3. Run the development server locally:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+4. Access interactive documentation:
+   * **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+   * **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-### 1. Fast Local Setup (SQLite)
-Navigate to the `backend` folder, create a virtual environment, and install dependencies:
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. Configure Environment
-Create a `.env` file by copying the template:
-```bash
-cp .env.example .env
-```
-*(The default configuration points to a local SQLite database file `test.db` and is ready for local execution).*
-
-### 3. Database Migration & Seeding
-```bash
-# Apply migrations to set up schema
-alembic upgrade head
-
-# Seed admin/organizer accounts & mock events
-python -m app.db.seed
-```
-
-### 4. Run Development Server
-```bash
-uvicorn app.main:app --reload --port 8000
-```
-Visit **Interactive API Docs (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-### 5. Running Tests
-Ensure your virtual environment is active, then execute:
+### 2. Running Tests
+Run the standard pytest suite (combining local SQLAlchemy database tests and mocked AWS DynamoDB tests using `moto`):
 ```bash
 pytest
 ```
 
 ---
 
+## 🛠️ Infrastructure Provisioning (Terraform)
+
+To build and deploy the AWS serverless architecture:
+
+1. Navigate to the infrastructure folder:
+   ```bash
+   cd infra
+   ```
+2. Initialize backend modules:
+   ```bash
+   terraform init
+   ```
+3. Validate configuration files:
+   ```bash
+   terraform validate
+   ```
+4. Perform dry run analysis:
+   ```bash
+   terraform plan
+   ```
+5. Deploy to AWS:
+   ```bash
+   terraform apply
+   ```
+
+---
+
 ## 👥 Team Alpha (Project Contributors)
 * **Azubi-AWS-AI Internship Program**
-* **Project Portfolio Reference:** Project 2
+* **Project Reference:** Project 2 (Team Alpha Portfolio)
