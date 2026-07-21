@@ -1,225 +1,264 @@
 # 🎟️ AlphaPass (Ticket Hub) Frontend Integration Guide
 **Azubi Cloud & AI Academy — Project 2 — Team Alpha Developer Reference**
 
-This document serves as the integration manual for the frontend development team. It specifies all backend REST API endpoints, JSON request/response formats, database models, and deployment configurations.
+This document is the complete guide for the frontend development team. It defines all serverless API endpoints, exact JSON request/response formats, DynamoDB table mappings, and logical frontend pages for building a robust Single Page Application (SPA) in React or Pure HTML/JS.
 
 ---
 
-## 🏛️ Serverless Architecture Overview
+## 🏛️ Serverless Architecture & DynamoDB Mapping
 
-AlphaPass is built on a serverless AWS infrastructure designed with Terraform:
-- **API Gateway (REST API):** Handled by Amazon API Gateway proxying requests to the AWS Lambda function.
-- **FastAPI Backend (AWS Lambda):** The Python business logic runs inside Lambda, wrapped using the `Mangum` ASGI adapter.
-- **DynamoDB Database:** The serverless database layer using Amazon DynamoDB tables for all application entities (events, orders, tickets, organizers, admins, promo codes, payouts, logs, and settings).
-- **AWS S3:** Serves as the storage bucket for event banners and PDF check-in QR codes.
-- **AWS SES:** Sends order confirmations and transactional emails.
+The infrastructure relies on Amazon API Gateway, AWS Lambda (FastAPI with Mangum), and 12 dedicated DynamoDB tables:
+
+1. **`alphapass-events-[env]`** (Hash Key: `EventID`): Stores details, settings, and nested ticket types for all events.
+2. **`alphapass-registrations-[env]`** (Hash Key: `RegistrationID`): Stores guest registrations and ticket details.
+3. **`alphapass-organizers-[env]`** (Hash Key: `OrganizerID`): Handles business and auth info for event organizers.
+4. **`alphapass-admins-[env]`** (Hash Key: `AdminID`): Stores administrators credentials and roles.
+5. **`alphapass-orders-[env]`** (Hash Key: `OrderID`): Manages financial and checkout metadata.
+6. **`alphapass-tickets-[env]`** (Hash Key: `TicketID`): Manages physical scans, check-ins, and ticket codes.
+7. **`alphapass-promo-codes-[env]`** (Hash Key: `Code`): Validation rules for discount promo codes.
+8. **`alphapass-resale-listings-[env]`** (Hash Key: `ListingID`): Holds active ticket secondary market sales.
+9. **`alphapass-transfers-[env]`** (Hash Key: `TransferID`): Logs historical transfer metadata.
+10. **`alphapass-payouts-[env]`** (Hash Key: `PayoutID`): Organizer revenue payout status.
+11. **`alphapass-platform-settings-[env]`** (Hash Key: `SettingKey`): Stores global fee parameters.
+12. **`alphapass-audit-logs-[env]`** (Hash Key: `LogID`): Security audit log records.
 
 ---
 
-## 💾 Database Schema (DynamoDB Tables)
+## 🔒 Authentication & Headers
 
-The infrastructure contains 12 DynamoDB tables defined in Terraform. Your client-side requests interact with these models through the API Gateway endpoints.
+Access to secured endpoints requires a JSON Web Token (JWT) in the Authorization header:
+- Header format: `Authorization: Bearer <access_token>`
+- Token Roles: The payload contains a `"role"` parameter claiming either `"admin"` or `"organizer"`.
 
-### 1. Events Table (`alphapass-events-[env]`)
-- **Hash Key:** `EventID` (String/UUID)
-- **Primary Schema Fields:**
+---
+
+## 📦 Pydantic Input Schemas (JSON Schemas)
+
+Your frontend forms must build payloads matching these exact schemas.
+
+### 1. Unified Authentication Login
+* **Expected Payload:**
   ```json
   {
-    "EventID": "string (UUID)",
-    "title": "string",
-    "description": "string",
-    "venue_name": "string",
-    "city": "string",
-    "country": "string",
-    "starts_at": "string (ISO 8601)",
-    "ends_at": "string (ISO 8601)",
-    "status": "string (draft | pending | published | cancelled | archived)",
-    "ticket_types": [
-      {
-        "id": "string",
-        "name": "string",
-        "price": "number",
-        "quantity": "integer",
-        "quantity_sold": "integer",
-        "is_active": "boolean"
-      }
-    ]
+    "email": "user@example.com",
+    "password": "securepassword123"
   }
   ```
 
-### 2. Registrations Table (`alphapass-registrations-[env]`)
-- **Hash Key:** `RegistrationID` (String/UUID)
+### 2. Organizer Signup (`POST /auth/organizer/signup`)
+* **Expected Payload:**
+  ```json
+  {
+    "email": "organizer@example.com",
+    "full_name": "John Doe",
+    "password": "securepassword123 (Min 8 characters)",
+    "business_name": "Epic Events Inc (Optional)",
+    "phone": "+233240000000 (Optional)"
+  }
+  ```
 
-### 3. Organizers Table (`alphapass-organizers-[env]`)
-- **Hash Key:** `OrganizerID` (String/UUID)
+### 3. Event Creation (`POST /events/organizer`)
+* **Expected Payload:**
+  ```json
+  {
+    "title": "Cloud Security Summit 2026",
+    "description": "Comprehensive cloud security summit",
+    "policies": "No refunds after 24h prior to event.",
+    "category_id": "category-uuid",
+    "venue_name": "Accra Digital Center",
+    "address": "Ring Road West",
+    "city": "Accra",
+    "country": "Ghana",
+    "is_online": false,
+    "online_url": null,
+    "starts_at": "2026-08-20T09:00:00",
+    "ends_at": "2026-08-20T17:00:00",
+    "allow_transfers": true,
+    "transfer_deadline_hours": 24,
+    "max_transfers_per_ticket": 1,
+    "allow_resale": true,
+    "max_resale_markup_percent": 10.0,
+    "group_discount_threshold": 5,
+    "group_discount_percent": 15.0,
+    "allow_refunds": true
+  }
+  ```
 
-### 4. Admins Table (`alphapass-admins-[env]`)
-- **Hash Key:** `AdminID` (String/UUID)
+### 4. Ticket Type Creation (`POST /events/organizer/{event_id}/ticket-types`)
+* **Expected Payload:**
+  ```json
+  {
+    "name": "General Admission",
+    "description": "Standard entry ticket",
+    "benefits": ["Free drinks", "Speaker slides access"],
+    "price": 50.00,
+    "quantity": 150,
+    "sales_start": "2026-07-21T09:00:00 (Optional)",
+    "sales_end": "2026-08-19T18:00:00 (Optional)",
+    "purchase_limit": 5,
+    "min_purchase": 1,
+    "sort_order": 0
+  }
+  ```
 
-### 5. Orders Table (`alphapass-orders-[env]`)
-- **Hash Key:** `OrderID` (String/UUID)
-
-### 6. Tickets Table (`alphapass-tickets-[env]`)
-- **Hash Key:** `TicketID` (String/UUID)
-
-### 7. Promo Codes Table (`alphapass-promo-codes-[env]`)
-- **Hash Key:** `Code` (String)
-
-### 8. Resale Listings Table (`alphapass-resale-listings-[env]`)
-- **Hash Key:** `ListingID` (String/UUID)
-
-### 9. Ticket Transfers Table (`alphapass-transfers-[env]`)
-- **Hash Key:** `TransferID` (String/UUID)
-
-### 10. Organizer Payouts Table (`alphapass-payouts-[env]`)
-- **Hash Key:** `PayoutID` (String/UUID)
-
-### 11. Platform Settings Table (`alphapass-platform-settings-[env]`)
-- **Hash Key:** `SettingKey` (String)
-
-### 12. Audit Logs Table (`alphapass-audit-logs-[env]`)
-- **Hash Key:** `LogID` (String/UUID)
-
----
-
-## 🔒 Authentication & Route Guards
-
-The API uses standard JSON Web Tokens (JWT) for authentication.
-- **Headers:** Authorization headers must contain the Bearer token:
-  `Authorization: Bearer <access_token>`
-- **Roles:** The token payload contains a `"role"` field (`admin` | `organizer`). Routes are guarded based on these roles.
-
----
-
-## 🌐 SPA Frontend Pages & Endpoint Mapping
-
-Whether your team builds the frontend using **React SPA (with React Router)** or **Pure HTML/JS**, the frontend should be structured around the following pages and features:
-
-### 1. Public Guest Pages
-
-#### 🏠 Event Explorer Page (`/`)
-- **Features:** Search and list events, filter by category/city/date.
-- **Endpoints:**
-  - `GET /events` — Fetch all published events.
-  - `GET /categories` — Fetch categories for filter dropdown.
-
-#### 📄 Event Details Page (`/events/:id`)
-- **Features:** Display detailed description, venue location, starts/ends dates, and ticket type selector.
-- **Endpoints:**
-  - `GET /events/{event_id}` — Get specific event details.
-
-#### 🛒 Guest Checkout Page (`/checkout`)
-- **Features:** Collect attendee details, apply promo code, and purchase ticket.
-- **Endpoints:**
-  - `POST /orders` — Place order/register guest.
-  - `GET /promo/{code}` — Validate promo code.
-
-#### 🎫 My Tickets Dashboard (`/tickets`)
-- **Features:** Lookup ticket status, show QR code, download PDF pass.
-- **Endpoints:**
-  - `GET /tickets/{ticket_code}/status` — View ticket details.
-  - `GET /tickets/{ticket_code}/pdf` — Download PDF ticket.
-
-#### 🔄 Ticket Transfer Page (`/tickets/transfer`)
-- **Features:** Securely transfer a ticket to another user.
-- **Endpoints:**
-  - `POST /transfers/{ticket_code}/transfer` — Transfer ticket to new owner.
-
-#### 📈 Resale Marketplace (`/resale`)
-- **Features:** View public resales or list a ticket.
-- **Endpoints:**
-  - `GET /resale` — Browse resale listings.
-  - `POST /resale/tickets/{ticket_code}` — List ticket for resale.
-  - `POST /resale/{listing_id}/purchase` — Purchase listed ticket.
+### 5. Guest Checkout Order (`POST /orders`)
+* **Expected Payload:**
+  ```json
+  {
+    "event_id": "event-uuid",
+    "guest_name": "Alice Johnson",
+    "guest_email": "alice@example.com",
+    "guest_phone": "+233240111111 (Optional)",
+    "items": [
+      {
+        "ticket_type_id": "ticket-type-uuid",
+        "quantity": 2,
+        "attendee_name": "Alice Johnson",
+        "attendee_email": "alice@example.com"
+      }
+    ],
+    "promo_code": "DISCOUNT10 (Optional)",
+    "payment_reference": "ref-pay-12345 (Optional)",
+    "payment_method": "Mobile Money (Optional)"
+  }
+  ```
 
 ---
 
-### 2. Organizer Dashboard Pages
+## 🌐 Page-by-Page Integration Guidelines
 
-#### 🔑 Organizer Authentication (`/organizer/login` & `/organizer/signup`)
-- **Features:** Sign up or sign in as an event organizer.
-- **Endpoints:**
-  - `POST /auth/organizer/signup` — Create account.
-  - `POST /auth/organizer/login` — Retrieve organizer access token.
+### 1. Guest Views
 
-#### 📊 Organizer Dashboard Home (`/organizer/dashboard`)
-- **Features:** List organizer's events, sales statistics, request payout.
-- **Endpoints:**
-  - `GET /auth/organizer/me` — Verify auth token and user role.
-  - `GET /events/organizer` — Fetch organizer's drafted/published events.
-  - `POST /payouts/request` — Request payout for event revenue.
+#### 🏠 Page: Event Explorer (`/`)
+1. Call `GET /events` to retrieve published events. Render as grid cards displaying title, date, venue, city, and min_price.
+2. Call `GET /categories` to populate the Category filter dropdown.
+3. Handle search and city filter inputs by appending `?search={query}&city={city}` parameters dynamically.
 
-#### ➕ Create/Edit Event Page (`/organizer/events/new` or `/organizer/events/:id/edit`)
-- **Features:** Add event details, create and edit ticket types.
-- **Endpoints:**
-  - `POST /events/organizer` — Create new event draft.
-  - `PUT /events/organizer/{event_id}` — Update event details.
-  - `POST /events/organizer/{event_id}/ticket-types` — Add ticket type.
-  - `POST /events/organizer/{event_id}/publish` — Submit event draft for approval.
+#### 📄 Page: Event Details (`/events/:id`)
+1. Retrieve details via `GET /events/{id}`.
+2. Display location, description, date ranges, and ticket types.
+3. Manage selection quantity state and redirect to checkout `/checkout?event_id={id}&type_id={type_id}&qty={qty}`.
 
-#### 📷 Event Check-in Scanner (`/organizer/scan`)
-- **Features:** QR Scanner camera interface to check in attendees.
-- **Endpoints:**
-  - `POST /checkin/scan` — Scan and validate ticket code.
+#### 🛒 Page: Checkout (`/checkout`)
+1. Build order details form matching `OrderCreate` payload.
+2. Allow promo verification: call `GET /promo/{code}`. If valid, update total price estimation.
+3. Send checkout order via `POST /orders`. On success (201 Created), render order summary and ticket codes.
+
+#### 🎫 Page: Ticket Wallet & Actions (`/tickets/:code`)
+1. Lookup ticket details using `GET /tickets/{code}/status`.
+2. Display validation status, attendee details, QR code, and download link to `GET /tickets/{code}/pdf`.
+3. Provide forms to list for resale (`POST /resale/tickets/{code}`) or transfer ownership (`POST /transfers/{code}/transfer`).
 
 ---
 
-### 3. Platform Admin Pages
+### 2. Organizer Dashboard Views
 
-#### 🔑 Admin Authentication (`/admin/login`)
-- **Features:** Secure login page for platform administrators.
-- **Endpoints:**
-  - `POST /auth/admin/login` — Retrieve admin access token.
+#### 🔑 Page: Organizer Portal Auth (`/organizer`)
+1. Provide Login and Registration forms.
+2. Send sign in request to `POST /auth/organizer/login` and signup to `POST /auth/organizer/signup`.
+3. Persist `access_token` and `role` properties in local storage on success.
 
-#### 🛡️ Admin Dashboard Home (`/admin/dashboard`)
-- **Features:** View system audit logs, moderate events, approve payouts, update commission rate.
-- **Endpoints:**
-  - `GET /events/admin/pending` — List events awaiting approval.
-  - `POST /events/admin/approve` — Approve event for publication.
-  - `GET /payouts/admin/pending` — List pending payouts.
-  - `POST /payouts/admin/approve` — Approve payout requests.
-  - `GET /settings` — View global settings.
-  - `POST /settings` — Update global parameters (e.g. commission rate).
+#### 📊 Page: Organizer Dashboard Home (`/organizer/dashboard`)
+1. Call `GET /auth/organizer/me` (requires Bearer header) to retrieve profile details.
+2. Call `GET /events/organizer` to populate events table.
+3. Call `GET /payouts/organizer` (if requesting revenue transfers) and request payout using `POST /payouts/request`.
+
+#### ➕ Page: Create/Edit Event (`/organizer/events/new`)
+1. Render event parameters matching `EventCreate` schema.
+2. Submit details to `POST /events/organizer` (creates event in `draft` status).
+3. Once the event is created, call `POST /events/organizer/{event_id}/ticket-types` to define pricing tier levels.
+4. Click "Publish Event" to dispatch a `POST /events/organizer/{event_id}/publish` call, changing its status to `pending` (for admin moderation).
+
+#### 📷 Page: Entry Scanner Console (`/organizer/scan`)
+1. Integrate QR scanner camera library.
+2. On QR scanning detection, capture ticket code and dispatch a `POST /checkin/scan` payload.
+3. Render status screens depending on response validity (e.g. green for check-in successful, red for duplicate scan / already used).
 
 ---
 
-## 🛠️ Frontend API Request Examples (JavaScript)
+### 3. Admin moderation Views
 
-### Fetch Events with Filters
+#### 🛡️ Page: Admin Console (`/admin/dashboard`)
+1. Moderate pending events: call `GET /events/admin/pending`. Perform validation audits and invoke `POST /events/admin/approve` with `{ "approved": true }` to list on guest explorer.
+2. Review payouts: call `GET /payouts/admin/pending` and approve organizer revenue transfers using `POST /payouts/admin/approve`.
+3. Manage settings: call `GET /settings` and adjust commission rates using `POST /settings`.
+
+---
+
+## 🛠️ Complete JavaScript SDK Implementation Examples
+
+### Authenticated Fetch Wrapper
 ```javascript
-async function getEvents(search = '', city = '') {
-  const url = new URL('http://localhost:8000/events');
-  if (search) url.searchParams.append('search', search);
-  if (city) url.searchParams.append('city', city);
+const API_BASE_URL = 'https://api.alphapass-ticketing.com'; // Change to actual API Gateway URL
+
+async function apiFetch(path, options = {}) {
+  const token = localStorage.getItem('access_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers
+  };
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
   
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to load events');
-  return await response.json();
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `HTTP Error ${response.status}`);
+  }
+  return response.json();
 }
 ```
 
-### Guest Checkout Request
+### Guest Order Checkout
 ```javascript
-async function checkout(eventId, ticketTypeId, guestName, guestEmail) {
+async function submitCheckout(eventId, ticketTypeId, name, email, promoCode = null) {
   const payload = {
     event_id: eventId,
-    guest_name: guestName,
-    guest_email: guestEmail,
+    guest_name: name,
+    guest_email: email,
     items: [
-      { ticket_type_id: ticketTypeId, quantity: 1 }
-    ]
+      {
+        ticket_type_id: ticketTypeId,
+        quantity: 1,
+        attendee_name: name,
+        attendee_email: email
+      }
+    ],
+    promo_code: promoCode
   };
 
-  const response = await fetch('http://localhost:8000/orders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.detail || 'Checkout failed');
+  try {
+    const result = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    console.log('Checkout completed:', result);
+    return result;
+  } catch (error) {
+    console.error('Checkout failed:', error.message);
+    throw error;
   }
-  return await response.json();
+}
+```
+
+### Ticket Transfer Request
+```javascript
+async function transferTicket(ticketCode, fromEmail, toName, toEmail) {
+  const payload = {
+    to_name: toName,
+    to_email: toEmail
+  };
+
+  try {
+    const result = await apiFetch(`/transfers/${ticketCode}/transfer?guest_email=${encodeURIComponent(fromEmail)}`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    console.log('Transfer logged:', result);
+    return result;
+  } catch (error) {
+    console.error('Transfer failed:', error.message);
+    throw error;
+  }
 }
 ```

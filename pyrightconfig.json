@@ -1,5 +1,5 @@
 {
-  "venvPath": "backend",
+  "venvPath": "/home/haadi/Desktop/AWS Cloud/Azubi-AWS-AI/Team Alpha/alphapass/backend",
   "venv": ".venv",
   "include": [
     "backend"
