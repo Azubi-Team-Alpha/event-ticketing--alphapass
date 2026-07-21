@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     AWS_REGION: str = "us-east-1"
     S3_BUCKET_NAME: str = "ticket-hub-dev"
     SES_SENDER_EMAIL: str = "noreply@ticket-hub.com"
+    EVENTS_TABLE: str | None = None
+    REGISTRATIONS_TABLE: str | None = None
 
     # Platform settings (can be overridden via DB)
     PLATFORM_COMMISSION_PERCENT: float = 5.0  # 5% default
