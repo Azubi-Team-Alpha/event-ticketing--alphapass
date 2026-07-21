@@ -1011,3 +1011,46 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* Custom Data Table Styling Fixes */
+.table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.table thead tr th {
+    background-color: #1E293B !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 1rem 1.25rem !important;
+    border: none !important;
+}
+
+.table thead tr th:first-child {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+
+.table thead tr th:last-child {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+.table tbody tr td {
+    padding: 1.1rem 1.25rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+    font-size: 0.92rem !important;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #F8FAFC !important;
+}
