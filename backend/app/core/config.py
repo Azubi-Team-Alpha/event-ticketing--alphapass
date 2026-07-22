@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     # Frontend URL (for email links)
     FRONTEND_URL: str = "http://localhost:5173"
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 
 settings = Settings()  # type: ignore

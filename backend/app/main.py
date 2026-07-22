@@ -1,15 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
 from app.core.config import settings
-from app.db.base import Base, engine
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
-    description="Event Ticketing Platform API – supports organizers, admins, and guest checkout.",
+    description="AlphaPass Event Ticketing Platform API – Serverless DynamoDB architecture.",
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
@@ -20,22 +18,12 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def bootstrap_database() -> None:
-    if engine.dialect.name == "postgresql":
-        with engine.begin() as connection:
-            connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {settings.DB_SCHEMA}"))
-
-    # Import models so SQLAlchemy registers them before create_all.
-    from app.models import models  # noqa: F401
-    Base.metadata.create_all(bind=engine)
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────

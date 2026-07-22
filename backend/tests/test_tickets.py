@@ -1,6 +1,5 @@
 """
-Ticket tests – covers basic lookup and check-in via the new models.
-The old test_tickets.py assumed legacy Registration/User models.
+Ticket tests – covers basic lookup and check-in via DynamoDB.
 """
 from fastapi.testclient import TestClient
 from decimal import Decimal
@@ -8,9 +7,10 @@ from datetime import datetime, timedelta
 
 
 def _create_order(client, sample_event):
-    tt_id = sample_event.ticket_types[0].id
+    event_id = sample_event["id"]
+    tt_id = sample_event["ticket_types"][0]["id"]
     resp = client.post("/orders", json={
-        "event_id": sample_event.id,
+        "event_id": event_id,
         "guest_name": "Dave",
         "guest_email": "dave@test.com",
         "items": [{"ticket_type_id": tt_id, "quantity": 1}],
@@ -27,23 +27,23 @@ def test_ticket_lookup_by_code(client: TestClient, sample_event):
     assert resp.json()["ticket_code"] == ticket_code
 
 
-def test_checkin_scan(client: TestClient, sample_event):
+def test_checkin_scan(client: TestClient, sample_event, organizer_headers):
     order = _create_order(client, sample_event)
     ticket_code = order["items"][0]["tickets"][0]["ticket_code"]
-    resp = client.post("/checkin/scan", json={"ticket_code": ticket_code})
+    resp = client.post("/checkin/scan", json={"ticket_code": ticket_code}, headers=organizer_headers)
     assert resp.status_code == 200
     data = resp.json()
     assert data["valid"] is True
     assert "Check-in successful" in data["message"]
 
 
-def test_double_checkin_rejected(client: TestClient, sample_event):
+def test_double_checkin_rejected(client: TestClient, sample_event, organizer_headers):
     order = _create_order(client, sample_event)
     ticket_code = order["items"][0]["tickets"][0]["ticket_code"]
     # First check-in
-    client.post("/checkin/scan", json={"ticket_code": ticket_code})
+    client.post("/checkin/scan", json={"ticket_code": ticket_code}, headers=organizer_headers)
     # Second check-in should fail
-    resp = client.post("/checkin/scan", json={"ticket_code": ticket_code})
+    resp = client.post("/checkin/scan", json={"ticket_code": ticket_code}, headers=organizer_headers)
     assert resp.status_code == 200
     assert resp.json()["valid"] is False
 
@@ -60,4 +60,3 @@ def test_ticket_pdf_download(client: TestClient, sample_event):
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/pdf"
     assert resp.content.startswith(b"%PDF-")
-

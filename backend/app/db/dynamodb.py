@@ -45,7 +45,7 @@ class DynamoDBHelper:
         return self.resource.Table(table_name)
 
     def _convert_floats(self, item: Any) -> Any:
-        """Recursively convert float/Decimal values for DynamoDB storage."""
+        """Recursively convert float/Decimal/datetime values for DynamoDB storage."""
         if isinstance(item, list):
             return [self._convert_floats(x) for x in item]
         elif isinstance(item, dict):
@@ -54,6 +54,8 @@ class DynamoDBHelper:
             return Decimal(str(item))
         elif isinstance(item, Decimal):
             return item
+        elif isinstance(item, datetime):
+            return item.isoformat()
         return item
 
     def _convert_decimals(self, item: Any) -> Any:

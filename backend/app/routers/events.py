@@ -1,45 +1,158 @@
-"""Public + organizer event management routes."""
+"""Public + organizer event management routes using DynamoDB."""
+import uuid
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
-from sqlalchemy.orm import Session
-from sqlalchemy import or_
 
-from app.db.base import get_db
-from app.models.models import Event, EventCategory, EventStatus, TicketType, Organizer
+from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
     EventCreate, EventUpdate, EventResponse, EventListResponse, EventListItem,
     EventCategoryCreate, EventCategoryResponse,
     TicketTypeCreate, TicketTypeUpdate, TicketTypeResponse,
     PromoCodeCreate, PromoCodeResponse,
 )
-from app.core.dependencies import get_current_organizer, get_active_organizer, get_current_admin, get_current_user
+from app.core.dependencies import get_current_organizer, get_active_organizer, get_current_admin, get_current_user, AttrDict
+from app.core.config import settings
 
 router = APIRouter()
 
 
-def _build_list_item(event: Event) -> EventListItem:
-    prices = [tt.price for tt in event.ticket_types if tt.is_active]
+def _format_dt(val: Any) -> Optional[datetime]:
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        return val
+    try:
+        dt = datetime.fromisoformat(str(val))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
+
+
+def _format_event_response(e: Dict[str, Any]) -> Dict[str, Any]:
+    event_id = e.get("EventID") or e.get("id")
+    ticket_types = e.get("ticket_types", [])
+    
+    formatted_tts = []
+    for tt in ticket_types:
+        tt_id = tt.get("id") or str(uuid.uuid4())
+        formatted_tts.append({
+            "id": tt_id,
+            "event_id": event_id,
+            "name": tt.get("name", "Standard"),
+            "description": tt.get("description"),
+            "benefits": tt.get("benefits", []),
+            "price": Decimal(str(tt.get("price", 0))),
+            "quantity": int(tt.get("quantity", 0)),
+            "quantity_sold": int(tt.get("quantity_sold", 0)),
+            "purchase_limit": int(tt.get("purchase_limit", 10)),
+            "min_purchase": int(tt.get("min_purchase", 1)),
+            "sales_start": _format_dt(tt.get("sales_start")),
+            "sales_end": _format_dt(tt.get("sales_end")),
+            "is_active": tt.get("is_active", True),
+            "sort_order": int(tt.get("sort_order", 0)),
+            "quantity_remaining": max(0, int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))),
+            "is_sold_out": max(0, int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))) <= 0,
+            "created_at": _format_dt(tt.get("created_at")) or datetime.now(timezone.utc),
+        })
+
+    cat = e.get("category")
+    if isinstance(cat, dict):
+        cat_resp = {
+            "id": cat.get("CategoryID") or cat.get("id", ""),
+            "name": cat.get("name", ""),
+            "slug": cat.get("slug", ""),
+            "icon": cat.get("icon"),
+            "sort_order": int(cat.get("sort_order", 0)),
+        }
+    else:
+        cat_resp = None
+
+    return {
+        "id": event_id,
+        "organizer_id": e.get("organizer_id", ""),
+        "category_id": e.get("category_id"),
+        "title": e.get("title", ""),
+        "description": e.get("description"),
+        "policies": e.get("policies"),
+        "banner_image_url": e.get("banner_image_url"),
+        "thumbnail_url": e.get("thumbnail_url"),
+        "venue_name": e.get("venue_name"),
+        "address": e.get("address"),
+        "city": e.get("city"),
+        "country": e.get("country", "Ghana"),
+        "is_online": e.get("is_online", False),
+        "online_url": e.get("online_url"),
+        "starts_at": _format_dt(e.get("starts_at")) or datetime.now(timezone.utc),
+        "ends_at": _format_dt(e.get("ends_at")),
+        "status": e.get("status", "published"),
+        "rejection_reason": e.get("rejection_reason"),
+        "is_featured": e.get("is_featured", False),
+        "allow_transfers": e.get("allow_transfers", True),
+        "transfer_deadline_hours": int(e.get("transfer_deadline_hours", 24)),
+        "max_transfers_per_ticket": int(e.get("max_transfers_per_ticket", 1)),
+        "allow_resale": e.get("allow_resale", True),
+        "max_resale_markup_percent": Decimal(str(e.get("max_resale_markup_percent", "10.00"))),
+        "group_discount_threshold": e.get("group_discount_threshold"),
+        "group_discount_percent": Decimal(str(e.get("group_discount_percent"))) if e.get("group_discount_percent") else None,
+        "allow_refunds": e.get("allow_refunds", True),
+        "refund_policy_notes": e.get("refund_policy_notes"),
+        "created_at": _format_dt(e.get("created_at")) or datetime.now(timezone.utc),
+        "updated_at": _format_dt(e.get("updated_at")) or datetime.now(timezone.utc),
+        "approved_at": _format_dt(e.get("approved_at")),
+        "category": cat_resp,
+        "ticket_types": formatted_tts,
+        "total_capacity": sum(tt["quantity"] for tt in formatted_tts),
+        "total_sold": sum(tt["quantity_sold"] for tt in formatted_tts),
+    }
+
+
+def _build_list_item(e: Dict[str, Any]) -> EventListItem:
+    formatted = _format_event_response(e)
+    prices = [tt["price"] for tt in formatted["ticket_types"] if tt.get("is_active", True)]
+    
+    cat = formatted.get("category")
+    cat_obj = EventCategoryResponse(**cat) if cat else None
+
     return EventListItem(
-        id=event.id, title=event.title,
-        banner_image_url=event.banner_image_url, thumbnail_url=event.thumbnail_url,
-        venue_name=event.venue_name, city=event.city, country=event.country,
-        is_online=event.is_online, starts_at=event.starts_at, ends_at=event.ends_at,
-        status=event.status.value if hasattr(event.status, 'value') else event.status,
-        is_featured=event.is_featured,
-        category=event.category,
+        id=formatted["id"],
+        title=formatted["title"],
+        banner_image_url=formatted["banner_image_url"],
+        thumbnail_url=formatted["thumbnail_url"],
+        venue_name=formatted["venue_name"],
+        city=formatted["city"],
+        country=formatted["country"],
+        is_online=formatted["is_online"],
+        starts_at=formatted["starts_at"],
+        ends_at=formatted["ends_at"],
+        status=formatted["status"],
+        is_featured=formatted["is_featured"],
+        category=cat_obj,
         min_price=min(prices) if prices else Decimal("0.00"),
         max_price=max(prices) if prices else Decimal("0.00"),
-        total_capacity=event.total_capacity,
-        total_sold=event.total_sold,
+        total_capacity=formatted["total_capacity"],
+        total_sold=formatted["total_sold"],
     )
 
 
 # ── Public: Browse Events ─────────────────────────────────────────────────────
 
 @router.get("/categories", response_model=list[EventCategoryResponse])
-def list_categories(db: Session = Depends(get_db)):
-    return db.query(EventCategory).all()
+def list_categories():
+    raw_cats = dynamodb_helper.list_categories()
+    return [
+        EventCategoryResponse(
+            id=c.get("CategoryID") or c.get("id", ""),
+            name=c.get("name", ""),
+            slug=c.get("slug", ""),
+            icon=c.get("icon"),
+            sort_order=int(c.get("sort_order", 0)),
+        )
+        for c in raw_cats
+    ]
 
 
 @router.get("", response_model=EventListResponse)
@@ -53,50 +166,88 @@ def list_events(
     max_price: float | None = Query(None),
     date_from: str | None = Query(None),
     date_to: str | None = Query(None),
-    db: Session = Depends(get_db),
 ):
-    query = db.query(Event).filter(Event.status == EventStatus.published)
+    raw_events = dynamodb_helper.list_events_by_status("published")
+    filtered = []
+    
+    for e in raw_events:
+        fmt = _format_event_response(e)
+        
+        if category:
+            cat_match = False
+            cat_obj = fmt.get("category")
+            if cat_obj and (cat_obj.get("slug") == category or cat_obj.get("id") == category):
+                cat_match = True
+            if not cat_match and e.get("category_id") == category:
+                cat_match = True
+            if not cat_match:
+                continue
 
-    if category:
-        query = query.join(EventCategory).filter(
-            or_(EventCategory.slug == category, EventCategory.id == category)
-        )
-    if city:
-        query = query.filter(Event.city.ilike(f"%{city}%"))
-    if search:
-        query = query.filter(
-            or_(Event.title.ilike(f"%{search}%"), Event.description.ilike(f"%{search}%"))
-        )
-    if min_price is not None:
-        query = query.filter(Event.ticket_types.any(TicketType.price >= min_price))
-    if max_price is not None:
-        query = query.filter(Event.ticket_types.any(TicketType.price <= max_price))
-    if date_from:
-        try:
-            df = datetime.fromisoformat(date_from)
-            query = query.filter(Event.starts_at >= df)
-        except ValueError:
-            pass
-    if date_to:
-        try:
-            dt = datetime.fromisoformat(date_to)
-            query = query.filter(Event.starts_at <= dt)
-        except ValueError:
-            pass
+        if city and fmt.get("city"):
+            if city.lower() not in fmt["city"].lower():
+                continue
 
-    total = query.count()
-    events = query.order_by(Event.is_featured.desc(), Event.starts_at).offset((page - 1) * limit).limit(limit).all()
-    return EventListResponse(items=[_build_list_item(e) for e in events], total=total, page=page, limit=limit)
+        if search:
+            s = search.lower()
+            title = (fmt.get("title") or "").lower()
+            desc = (fmt.get("description") or "").lower()
+            if s not in title and s not in desc:
+                continue
+
+        prices = [tt["price"] for tt in fmt["ticket_types"] if tt.get("is_active", True)]
+        min_p = min(prices) if prices else Decimal("0.00")
+        max_p = max(prices) if prices else Decimal("0.00")
+
+        if min_price is not None and max_p < Decimal(str(min_price)):
+            continue
+        if max_price is not None and min_p > Decimal(str(max_price)):
+            continue
+
+        if date_from:
+            try:
+                df = datetime.fromisoformat(date_from)
+                if df.tzinfo is None:
+                    df = df.replace(tzinfo=timezone.utc)
+                if fmt["starts_at"] < df:
+                    continue
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                dt = datetime.fromisoformat(date_to)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if fmt["starts_at"] > dt:
+                    continue
+            except ValueError:
+                pass
+
+        filtered.append(e)
+
+    # Sort featured first, then by starts_at
+    filtered.sort(key=lambda x: (not x.get("is_featured", False), x.get("starts_at", "")))
+    
+    total = len(filtered)
+    start_idx = (page - 1) * limit
+    page_items = filtered[start_idx : start_idx + limit]
+
+    return EventListResponse(
+        items=[_build_list_item(e) for e in page_items],
+        total=total,
+        page=page,
+        limit=limit,
+    )
 
 
 @router.get("/{event_id}", response_model=EventResponse)
-def get_event(event_id: str, db: Session = Depends(get_db)):
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event:
+def get_event(event_id: str):
+    e = dynamodb_helper.get_event(event_id)
+    if not e:
         raise HTTPException(404, "Event not found")
-    if event.status not in (EventStatus.published,):
+    if e.get("status") not in ("published",):
         raise HTTPException(404, "Event not found")
-    return event
+    return _format_event_response(e)
 
 
 # ── Organizer: Event CRUD ─────────────────────────────────────────────────────
@@ -105,215 +256,324 @@ def get_event(event_id: str, db: Session = Depends(get_db)):
 def organizer_my_events(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
-    org: Organizer = Depends(get_current_organizer),
+    org: AttrDict = Depends(get_current_organizer),
 ):
-    query = db.query(Event).filter(Event.organizer_id == org.id)
-    total = query.count()
-    events = query.order_by(Event.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    return EventListResponse(items=[_build_list_item(e) for e in events], total=total, page=page, limit=limit)
+    org_id = org.get("OrganizerID") or org.get("id")
+    events = dynamodb_helper.list_events_by_organizer(org_id)
+    events.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    
+    total = len(events)
+    start_idx = (page - 1) * limit
+    page_items = events[start_idx : start_idx + limit]
+
+    return EventListResponse(
+        items=[_build_list_item(e) for e in page_items],
+        total=total,
+        page=page,
+        limit=limit,
+    )
 
 
 @router.post("/organizer", response_model=EventResponse, status_code=201)
 def create_event(
-    body: EventCreate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    body: EventCreate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    if body.category_id:
-        if not db.query(EventCategory).filter(EventCategory.id == body.category_id).first():
-            raise HTTPException(404, "Category not found")
-
+    org_id = org.get("OrganizerID") or org.get("id")
+    event_id = str(uuid.uuid4())
     data = body.model_dump()
-    event = Event(**data, organizer_id=org.id)
-    db.add(event)
-    db.commit()
-    db.refresh(event)
-    return event
+    
+    if data.get("category_id"):
+        cat = dynamodb_helper.get_category(data["category_id"])
+        if not cat:
+            raise HTTPException(404, "Category not found")
+        data["category"] = cat
+
+    data["organizer_id"] = org_id
+    data["status"] = "draft"
+    data["ticket_types"] = []
+    
+    created = dynamodb_helper.create_event(event_id, data)
+    return _format_event_response(created)
 
 
 @router.get("/organizer/{event_id}", response_model=EventResponse)
 def get_organizer_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_current_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_current_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    return event
+    return _format_event_response(e)
 
 
 @router.put("/organizer/{event_id}", response_model=EventResponse)
 def update_event(
-    event_id: str, body: EventUpdate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    body: EventUpdate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    if event.status == EventStatus.cancelled:
+    if e.get("status") == "cancelled":
         raise HTTPException(400, "Cannot edit a cancelled event")
 
     data = body.model_dump(exclude_unset=True)
     is_published = data.pop("is_published", None)
     if is_published is not None:
-        if is_published and not event.ticket_types:
+        if is_published and not e.get("ticket_types"):
             raise HTTPException(400, "Event must have at least one ticket type before publishing")
-        event.status = EventStatus.published if is_published else EventStatus.draft
+        data["status"] = "published" if is_published else "draft"
 
-    for field, value in data.items():
-        setattr(event, field, value)
-    db.commit()
-    db.refresh(event)
-    return event
+    updated = dynamodb_helper.update_event(event_id, data) or e
+    return _format_event_response(updated)
 
 
 @router.post("/organizer/{event_id}/publish", response_model=EventResponse)
 def publish_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    if not event.ticket_types:
+    if not e.get("ticket_types"):
         raise HTTPException(400, "Event must have at least one ticket type before publishing")
-    from app.core.config import settings as _s
-    target = EventStatus.pending if _s.REQUIRE_EVENT_APPROVAL else EventStatus.published
-    event.status = target
-    db.commit()
-    db.refresh(event)
-    return event
+
+    target = "pending" if settings.REQUIRE_EVENT_APPROVAL else "published"
+    updated = dynamodb_helper.update_event(event_id, {"status": target}) or e
+    return _format_event_response(updated)
 
 
 @router.post("/organizer/{event_id}/unpublish", response_model=EventResponse)
 def unpublish_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    event.status = EventStatus.draft
-    db.commit()
-    db.refresh(event)
-    return event
+    updated = dynamodb_helper.update_event(event_id, {"status": "draft"}) or e
+    return _format_event_response(updated)
 
 
 @router.post("/organizer/{event_id}/cancel", response_model=EventResponse)
 def cancel_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    event.status = EventStatus.cancelled
-    db.commit()
-    db.refresh(event)
-    return event
+    updated = dynamodb_helper.update_event(event_id, {"status": "cancelled"}) or e
+    return _format_event_response(updated)
 
 
 @router.post("/organizer/{event_id}/duplicate", response_model=EventResponse, status_code=201)
 def duplicate_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    src = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not src:
+    org_id = org.get("OrganizerID") or org.get("id")
+    src = dynamodb_helper.get_event(event_id)
+    if not src or src.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
 
-    new_event = Event(
-        organizer_id=org.id, category_id=src.category_id,
-        title=f"[Copy] {src.title}", description=src.description,
-        policies=src.policies, venue_name=src.venue_name, address=src.address,
-        city=src.city, country=src.country, is_online=src.is_online,
-        online_url=src.online_url, starts_at=src.starts_at, ends_at=src.ends_at,
-        allow_transfers=src.allow_transfers, allow_resale=src.allow_resale,
-        group_discount_threshold=src.group_discount_threshold,
-        group_discount_percent=src.group_discount_percent,
-        allow_refunds=src.allow_refunds,
-        status=EventStatus.draft,
-    )
-    db.add(new_event)
-    db.flush()
+    new_id = str(uuid.uuid4())
+    tts = []
+    for tt in src.get("ticket_types", []):
+        tts.append({
+            "id": str(uuid.uuid4()),
+            "name": tt.get("name"),
+            "description": tt.get("description"),
+            "benefits": tt.get("benefits"),
+            "price": tt.get("price"),
+            "quantity": tt.get("quantity"),
+            "quantity_sold": 0,
+            "purchase_limit": tt.get("purchase_limit", 10),
+            "min_purchase": tt.get("min_purchase", 1),
+            "is_active": True,
+        })
 
-    for tt in src.ticket_types:
-        db.add(TicketType(
-            event_id=new_event.id, name=tt.name, description=tt.description,
-            benefits=tt.benefits, price=tt.price, quantity=tt.quantity,
-            purchase_limit=tt.purchase_limit, min_purchase=tt.min_purchase,
-            sales_start=tt.sales_start, sales_end=tt.sales_end, sort_order=tt.sort_order,
-        ))
-
-    db.commit()
-    db.refresh(new_event)
-    return new_event
+    new_event_data = {
+        "organizer_id": org_id,
+        "category_id": src.get("category_id"),
+        "title": f"[Copy] {src.get('title')}",
+        "description": src.get("description"),
+        "policies": src.get("policies"),
+        "venue_name": src.get("venue_name"),
+        "address": src.get("address"),
+        "city": src.get("city"),
+        "country": src.get("country"),
+        "is_online": src.get("is_online", False),
+        "online_url": src.get("online_url"),
+        "starts_at": src.get("starts_at"),
+        "ends_at": src.get("ends_at"),
+        "allow_transfers": src.get("allow_transfers", True),
+        "allow_resale": src.get("allow_resale", True),
+        "group_discount_threshold": src.get("group_discount_threshold"),
+        "group_discount_percent": src.get("group_discount_percent"),
+        "allow_refunds": src.get("allow_refunds", True),
+        "status": "draft",
+        "ticket_types": tts,
+    }
+    
+    created = dynamodb_helper.create_event(new_id, new_event_data)
+    return _format_event_response(created)
 
 
 @router.post("/organizer/{event_id}/archive", response_model=EventResponse)
 def archive_event(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    event.status = EventStatus.archived
-    db.commit()
-    db.refresh(event)
-    return event
+    updated = dynamodb_helper.update_event(event_id, {"status": "archived"}) or e
+    return _format_event_response(updated)
 
 
 # ── Ticket Types ──────────────────────────────────────────────────────────────
 
 @router.post("/organizer/{event_id}/ticket-types", response_model=TicketTypeResponse, status_code=201)
 def create_ticket_type(
-    event_id: str, body: TicketTypeCreate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    body: TicketTypeCreate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    tt = TicketType(**body.model_dump(), event_id=event_id)
-    db.add(tt)
-    db.commit()
-    db.refresh(tt)
-    return tt
+
+    tt_id = str(uuid.uuid4())
+    new_tt = {
+        "id": tt_id,
+        "name": body.name,
+        "description": body.description,
+        "benefits": body.benefits,
+        "price": str(body.price),
+        "quantity": body.quantity,
+        "quantity_sold": 0,
+        "purchase_limit": body.purchase_limit,
+        "min_purchase": body.min_purchase,
+        "sales_start": body.sales_start.isoformat() if body.sales_start else None,
+        "sales_end": body.sales_end.isoformat() if body.sales_end else None,
+        "is_active": True,
+        "sort_order": body.sort_order,
+    }
+    
+    tts = e.get("ticket_types", [])
+    tts.append(new_tt)
+    dynamodb_helper.update_event(event_id, {"ticket_types": tts})
+
+    return TicketTypeResponse(
+        id=tt_id,
+        event_id=event_id,
+        name=body.name,
+        description=body.description,
+        benefits=body.benefits,
+        price=body.price,
+        quantity=body.quantity,
+        quantity_sold=0,
+        purchase_limit=body.purchase_limit,
+        min_purchase=body.min_purchase,
+        sales_start=body.sales_start,
+        sales_end=body.sales_end,
+        is_active=True,
+        sort_order=body.sort_order,
+        quantity_remaining=body.quantity,
+        created_at=datetime.now(timezone.utc),
+    )
 
 
 @router.put("/organizer/{event_id}/ticket-types/{tt_id}", response_model=TicketTypeResponse)
 def update_ticket_type(
-    event_id: str, tt_id: str, body: TicketTypeUpdate,
-    db: Session = Depends(get_db), org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    tt_id: str,
+    body: TicketTypeUpdate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    tt = db.query(TicketType).filter(TicketType.id == tt_id, TicketType.event_id == event_id).first()
-    if not tt:
+
+    tts = e.get("ticket_types", [])
+    found = None
+    for tt in tts:
+        if tt.get("id") == tt_id:
+            found = tt
+            break
+    if not found:
         raise HTTPException(404, "Ticket type not found")
-    for field, value in body.model_dump(exclude_unset=True).items():
-        setattr(tt, field, value)
-    db.commit()
-    db.refresh(tt)
-    return tt
+
+    update_data = body.model_dump(exclude_unset=True)
+    for k, v in update_data.items():
+        if isinstance(v, Decimal):
+            v = str(v)
+        elif isinstance(v, datetime):
+            v = v.isoformat()
+        found[k] = v
+
+    dynamodb_helper.update_event(event_id, {"ticket_types": tts})
+    
+    qty = found.get("quantity", 0)
+    sold = found.get("quantity_sold", 0)
+    return TicketTypeResponse(
+        id=tt_id,
+        event_id=event_id,
+        name=found["name"],
+        description=found.get("description"),
+        benefits=found.get("benefits"),
+        price=Decimal(str(found["price"])),
+        quantity=qty,
+        quantity_sold=sold,
+        purchase_limit=found.get("purchase_limit", 10),
+        min_purchase=found.get("min_purchase", 1),
+        sales_start=_format_dt(found.get("sales_start")),
+        sales_end=_format_dt(found.get("sales_end")),
+        is_active=found.get("is_active", True),
+        sort_order=found.get("sort_order", 0),
+        quantity_remaining=max(0, qty - sold),
+        created_at=_format_dt(found.get("created_at")) or datetime.now(timezone.utc),
+    )
 
 
 @router.delete("/organizer/{event_id}/ticket-types/{tt_id}")
 def delete_ticket_type(
-    event_id: str, tt_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    tt_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    tt = db.query(TicketType).filter(TicketType.id == tt_id, TicketType.event_id == event_id).first()
-    if not tt:
+
+    tts = e.get("ticket_types", [])
+    found = None
+    for tt in tts:
+        if tt.get("id") == tt_id:
+            found = tt
+            break
+    if not found:
         raise HTTPException(404, "Ticket type not found")
-    if tt.quantity_sold > 0:
+
+    if found.get("quantity_sold", 0) > 0:
         raise HTTPException(400, "Cannot delete a ticket type with sold tickets")
-    db.delete(tt)
-    db.commit()
+
+    tts = [tt for tt in tts if tt.get("id") != tt_id]
+    dynamodb_helper.update_event(event_id, {"ticket_types": tts})
     return {"message": "Ticket type deleted"}
 
 
@@ -321,160 +581,104 @@ def delete_ticket_type(
 
 @router.post("/organizer/{event_id}/promo-codes", response_model=PromoCodeResponse, status_code=201)
 def create_promo_code(
-    event_id: str, body: PromoCodeCreate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    body: PromoCodeCreate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    from app.models.models import PromoCode, DiscountType
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    from sqlalchemy.exc import IntegrityError
-    try:
-        code = PromoCode(
-            event_id=event_id, organizer_id=org.id,
-            code=body.code.upper(), discount_type=DiscountType(body.discount_type),
-            discount_value=body.discount_value, max_uses=body.max_uses,
-            applicable_ticket_type_ids=body.applicable_ticket_type_ids,
-            expires_at=body.expires_at,
-        )
-        db.add(code)
-        db.commit()
-        db.refresh(code)
-        return code
-    except IntegrityError:
-        db.rollback()
+
+    code_str = body.code.upper()
+    existing = dynamodb_helper.get_promo_code(code_str)
+    if existing and existing.get("event_id") == event_id:
         raise HTTPException(400, "Promo code already exists for this event")
+
+    created = dynamodb_helper.create_promo_code(code_str, {
+        "event_id": event_id,
+        "organizer_id": org_id,
+        "discount_type": body.discount_type,
+        "discount_value": str(body.discount_value),
+        "max_uses": body.max_uses,
+        "used_count": 0,
+        "applicable_ticket_type_ids": body.applicable_ticket_type_ids,
+        "expires_at": body.expires_at.isoformat() if body.expires_at else None,
+        "is_active": True,
+    })
+
+    return PromoCodeResponse(
+        id=code_str,
+        event_id=event_id,
+        code=code_str,
+        discount_type=body.discount_type,
+        discount_value=body.discount_value,
+        max_uses=body.max_uses,
+        used_count=0,
+        applicable_ticket_type_ids=body.applicable_ticket_type_ids,
+        expires_at=body.expires_at,
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
+    )
 
 
 @router.get("/organizer/{event_id}/promo-codes", response_model=list[PromoCodeResponse])
 def list_promo_codes(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    from app.models.models import PromoCode
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
-    return db.query(PromoCode).filter(PromoCode.event_id == event_id).all()
+
+    codes = dynamodb_helper.list_promo_codes_by_event(event_id)
+    return [
+        PromoCodeResponse(
+            id=c.get("Code", ""),
+            event_id=c.get("event_id", event_id),
+            code=c.get("Code", ""),
+            discount_type=c.get("discount_type", "percentage"),
+            discount_value=Decimal(str(c.get("discount_value", 0))),
+            max_uses=c.get("max_uses"),
+            used_count=int(c.get("used_count", 0)),
+            applicable_ticket_type_ids=c.get("applicable_ticket_type_ids"),
+            expires_at=_format_dt(c.get("expires_at")),
+            is_active=c.get("is_active", True),
+            created_at=_format_dt(c.get("created_at")) or datetime.now(timezone.utc),
+        )
+        for c in codes
+    ]
 
 
-# ── Compatibility & Registration Endpoints ────────────────────────────────────
+# ── Compatibility Endpoints ───────────────────────────────────────────────────
 
 @router.post("", response_model=EventResponse, status_code=201)
 def create_event_compatibility(
-    body: EventCreate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    body: EventCreate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    return create_event(body, db, org)
+    return create_event(body, org)
 
 
 @router.put("/{event_id}", response_model=EventResponse)
 def update_event_compatibility(
-    event_id: str, body: EventUpdate, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_active_organizer),
+    event_id: str,
+    body: EventUpdate,
+    org: AttrDict = Depends(get_active_organizer),
 ):
-    return update_event(event_id, body, db, org)
+    return update_event(event_id, body, org)
 
 
 @router.delete("/{event_id}")
 def delete_event_compatibility(
-    event_id: str, db: Session = Depends(get_db),
-    org: Organizer = Depends(get_current_organizer),
-):
-    event = db.query(Event).filter(Event.id == event_id, Event.organizer_id == org.id).first()
-    if not event:
-        raise HTTPException(404, "Event not found")
-    db.query(TicketType).filter(TicketType.event_id == event_id).delete()
-    db.delete(event)
-    db.commit()
-    return {"message": "Event deleted"}
-
-
-@router.get("/admin/all")
-def list_admin_all_events(
-    page: int = Query(1, ge=1),
-    limit: int = Query(50, ge=1, le=200),
-    status: str | None = Query(None),
-    db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),
-):
-    query = db.query(Event)
-    if status:
-        query = query.filter(Event.status == EventStatus(status))
-    total = query.count()
-    events = query.order_by(Event.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    items = [_build_list_item(e) for e in events]
-    return {"items": items, "total": total, "page": page, "limit": limit}
-
-
-@router.post("/{event_id}/register", status_code=201)
-def register_user_for_event(
     event_id: str,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    org: AttrDict = Depends(get_current_organizer),
 ):
-    from app.models.models import Order, OrderStatus, OrderItem, Ticket, TicketStatus
-    from app.routers.orders import _generate_qr_codes, _send_order_confirmation
+    org_id = org.get("OrganizerID") or org.get("id")
+    e = dynamodb_helper.get_event(event_id)
+    if not e or e.get("organizer_id") != org_id:
+        raise HTTPException(404, "Event not found")
 
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event or event.status != EventStatus.published:
-        raise HTTPException(404, "Event not found or not available")
-
-    # Select ticket type with row lock to avoid race conditions
-    tt = db.query(TicketType).filter(
-        TicketType.event_id == event_id,
-        TicketType.is_active == True,
-    ).with_for_update().order_by(TicketType.sort_order).first()
-
-    if not tt:
-        raise HTTPException(400, "No active ticket types found for this event")
-
-    if tt.quantity_remaining < 1:
-        raise HTTPException(400, "Ticket type is sold out")
-
-    order = Order(
-        event_id=event_id,
-        guest_name=current_user.full_name,
-        guest_email=current_user.email,
-        status=OrderStatus.confirmed,
-        subtotal=tt.price,
-        discount_amount=Decimal("0.00"),
-        platform_fee=Decimal("0.00"),
-        total_amount=tt.price,
-    )
-    db.add(order)
-    db.flush()
-
-    oi = OrderItem(
-        order_id=order.id,
-        ticket_type_id=tt.id,
-        quantity=1,
-        unit_price=tt.price,
-        line_total=tt.price,
-    )
-    db.add(oi)
-    db.flush()
-
-    ticket = Ticket(
-        order_item_id=oi.id,
-        attendee_name=current_user.full_name,
-        attendee_email=current_user.email,
-        status=TicketStatus.active,
-    )
-    db.add(ticket)
-    db.flush()
-
-    tt.quantity_sold += 1
-    db.commit()
-    db.refresh(order)
-
-    background_tasks.add_task(_generate_qr_codes, [ticket.id])
-    background_tasks.add_task(
-        _send_order_confirmation,
-        order.guest_email, order.guest_name, event.title,
-        order.id, 1, str(order.total_amount),
-    )
-
-    return {"message": "Registered successfully", "order_id": order.id}
-
+    dynamodb_helper.delete_event(event_id)
+    return {"message": "Event deleted"}

@@ -10,8 +10,8 @@ FUTURE_EVENT = {
     "venue_name": "Test Hall",
     "city": "Accra",
     "country": "Ghana",
-    "starts_at": (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=10)).isoformat(),
-    "ends_at": (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=10, hours=4)).isoformat(),
+    "starts_at": (datetime.now(timezone.utc) + timedelta(days=10)).isoformat(),
+    "ends_at": (datetime.now(timezone.utc) + timedelta(days=10, hours=4)).isoformat(),
 }
 
 
@@ -24,10 +24,11 @@ def test_list_events_public(client: TestClient, sample_event):
 
 
 def test_get_event_detail(client: TestClient, sample_event):
-    resp = client.get(f"/events/{sample_event.id}")
+    event_id = sample_event["id"]
+    resp = client.get(f"/events/{event_id}")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["id"] == sample_event.id
+    assert data["id"] == event_id
     assert len(data["ticket_types"]) == 1
 
 
@@ -37,7 +38,7 @@ def test_get_nonexistent_event(client: TestClient):
 
 
 def test_organizer_create_event(client: TestClient, organizer_headers, category):
-    payload = {**FUTURE_EVENT, "category_id": category.id}
+    payload = {**FUTURE_EVENT, "category_id": category["id"]}
     resp = client.post("/events/organizer", json=payload, headers=organizer_headers)
     assert resp.status_code == 201
     data = resp.json()
@@ -51,8 +52,9 @@ def test_organizer_create_event_no_auth(client: TestClient):
 
 
 def test_organizer_add_ticket_type(client: TestClient, organizer_headers, sample_event):
+    event_id = sample_event["id"]
     resp = client.post(
-        f"/events/organizer/{sample_event.id}/ticket-types",
+        f"/events/organizer/{event_id}/ticket-types",
         json={"name": "VIP", "price": "199.00", "quantity": 20, "purchase_limit": 2},
         headers=organizer_headers,
     )
@@ -63,7 +65,8 @@ def test_organizer_add_ticket_type(client: TestClient, organizer_headers, sample
 
 
 def test_organizer_publish_event(client: TestClient, organizer_headers, sample_event):
-    resp = client.post(f"/events/organizer/{sample_event.id}/publish", headers=organizer_headers)
+    event_id = sample_event["id"]
+    resp = client.post(f"/events/organizer/{event_id}/publish", headers=organizer_headers)
     assert resp.status_code == 200
     assert resp.json()["status"] == "published"
 

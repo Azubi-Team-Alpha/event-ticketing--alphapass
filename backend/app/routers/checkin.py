@@ -1,83 +1,136 @@
-"""Check-in / QR scan router."""
+"""Check-in / QR scan router using DynamoDB."""
 from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from app.db.base import get_db
-from app.models.models import Ticket, TicketStatus
+from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import CheckInRequest, CheckInResponse, TicketResponse
-from app.core.dependencies import get_current_admin, get_current_organizer
+from app.core.dependencies import get_current_organizer, get_current_user, AttrDict
 
 router = APIRouter()
 
 
-def _do_scan(ticket_code: str, db: Session) -> CheckInResponse:
-    ticket = db.query(Ticket).filter(Ticket.ticket_code == ticket_code).first()
+def _format_dt(val: Any) -> Optional[datetime]:
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        return val
+    try:
+        dt = datetime.fromisoformat(str(val))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
+
+
+def _format_ticket_response(ticket: Dict[str, Any]) -> TicketResponse:
+    t_id = ticket.get("TicketID") or ticket.get("id", "")
+    return TicketResponse(
+        id=t_id,
+        order_item_id=ticket.get("order_item_id", ""),
+        ticket_code=ticket.get("ticket_code", ""),
+        qr_image_url=ticket.get("qr_image_url"),
+        status=ticket.get("status", "active"),
+        is_used=ticket.get("is_used", False),
+        used_at=_format_dt(ticket.get("used_at")),
+        attendee_name=ticket.get("attendee_name"),
+        attendee_email=ticket.get("attendee_email"),
+        issued_at=_format_dt(ticket.get("issued_at")) or datetime.now(timezone.utc),
+    )
+
+
+def _do_scan(ticket_code: str) -> CheckInResponse:
+    ticket = dynamodb_helper.get_ticket_by_code(ticket_code)
     if not ticket:
         return CheckInResponse(valid=False, message="Ticket not found")
 
-    if ticket.status != TicketStatus.active:
+    status_val = ticket.get("status", "active")
+    if status_val != "active":
         return CheckInResponse(
             valid=False,
-            message=f"Ticket is not valid (status: {ticket.status.value})",
-            ticket=TicketResponse.model_validate(ticket),
+            message=f"Ticket is not valid (status: {status_val})",
+            ticket=_format_ticket_response(ticket),
         )
 
-    if ticket.is_used:
+    if ticket.get("is_used", False):
         return CheckInResponse(
             valid=False,
-            message=f"Ticket already used at {ticket.used_at}",
-            ticket=TicketResponse.model_validate(ticket),
-            attendee_name=ticket.attendee_name,
+            message=f"Ticket already used at {ticket.get('used_at')}",
+            ticket=_format_ticket_response(ticket),
+            attendee_name=ticket.get("attendee_name"),
         )
 
-    event = ticket.order_item.order.event
-    if event.starts_at.date() != datetime.now(timezone.utc).date():
-        # Allow check-in on event day only (can be relaxed)
-        pass  # Remove this check if multi-day or early check-in needed
+    event = None
+    event_id = ticket.get("event_id")
+    if not event_id and ticket.get("order_id"):
+        order = dynamodb_helper.get_order(ticket["order_id"])
+        if order:
+            event_id = order.get("event_id")
+
+    if event_id:
+        event = dynamodb_helper.get_event(event_id)
 
     # Mark as used
-    ticket.is_used = True
-    ticket.used_at = datetime.now(timezone.utc).replace(tzinfo=None)
-    ticket.status = TicketStatus.used
-    db.commit()
-    db.refresh(ticket)
+    t_id = ticket.get("TicketID") or ticket.get("id")
+    used_now = datetime.now(timezone.utc).isoformat()
+    
+    dynamodb_helper.update_ticket(t_id, {
+        "is_used": True,
+        "used_at": used_now,
+        "status": "used",
+    })
+    
+    ticket["is_used"] = True
+    ticket["used_at"] = used_now
+    ticket["status"] = "used"
 
     return CheckInResponse(
         valid=True,
         message="✅ Check-in successful! Welcome!",
-        ticket=TicketResponse.model_validate(ticket),
-        attendee_name=ticket.attendee_name,
-        ticket_type_name=ticket.ticket_type.name if ticket.ticket_type else None,
-        event_title=event.title,
+        ticket=_format_ticket_response(ticket),
+        attendee_name=ticket.get("attendee_name"),
+        ticket_type_name=ticket.get("ticket_type_name"),
+        event_title=event.get("title") if event else None,
     )
 
 
 @router.post("/scan", response_model=CheckInResponse)
 def scan_ticket(
     body: CheckInRequest,
-    db: Session = Depends(get_db),
+    current_user: AttrDict = Depends(get_current_user),
 ):
     """
-    Scan a QR code for event check-in.
-    In production, restrict this to authenticated organizers/staff.
+    Scan a QR code for event check-in. Authenticated staff/organizer/admin access.
     """
-    return _do_scan(body.ticket_code, db)
+    return _do_scan(body.ticket_code)
 
 
 @router.get("/ticket/{ticket_code}", response_model=CheckInResponse)
-def lookup_for_checkin(ticket_code: str, db: Session = Depends(get_db)):
+def lookup_for_checkin(ticket_code: str):
     """Manual code lookup without marking as used (preview only)."""
-    ticket = db.query(Ticket).filter(Ticket.ticket_code == ticket_code).first()
+    ticket = dynamodb_helper.get_ticket_by_code(ticket_code)
     if not ticket:
         return CheckInResponse(valid=False, message="Ticket not found")
 
-    event = ticket.order_item.order.event
+    event = None
+    event_id = ticket.get("event_id")
+    if not event_id and ticket.get("order_id"):
+        order = dynamodb_helper.get_order(ticket["order_id"])
+        if order:
+            event_id = order.get("event_id")
+
+    if event_id:
+        event = dynamodb_helper.get_event(event_id)
+
+    is_active = (ticket.get("status") == "active") and (not ticket.get("is_used", False))
+    used_at = ticket.get("used_at")
+
     return CheckInResponse(
-        valid=ticket.status == TicketStatus.active and not ticket.is_used,
-        message="Ticket found" if not ticket.is_used else f"Already checked in at {ticket.used_at}",
-        ticket=TicketResponse.model_validate(ticket),
-        attendee_name=ticket.attendee_name,
-        ticket_type_name=ticket.ticket_type.name if ticket.ticket_type else None,
-        event_title=event.title,
+        valid=is_active,
+        message="Ticket found" if not ticket.get("is_used") else f"Already checked in at {used_at}",
+        ticket=_format_ticket_response(ticket),
+        attendee_name=ticket.get("attendee_name"),
+        ticket_type_name=ticket.get("ticket_type_name"),
+        event_title=event.get("title") if event else None,
     )
