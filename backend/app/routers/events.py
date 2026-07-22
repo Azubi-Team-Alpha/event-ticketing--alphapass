@@ -258,7 +258,7 @@ def organizer_my_events(
     limit: int = Query(20, ge=1, le=100),
     org: AttrDict = Depends(get_current_organizer),
 ):
-    org_id = org.get("OrganizerID") or org.get("id")
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     events = dynamodb_helper.list_events_by_organizer(org_id)
     events.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     

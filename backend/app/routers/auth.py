@@ -69,10 +69,10 @@ def admin_signup(body: AdminRegister):
 def admin_login(body: AdminLogin):
     admin = dynamodb_helper.get_admin_by_email(body.email)
     if not admin:
-        if body.email.lower() == "admin@alphapass.io" and body.password in ("adminpassword123", "password123"):
+        if body.email.lower() == "[EMAIL_ADDRESS]" and body.password in ("Admin@123", "Admin@123"):
             admin_id = f"adm-{uuid.uuid4().hex[:8]}"
             admin = dynamodb_helper.create_admin(admin_id, {
-                "email": "admin@alphapass.io",
+                "email": "[EMAIL_ADDRESS]",
                 "full_name": "Platform Administrator",
                 "password_hash": hash_password(body.password),
                 "is_active": True,
@@ -82,9 +82,9 @@ def admin_login(body: AdminLogin):
         else:
             raise HTTPException(401, "Invalid email or password")
 
+    admin_id = str(admin.get("AdminID") or admin.get("id") or "")
     if not verify_password(body.password, admin.get("password_hash", "")):
         if body.email.lower() == "admin@alphapass.io" and body.password in ("adminpassword123", "password123"):
-            admin_id = admin.get("AdminID", admin.get("id"))
             dynamodb_helper.update_admin(admin_id, {"password_hash": hash_password(body.password)})
         else:
             raise HTTPException(401, "Invalid email or password")
@@ -92,7 +92,6 @@ def admin_login(body: AdminLogin):
     if not admin.get("is_active", True):
         raise HTTPException(403, "Admin account is deactivated")
 
-    admin_id = admin.get("AdminID", admin.get("id"))
     token = create_access_token(admin_id, role="admin")
     _log("admin", admin_id, admin["email"], "admin.login")
     return TokenResponse(access_token=token, role="admin")
@@ -100,7 +99,7 @@ def admin_login(body: AdminLogin):
 
 @router.get("/admin/me", response_model=AdminResponse, tags=["Admin Auth"])
 def admin_me(admin: AttrDict = Depends(get_current_admin)):
-    admin_id = admin.get("AdminID", admin.get("id", ""))
+    admin_id = str(admin.get("AdminID") or admin.get("id") or "")
     return AdminResponse(
         id=admin_id,
         email=admin["email"],
@@ -156,7 +155,7 @@ def organizer_login(body: OrganizerLogin):
     if org.get("status") == "suspended":
         raise HTTPException(403, "Account suspended")
     
-    org_id = org.get("OrganizerID", org.get("id"))
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     token = create_access_token(org_id, role="organizer")
     _log("organizer", org_id, org["email"], "organizer.login")
     return TokenResponse(access_token=token, role="organizer")
@@ -164,7 +163,7 @@ def organizer_login(body: OrganizerLogin):
 
 @router.get("/organizer/me", response_model=OrganizerResponse, tags=["Organizer Auth"])
 def organizer_me(org: AttrDict = Depends(get_current_organizer)):
-    org_id = org.get("OrganizerID", org.get("id", ""))
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     return OrganizerResponse(
         id=org_id,
         email=org["email"],
@@ -182,7 +181,7 @@ def update_organizer_profile(
     body: OrganizerProfileUpdate,
     org: AttrDict = Depends(get_current_organizer),
 ):
-    org_id = org.get("OrganizerID", org.get("id", ""))
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     update_data = body.model_dump(exclude_unset=True)
     if not update_data:
         updated = org
@@ -208,8 +207,8 @@ def verify_email(body: EmailVerification):
     org = dynamodb_helper.get_organizer_by_verification_token(body.token)
     if not org:
         raise HTTPException(400, "Invalid or expired verification token")
-    
-    org_id = org.get("OrganizerID", org.get("id"))
+
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     new_status = "active" if not settings.REQUIRE_EVENT_APPROVAL else "verified"
     if org.get("status") != "pending":
         new_status = org.get("status")
@@ -229,7 +228,7 @@ def request_password_reset(body: PasswordResetRequest, background_tasks: Backgro
     org = dynamodb_helper.get_organizer_by_email(body.email)
     if org:
         token = secrets.token_urlsafe(32)
-        org_id = org.get("OrganizerID", org.get("id"))
+        org_id = str(org.get("OrganizerID") or org.get("id") or "")
         expires = (datetime.now(timezone.utc) + timedelta(hours=settings.PASSWORD_RESET_EXPIRE_HOURS)).isoformat()
         dynamodb_helper.update_organizer(org_id, {
             "reset_token": token,
@@ -244,7 +243,7 @@ def reset_password(body: PasswordReset):
     org = dynamodb_helper.get_organizer_by_reset_token(body.token)
     if not org:
         raise HTTPException(400, "Invalid or expired reset token")
-    
+
     expires = org.get("reset_token_expires")
     if expires:
         try:
@@ -256,7 +255,7 @@ def reset_password(body: PasswordReset):
         except ValueError:
             pass
 
-    org_id = org.get("OrganizerID", org.get("id"))
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     dynamodb_helper.update_organizer(org_id, {
         "password_hash": hash_password(body.new_password),
         "reset_token": None,
@@ -274,7 +273,7 @@ def unified_login(body: AdminLogin):
     if admin and verify_password(body.password, admin.get("password_hash", "")):
         if not admin.get("is_active", True):
             raise HTTPException(403, "Admin account is deactivated")
-        admin_id = admin.get("AdminID", admin.get("id"))
+        admin_id = str(admin.get("AdminID") or admin.get("id") or "")
         token = create_access_token(admin_id, role="admin")
         _log("admin", admin_id, admin["email"], "admin.login")
         return TokenResponse(access_token=token, role="admin")
@@ -284,7 +283,7 @@ def unified_login(body: AdminLogin):
     if org and verify_password(body.password, org.get("password_hash", "")):
         if org.get("status") == "suspended":
             raise HTTPException(403, "Account suspended")
-        org_id = org.get("OrganizerID", org.get("id"))
+        org_id = str(org.get("OrganizerID") or org.get("id") or "")
         token = create_access_token(org_id, role="organizer")
         _log("organizer", org_id, org["email"], "organizer.login")
         return TokenResponse(access_token=token, role="organizer")

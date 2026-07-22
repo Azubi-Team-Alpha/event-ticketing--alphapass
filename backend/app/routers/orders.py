@@ -366,12 +366,12 @@ def update_attendee(order_id: str, ticket_id: str, body: AttendeeUpdate):
 
     found_t["attendee_name"] = body.attendee_name
     if body.attendee_email:
-        found_t["attendee_email"] = str(body.attendee_email)
+        found_t["attendee_email"] = body.attendee_email
 
     dynamodb_helper.update_order(order_id, {"tickets": tickets})
     dynamodb_helper.update_ticket(ticket_id, {
         "attendee_name": body.attendee_name,
-        "attendee_email": str(body.attendee_email) if body.attendee_email else found_t.get("attendee_email"),
+        "attendee_email": body.attendee_email if body.attendee_email else found_t.get("attendee_email"),
     })
 
     return {"message": "Attendee info updated"}

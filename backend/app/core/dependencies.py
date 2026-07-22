@@ -105,14 +105,18 @@ def get_current_user(
 
     role = payload.get("role")
     sub = payload.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    sub_id = str(sub)
     if role == "admin":
-        data = dynamodb_helper.get_admin(sub)
+        data = dynamodb_helper.get_admin(sub_id)
         if data:
-            data["id"] = data.get("AdminID", sub)
+            data["id"] = data.get("AdminID", sub_id)
     elif role == "organizer":
-        data = dynamodb_helper.get_organizer(sub)
+        data = dynamodb_helper.get_organizer(sub_id)
         if data:
-            data["id"] = data.get("OrganizerID", sub)
+            data["id"] = data.get("OrganizerID", sub_id)
     else:
         raise HTTPException(status_code=401, detail="Invalid token role")
 

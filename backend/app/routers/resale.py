@@ -83,7 +83,7 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
     if not ticket:
         raise HTTPException(404, "Ticket not found")
 
-    ticket_id = ticket.get("TicketID") or ticket.get("id")
+    ticket_id = str(ticket.get("TicketID") or ticket.get("id") or "")
     order = dynamodb_helper.get_order(ticket.get("order_id", "")) or {}
     event = dynamodb_helper.get_event(order.get("event_id", "") or ticket.get("event_id", "")) or {}
 
@@ -102,7 +102,7 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
     face_value = Decimal(str(ticket.get("unit_price", "0.00")))
     max_markup = Decimal(str(event.get("max_resale_markup_percent", "10.00")))
     max_price = face_value * (Decimal("1") + max_markup / Decimal("100"))
-    
+
     if body.asking_price > max_price and max_price > Decimal("0.00"):
         raise HTTPException(400, f"Asking price exceeds maximum allowed resale price (${max_price:.2f})")
 
@@ -134,9 +134,9 @@ def remove_listing(ticket_code: str, seller_email: str):
     if not ticket:
         raise HTTPException(404, "Ticket not found")
 
-    ticket_id = ticket.get("TicketID") or ticket.get("id")
+    ticket_id = str(ticket.get("TicketID") or ticket.get("id") or "")
     listings = dynamodb_helper.list_resale_listings_by_ticket(ticket_id)
-    
+
     active_l = None
     for l in listings:
         if l.get("status") == "active" and l.get("seller_email", "").lower() == seller_email.lower():
@@ -146,7 +146,7 @@ def remove_listing(ticket_code: str, seller_email: str):
     if not active_l:
         raise HTTPException(404, "Active listing not found")
 
-    l_id = active_l.get("ListingID") or active_l.get("id")
+    l_id = str(active_l.get("ListingID") or active_l.get("id") or "")
     dynamodb_helper.update_resale_listing(l_id, {"status": "removed"})
     dynamodb_helper.update_ticket(ticket_id, {"status": "active"})
 
@@ -163,7 +163,7 @@ def purchase_resale_ticket(
     if not listing or listing.get("status") != "active":
         raise HTTPException(404, "Listing not found or no longer available")
 
-    ticket_id = listing.get("ticket_id")
+    ticket_id = str(listing.get("ticket_id") or "")
     original_ticket = dynamodb_helper.get_ticket(ticket_id) or {}
     order = dynamodb_helper.get_order(original_ticket.get("order_id", "")) or {}
     event = dynamodb_helper.get_event(order.get("event_id", "") or original_ticket.get("event_id", "")) or {}
