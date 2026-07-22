@@ -46,21 +46,42 @@ jobs:
           cd infra
           terraform destroy -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY || 'alphapass-teardown-secret-key' }}" -auto-approve
 
-      - name: AWS CLI Force Cleanup (Purge Any Orphaned Resources)
+      - name: AWS CLI Comprehensive Resource Purge
         run: |
           echo "=== Starting Complete AWS Resource Teardown & Purge ==="
           REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
           ENV="dev"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
           
-          # 1. Delete S3 Bucket and all contents
-          BUCKET_NAME="alphapass-frontend-${ENV}"
-          if aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null; then
-            echo "Emptying and deleting S3 Bucket: $BUCKET_NAME"
-            aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
-            aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
+          # 1. Delete S3 Bucket (including all object versions & delete markers)
+          BUCKETS=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'alphapass-frontend-')].Name" --output text 2>/dev/null || true)
+          for BUCKET_NAME in $BUCKETS; do
+            if [ -n "$BUCKET_NAME" ] && [ "$BUCKET_NAME" != "None" ]; then
+              echo "Purging and deleting S3 Bucket: $BUCKET_NAME"
+              aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
+              
+              VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+              if [ -n "$VERSIONS" ] && [ "$VERSIONS" != '{"Objects": null}' ] && [ "$VERSIONS" != '{"Objects": []}' ]; then
+                aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$VERSIONS" 2>/dev/null || true
+              fi
+
+              MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+              if [ -n "$MARKERS" ] && [ "$MARKERS" != '{"Objects": null}' ] && [ "$MARKERS" != '{"Objects": []}' ]; then
+                aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$MARKERS" 2>/dev/null || true
+              fi
+
+              aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
+            fi
+          done
+
+          # 2. Delete AWS Budget
+          BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
+          if [ -n "$ACCOUNT_ID" ]; then
+            echo "Deleting AWS Budget: $BUDGET_NAME"
+            aws budgets delete-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null || true
           fi
 
-          # 2. Delete API Gateway REST APIs
+          # 3. Delete API Gateway REST APIs
           API_IDS=$(aws api-gateway get-rest-apis --region "$REGION" --query "items[?contains(name, 'alphapass-serverless-api')].id" --output text 2>/dev/null || true)
           for API_ID in $API_IDS; do
             if [ -n "$API_ID" ] && [ "$API_ID" != "None" ]; then
@@ -69,25 +90,25 @@ jobs:
             fi
           done
 
-          # 3. Delete Lambda Function
+          # 4. Delete Lambda Function
           LAMBDA_NAME="alphapass-backend-api-${ENV}"
           if aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" 2>/dev/null; then
             echo "Deleting Lambda Function: $LAMBDA_NAME"
             aws lambda delete-function --function-name "$LAMBDA_NAME" --region "$REGION" 2>/dev/null || true
           fi
 
-          # 4. Delete CloudWatch Alarm & Log Group
+          # 5. Delete CloudWatch Alarm & Log Group
           aws cloudwatch delete-alarms --alarm-names "alphapass-lambda-errors-${ENV}" --region "$REGION" 2>/dev/null || true
           aws logs delete-log-group --log-group-name "/aws/lambda/$LAMBDA_NAME" --region "$REGION" 2>/dev/null || true
 
-          # 5. Delete SNS Topic
+          # 6. Delete SNS Topic
           TOPIC_ARN=$(aws sns list-topics --region "$REGION" --query "Topics[?contains(TopicArn, 'alphapass-notifications')].TopicArn" --output text 2>/dev/null || true)
           if [ -n "$TOPIC_ARN" ] && [ "$TOPIC_ARN" != "None" ]; then
             echo "Deleting SNS Topic: $TOPIC_ARN"
             aws sns delete-topic --topic-arn "$TOPIC_ARN" --region "$REGION" 2>/dev/null || true
           fi
 
-          # 6. Delete DynamoDB Tables
+          # 7. Delete DynamoDB Tables
           TABLES=$(aws dynamodb list-tables --region "$REGION" --query "TableNames[?starts_with(@, 'alphapass-')]" --output text 2>/dev/null || true)
           for TABLE in $TABLES; do
             if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
@@ -96,10 +117,9 @@ jobs:
             fi
           done
 
-          # 7. Delete IAM Role & Policy
+          # 8. Delete IAM Role & Policy
           ROLE_NAME="alphapass-lambda-role-${ENV}"
           POLICY_NAME="alphapass-lambda-policy-${ENV}"
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
           POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
 
           aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POLICY_ARN" 2>/dev/null || true
@@ -110,5 +130,5 @@ jobs:
 
           echo "### 💥 AlphaPass Infrastructure Teardown Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Status:** All AWS infrastructure resources (\`alphapass-*-dev\`) have been completely destroyed." >> $GITHUB_STEP_SUMMARY
-          echo "- **Destroyed Resources:** S3 Bucket, API Gateway, Lambda Function, DynamoDB Tables, SNS Topics, CloudWatch Alarms & IAM Roles." >> $GITHUB_STEP_SUMMARY
+          echo "- **Purged Resources:** S3 Bucket (including all versions & delete markers), AWS Budget, API Gateway, Lambda Function, DynamoDB Tables, SNS Topics, CloudWatch Alarms & IAM Roles." >> $GITHUB_STEP_SUMMARY
           echo "::notice title=Teardown Completed::All AlphaPass AWS resources destroyed successfully."
