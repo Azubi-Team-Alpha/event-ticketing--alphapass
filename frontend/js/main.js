@@ -13,7 +13,9 @@
 
 
     // Initiate the wowjs
-    new WOW().init();
+    if (typeof WOW !== 'undefined') {
+        new WOW().init();
+    }
 
 
     // Sticky Navbar
@@ -26,118 +28,120 @@
     });
 
 
-    // Hero Header carousel
-    $(".header-carousel").owlCarousel({
-        items: 1,
-        autoplay: true,
-        smartSpeed: 2000,
-        center: false,
-        dots: false,
-        loop: true,
-        margin: 0,
-        nav: true,
-        navText: [
-            '<i class="bi bi-arrow-left"></i>',
-            '<i class="bi bi-arrow-right"></i>'
-        ]
-    });
+    if ($.fn.owlCarousel) {
+        // Hero Header carousel
+        $(".header-carousel").owlCarousel({
+            items: 1,
+            autoplay: true,
+            smartSpeed: 2000,
+            center: false,
+            dots: false,
+            loop: true,
+            margin: 0,
+            nav: true,
+            navText: [
+                '<i class="bi bi-arrow-left"></i>',
+                '<i class="bi bi-arrow-right"></i>'
+            ]
+        });
 
 
-    // ProductList carousel
-    $(".productList-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 2000,
-        dots: false,
-        loop: true,
-        margin: 25,
-        nav: true,
-        navText: [
-            '<i class="fas fa-chevron-left"></i>',
-            '<i class="fas fa-chevron-right"></i>'
-        ],
-        responsiveClass: true,
-        responsive: {
-            0: {
-                items: 1
-            },
-            576: {
-                items: 1
-            },
-            768: {
-                items: 2
-            },
-            992: {
-                items: 2
-            },
-            1200: {
-                items: 3
+        // ProductList carousel
+        $(".productList-carousel").owlCarousel({
+            autoplay: true,
+            smartSpeed: 2000,
+            dots: false,
+            loop: true,
+            margin: 25,
+            nav: true,
+            navText: [
+                '<i class="fas fa-chevron-left"></i>',
+                '<i class="fas fa-chevron-right"></i>'
+            ],
+            responsiveClass: true,
+            responsive: {
+                0: {
+                    items: 1
+                },
+                576: {
+                    items: 1
+                },
+                768: {
+                    items: 2
+                },
+                992: {
+                    items: 2
+                },
+                1200: {
+                    items: 3
+                }
             }
-        }
-    });
+        });
 
-    // ProductList categories carousel
-    $(".productImg-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: false,
-        loop: true,
-        items: 1,
-        margin: 25,
-        nav: true,
-        navText: [
-            '<i class="bi bi-arrow-left"></i>',
-            '<i class="bi bi-arrow-right"></i>'
-        ]
-    });
-
-
-    // Single Products carousel
-    $(".single-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: true,
-        dotsData: true,
-        loop: true,
-        items: 1,
-        nav: true,
-        navText: [
-            '<i class="bi bi-arrow-left"></i>',
-            '<i class="bi bi-arrow-right"></i>'
-        ]
-    });
+        // ProductList categories carousel
+        $(".productImg-carousel").owlCarousel({
+            autoplay: true,
+            smartSpeed: 1500,
+            dots: false,
+            loop: true,
+            items: 1,
+            margin: 25,
+            nav: true,
+            navText: [
+                '<i class="bi bi-arrow-left"></i>',
+                '<i class="bi bi-arrow-right"></i>'
+            ]
+        });
 
 
-    // ProductList carousel
-    $(".related-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: false,
-        loop: true,
-        margin: 25,
-        nav: true,
-        navText: [
-            '<i class="fas fa-chevron-left"></i>',
-            '<i class="fas fa-chevron-right"></i>'
-        ],
-        responsiveClass: true,
-        responsive: {
-            0: {
-                items: 1
-            },
-            576: {
-                items: 1
-            },
-            768: {
-                items: 2
-            },
-            992: {
-                items: 3
-            },
-            1200: {
-                items: 4
+        // Single Products carousel
+        $(".single-carousel").owlCarousel({
+            autoplay: true,
+            smartSpeed: 1500,
+            dots: true,
+            dotsData: true,
+            loop: true,
+            items: 1,
+            nav: true,
+            navText: [
+                '<i class="bi bi-arrow-left"></i>',
+                '<i class="bi bi-arrow-right"></i>'
+            ]
+        });
+
+
+        // ProductList carousel
+        $(".related-carousel").owlCarousel({
+            autoplay: true,
+            smartSpeed: 1500,
+            dots: false,
+            loop: true,
+            margin: 25,
+            nav: true,
+            navText: [
+                '<i class="fas fa-chevron-left"></i>',
+                '<i class="fas fa-chevron-right"></i>'
+            ],
+            responsiveClass: true,
+            responsive: {
+                0: {
+                    items: 1
+                },
+                576: {
+                    items: 1
+                },
+                768: {
+                    items: 2
+                },
+                992: {
+                    items: 3
+                },
+                1200: {
+                    items: 4
+                }
             }
-        }
-    });
+        });
+    }
 
 
 

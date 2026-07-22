@@ -8,7 +8,7 @@ resource "null_resource" "build_lambda_package" {
     command = <<EOT
       mkdir -p ${path.module}/build
       rm -rf ${path.module}/build/*
-      pip install -r ${path.module}/../../../backend/requirements.txt --target ${path.module}/build
+      pip install -r ${path.module}/../../../backend/requirements.txt --target ${path.module}/build --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.12
       rm -rf ${path.module}/build/boto3* ${path.module}/build/botocore* ${path.module}/build/s3transfer* ${path.module}/build/jmespath* ${path.module}/build/urllib3*
       find ${path.module}/build -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
       find ${path.module}/build -type f -name "*.pyc" -delete 2>/dev/null || true

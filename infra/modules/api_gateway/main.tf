@@ -79,3 +79,27 @@ resource "aws_lambda_permission" "apigw_lambda" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.serverless_api.execution_arn}/*/*"
 }
+
+# Gateway Response for 4XX with CORS Headers
+resource "aws_api_gateway_gateway_response" "response_4xx" {
+  rest_api_id   = aws_api_gateway_rest_api.serverless_api.id
+  response_type = "DEFAULT_4XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Methods" = "'*'"
+  }
+}
+
+# Gateway Response for 5XX with CORS Headers
+resource "aws_api_gateway_gateway_response" "response_5xx" {
+  rest_api_id   = aws_api_gateway_rest_api.serverless_api.id
+  response_type = "DEFAULT_5XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Methods" = "'*'"
+  }
+}

@@ -471,7 +471,20 @@ class DynamoDBHelper:
         return None
 
     def list_categories(self) -> List[Dict[str, Any]]:
-        return self._scan_all(self.event_categories_table_name)
+        cats = self._scan_all(self.event_categories_table_name)
+        if not cats:
+            default_cats = [
+                {"CategoryID": "cat-1", "name": "Music & Concerts", "description": "Live shows, festivals & tours", "slug": "music-concerts", "sort_order": 1},
+                {"CategoryID": "cat-2", "name": "Tech & Cloud Summits", "description": "Developer conferences, AI & AWS summits", "slug": "tech-cloud-summits", "sort_order": 2},
+                {"CategoryID": "cat-3", "name": "Business & Startup", "description": "Networking, pitch days & workshops", "slug": "business-startup", "sort_order": 3},
+                {"CategoryID": "cat-4", "name": "Arts & Theatre", "description": "Plays, comedy & exhibitions", "slug": "arts-theatre", "sort_order": 4},
+                {"CategoryID": "cat-5", "name": "Sports & Gaming", "description": "Tournaments, esports & matches", "slug": "sports-gaming", "sort_order": 5},
+                {"CategoryID": "cat-6", "name": "Workshops & Masterclasses", "description": "Skill building & hands-on bootcamps", "slug": "workshops-masterclasses", "sort_order": 6}
+            ]
+            for c in default_cats:
+                self.create_category(c)
+            return default_cats
+        return cats
 
     def delete_category(self, category_id: str) -> None:
         table = self._get_table(self.event_categories_table_name)
