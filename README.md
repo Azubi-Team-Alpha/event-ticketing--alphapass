@@ -160,7 +160,9 @@ pytest
 
 ---
 
-## 🛠️ Infrastructure Provisioning (Terraform)
+## 🛠️ Infrastructure Provisioning (Terraform — Deployment Option 2)
+
+The project utilizes **Deployment Option 2 (Automated Direct Serverless Stack)**. In this configuration, AWS Lambda and all serverless components are provisioned directly via Terraform using lightweight ZIP artifacts, completely bypassing Docker containers and ECR registry storage fees.
 
 To build and deploy the AWS serverless architecture:
 
@@ -178,11 +180,15 @@ To build and deploy the AWS serverless architecture:
    ```
 4. Perform dry run analysis:
    ```bash
-   terraform plan
+   terraform plan -var="environment=dev"
    ```
 5. Deploy to AWS:
    ```bash
-   terraform apply
+   terraform apply -var="environment=dev" -auto-approve
+   ```
+6. Deploy Static Frontend Assets:
+   ```bash
+   aws s3 sync ../frontend/ s3://$(terraform output -raw frontend_bucket_name) --delete
    ```
 
 ---
@@ -190,3 +196,4 @@ To build and deploy the AWS serverless architecture:
 ## 👥 Team Alpha (Project Contributors)
 * **Azubi-AWS-AI Internship Program**
 * **Project Reference:** Project 2 (Team Alpha Portfolio)
+
