@@ -439,14 +439,15 @@ class OrderResponse(BaseModel):
     event_id: str
     guest_name: str
     guest_email: str
-    guest_phone: Optional[str]
+    guest_phone: Optional[str] = None
     status: str
     subtotal: Decimal
     discount_amount: Decimal
     platform_fee: Decimal
     total_amount: Decimal
-    payment_reference: Optional[str]
+    payment_reference: Optional[str] = None
     items: list[OrderItemResponse] = []
+    tickets: list[TicketResponse] = []
     total_tickets: int
     created_at: datetime
 

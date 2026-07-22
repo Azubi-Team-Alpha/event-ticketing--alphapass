@@ -1,19 +1,19 @@
 /**
  * AlphaPass API SDK & Shared Utility Script
  * Connects frontend pages to FastAPI backend (default http://localhost:8000)
- * Includes mock/demo fallback data so frontend is 100% functional even if backend is offline.
+ * Includes robust request/response normalization & offline fallback data.
  */
 
 const API_BASE_URL = window.ALPHAPASS_API_URL || 'http://localhost:8000';
 
 // ── Demo / Seed Data for Offline Fallback ────────────────────────────────────
 const DEMO_CATEGORIES = [
-    { id: "cat-1", name: "Music & Concerts", description: "Live shows, festivals & tours" },
-    { id: "cat-2", name: "Tech & Cloud Summits", description: "Developer conferences, AI & AWS summits" },
-    { id: "cat-3", name: "Business & Startup", description: "Networking, pitch days & workshops" },
-    { id: "cat-4", name: "Arts & Theatre", description: "Plays, comedy & exhibitions" },
-    { id: "cat-5", name: "Sports & Gaming", description: "Tournaments, esports & matches" },
-    { id: "cat-6", name: "Workshops & Masterclasses", description: "Skill building & hands-on bootcamps" }
+    { id: "cat-1", name: "Music & Concerts", description: "Live shows, festivals & tours", slug: "music-concerts" },
+    { id: "cat-2", name: "Tech & Cloud Summits", description: "Developer conferences, AI & AWS summits", slug: "tech-cloud-summits" },
+    { id: "cat-3", name: "Business & Startup", description: "Networking, pitch days & workshops", slug: "business-startup" },
+    { id: "cat-4", name: "Arts & Theatre", description: "Plays, comedy & exhibitions", slug: "arts-theatre" },
+    { id: "cat-5", name: "Sports & Gaming", description: "Tournaments, esports & matches", slug: "sports-gaming" },
+    { id: "cat-6", name: "Workshops & Masterclasses", description: "Skill building & hands-on bootcamps", slug: "workshops-masterclasses" }
 ];
 
 const DEMO_EVENTS = [
@@ -28,11 +28,12 @@ const DEMO_EVENTS = [
         city: "Accra",
         country: "Ghana",
         is_online: false,
-        starts_at: "2026-09-15T09:00:00",
-        ends_at: "2026-09-16T18:00:00",
+        starts_at: "2026-09-15T09:00:00Z",
+        ends_at: "2026-09-16T18:00:00Z",
         status: "published",
         min_price: 150.00,
         image_url: "img/carousel-1.jpg",
+        banner_image_url: "img/carousel-1.jpg",
         organizer_name: "Team Alpha Tech Hub",
         policies: "Refunds available up to 48 hours prior to event start. Digital QR ticket required at entry.",
         ticket_types: [
@@ -51,11 +52,12 @@ const DEMO_EVENTS = [
         city: "Accra",
         country: "Ghana",
         is_online: false,
-        starts_at: "2026-10-02T18:00:00",
-        ends_at: "2026-10-03T04:00:00",
+        starts_at: "2026-10-02T18:00:00Z",
+        ends_at: "2026-10-03T04:00:00Z",
         status: "published",
         min_price: 120.00,
         image_url: "img/carousel-2.png",
+        banner_image_url: "img/carousel-2.png",
         organizer_name: "Live Nation West Africa",
         policies: "18+ only. ID check at gate. No outside drinks permitted.",
         ticket_types: [
@@ -74,11 +76,12 @@ const DEMO_EVENTS = [
         city: "Accra",
         country: "Ghana",
         is_online: false,
-        starts_at: "2026-11-10T10:00:00",
-        ends_at: "2026-11-10T17:00:00",
+        starts_at: "2026-11-10T10:00:00Z",
+        ends_at: "2026-11-10T17:00:00Z",
         status: "published",
         min_price: 200.00,
         image_url: "img/header-img.jpg",
+        banner_image_url: "img/header-img.jpg",
         organizer_name: "Azubi Capital Ventures",
         policies: "Dress code: Business Casual. Digital ticket check-in.",
         ticket_types: [
@@ -97,11 +100,12 @@ const DEMO_EVENTS = [
         city: "Accra",
         country: "Ghana",
         is_online: false,
-        starts_at: "2026-11-20T11:00:00",
-        ends_at: "2026-11-21T20:00:00",
+        starts_at: "2026-11-20T11:00:00Z",
+        ends_at: "2026-11-21T20:00:00Z",
         status: "published",
         min_price: 80.00,
         image_url: "img/product-1.png",
+        banner_image_url: "img/product-1.png",
         organizer_name: "Esports Ghana Guild",
         policies: "Gamers must register handle before event day.",
         ticket_types: [
@@ -111,9 +115,30 @@ const DEMO_EVENTS = [
     }
 ];
 
-// ── Generic API Fetch Handler with Fallback ──────────────────────────────────
+// ── Generic API Fetch Handler with Normalization & Fallback ──────────────────
 async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('access_token') || localStorage.getItem('organizer_token') || localStorage.getItem('admin_token');
+    
+    // Transform request payload if needed
+    let fetchOptions = { ...options };
+    if (fetchOptions.body && typeof fetchOptions.body === 'string') {
+        try {
+            const bodyObj = JSON.parse(fetchOptions.body);
+            // Handle /auth/organizer/signup payload mapping
+            if (path === '/auth/organizer/signup') {
+                if (!bodyObj.organization_name) {
+                    bodyObj.organization_name = bodyObj.business_name || bodyObj.full_name || 'Organization';
+                }
+                if (!bodyObj.contact_name) {
+                    bodyObj.contact_name = bodyObj.full_name || bodyObj.business_name || 'Contact Person';
+                }
+                fetchOptions.body = JSON.stringify(bodyObj);
+            }
+        } catch (e) {
+            // retain original string
+        }
+    }
+
     const headers = {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -121,16 +146,49 @@ async function apiFetch(path, options = {}) {
     };
 
     try {
-        const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+        const response = await fetch(`${API_BASE_URL}${path}`, { ...fetchOptions, headers });
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.detail || `Server error (${response.status})`);
+            let errMsg = errData.detail || `Server error (${response.status})`;
+            if (Array.isArray(errData.detail)) {
+                errMsg = errData.detail.map(d => `${d.loc ? d.loc.join('.') : ''}: ${d.msg}`).join(', ');
+            }
+            throw new Error(errMsg);
         }
-        return await response.json();
+        const data = await response.json();
+        return normalizeResponse(path, data);
     } catch (err) {
-        console.warn(`[AlphaPass API] Connection to ${API_BASE_URL}${path} failed or offline. Using local handler/fallback if applicable:`, err.message);
-        return handleFallback(path, options);
+        console.warn(`[AlphaPass API] Request to ${API_BASE_URL}${path} failed (${err.message}). Using local fallback handler.`);
+        return handleFallback(path, fetchOptions);
     }
+}
+
+// ── Normalize API Responses for Uniform Frontend Usage ──────────────────────
+function normalizeResponse(path, data) {
+    const cleanPath = path.split('?')[0];
+
+    // /events endpoint returns { items: [...], total, page, limit }
+    if ((cleanPath === '/events' || cleanPath === '/events/search') && data && data.items) {
+        return data.items.map(e => ({
+            ...e,
+            category_name: e.category_name || (e.category ? e.category.name : 'Event'),
+            image_url: e.banner_image_url || e.thumbnail_url || e.image_url || 'img/header-img.jpg',
+            min_price: e.min_price !== undefined ? parseFloat(e.min_price) : 100.00
+        }));
+    }
+
+    // Single event /events/{id}
+    if (cleanPath.startsWith('/events/') && data && data.id) {
+        return {
+            ...data,
+            category_name: data.category_name || (data.category ? data.category.name : 'Event'),
+            image_url: data.banner_image_url || data.thumbnail_url || data.image_url || 'img/header-img.jpg',
+            min_price: data.min_price !== undefined ? parseFloat(data.min_price) : 100.00,
+            organizer_name: data.organizer_name || 'Official Organizer'
+        };
+    }
+
+    return data;
 }
 
 // ── Offline Fallback Router ──────────────────────────────────────────────────
@@ -195,12 +253,14 @@ function handleFallback(path, options) {
                     ticket_type_name: "General Admission",
                     attendee_name: body.guest_name,
                     attendee_email: body.guest_email,
-                    qr_code: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`
+                    qr_code: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`,
+                    qr_image_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`
                 }
             ],
             created_at: new Date().toISOString()
         };
-        // Save to local storage for persistent guest wallet testing
+
+        // Save locally for wallet testing
         const existing = JSON.parse(localStorage.getItem('alphapass_guest_orders') || '[]');
         existing.push(newOrder);
         localStorage.setItem('alphapass_guest_orders', JSON.stringify(existing));
@@ -211,16 +271,15 @@ function handleFallback(path, options) {
     // POST /orders/lookup
     if (cleanPath === '/orders/lookup' && method === 'POST') {
         const body = JSON.parse(options.body || '{}');
-        const email = (body.email || '').toLowerCase();
+        const email = (body.email || body.guest_email || '').toLowerCase();
         const existing = JSON.parse(localStorage.getItem('alphapass_guest_orders') || '[]');
-        const matched = existing.find(o => o.guest_email.toLowerCase() === email);
+        const matched = existing.find(o => (o.guest_email || '').toLowerCase() === email);
         if (matched) return matched;
-        // Return default demo order if none in storage
         return {
             id: "ORD-984210",
             order_id: "ORD-984210",
-            guest_name: body.email.split('@')[0] || "AlphaPass Guest",
-            guest_email: body.email,
+            guest_name: email ? email.split('@')[0] : "AlphaPass Guest",
+            guest_email: email || "guest@example.com",
             total_amount: 150.00,
             status: "PAID",
             tickets: [
@@ -228,8 +287,9 @@ function handleFallback(path, options) {
                     ticket_code: "TKT-883921",
                     ticket_type_name: "VIP Developer Pass",
                     attendee_name: "Demo Guest",
-                    attendee_email: body.email,
-                    qr_code: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TKT-883921"
+                    attendee_email: email || "guest@example.com",
+                    qr_code: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TKT-883921",
+                    qr_image_url: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TKT-883921"
                 }
             ]
         };
@@ -244,7 +304,8 @@ function handleFallback(path, options) {
             event_title: "AWS & Cloud AI Summit Accra 2026",
             attendee_name: "Alex Mensah",
             attendee_email: "alex@example.com",
-            qr_code: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${code}`
+            qr_code: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${code}`,
+            qr_image_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${code}`
         };
     }
 
@@ -272,8 +333,8 @@ function handleFallback(path, options) {
         };
     }
 
-    // GET /resale/listings
-    if (cleanPath === '/resale/listings' && method === 'GET') {
+    // GET /resale/listings or /resale
+    if ((cleanPath === '/resale/listings' || cleanPath === '/resale') && method === 'GET') {
         return [
             {
                 id: "resale-1",
@@ -308,8 +369,7 @@ function handleFallback(path, options) {
         return { success: true, message: `Check-in Verified for ${code}! Welcome to the event.`, status: "CHECKED_IN", timestamp: new Date().toLocaleTimeString() };
     }
 
-    // Default response
-    return { status: "success", message: "Operation completed (Demo Mode)" };
+    return { status: "success", message: "Operation completed (Fallback Mode)" };
 }
 
 // ── Local Storage Cart Manager ───────────────────────────────────────────────

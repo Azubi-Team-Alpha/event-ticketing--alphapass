@@ -96,6 +96,10 @@ def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
             "tickets": formatted_tix,
         })
 
+    all_flattened_tickets = []
+    for item_resp in formatted_items:
+        all_flattened_tickets.extend(item_resp.get("tickets", []))
+
     return {
         "id": order_id,
         "event_id": event_id,
@@ -114,6 +118,7 @@ def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
         "event_title": event.get("title"),
         "total_tickets": sum(int(i.get("quantity", 1)) for i in items),
         "items": formatted_items,
+        "tickets": all_flattened_tickets,
     }
 
 
