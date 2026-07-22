@@ -9,7 +9,7 @@ resource "null_resource" "build_lambda_package" {
       mkdir -p ${path.module}/build
       rm -rf ${path.module}/build/*
       pip install -r ${path.module}/../../../backend/requirements.txt --target ${path.module}/build --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.12
-      rm -rf ${path.module}/build/boto3* ${path.module}/build/botocore* ${path.module}/build/s3transfer* ${path.module}/build/jmespath* ${path.module}/build/urllib3*
+      rm -rf ${path.module}/build/boto3* ${path.module}/build/botocore* ${path.module}/build/s3transfer* ${path.module}/build/jmespath* ${path.module}/build/urllib3* ${path.module}/build/moto* ${path.module}/build/pytest* ${path.module}/build/httpx* ${path.module}/build/responses* ${path.module}/build/async_timeout* ${path.module}/build/werkzeug* ${path.module}/build/jinja2* ${path.module}/build/markupsafe*
       find ${path.module}/build -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
       find ${path.module}/build -type f -name "*.pyc" -delete 2>/dev/null || true
       cp -r ${path.module}/../../../backend/app ${path.module}/build/
