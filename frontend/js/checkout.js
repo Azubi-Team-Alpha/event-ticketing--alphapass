@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.alphapass-ticketing.com'; // update to real URL
+const API_BASE_URL = window.ALPHAPASS_API_URL || '';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;

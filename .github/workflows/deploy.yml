@@ -117,10 +117,30 @@ jobs:
           BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
           API_URL=$(terraform output -raw api_endpoint)
           FRONTEND_URL=$(terraform output -raw frontend_website_endpoint)
+          LAMBDA_NAME=$(terraform output -raw lambda_function_name)
           
           echo "S3 Bucket Target: $BUCKET_NAME"
           echo "API Endpoint: $API_URL"
           echo "Frontend S3 URL: http://$FRONTEND_URL"
 
+          # Inject real deployed API Gateway endpoint into frontend/js/config.js
+          cat <<EOF > ../frontend/js/config.js
+          /**
+           * AlphaPass Global Frontend Configuration
+           * Dynamically generated during CI/CD deployment
+           */
+          window.ALPHAPASS_API_URL = '$API_URL';
+          EOF
+
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
+
+          # Output raw endpoints prominently to Workflow Step Summary & Action Notice
+          echo "### 🚀 AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend Platform S3 URL:** [http://$FRONTEND_URL](http://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "- **REST API Gateway Endpoint:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **AWS Lambda Backend Function:** \`$LAMBDA_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **S3 Hosting Bucket Target:** \`$BUCKET_NAME\`" >> $GITHUB_STEP_SUMMARY
+          
+          echo "::notice title=Deployment Raw Endpoints::Frontend: http://$FRONTEND_URL | API: $API_URL"
+
 

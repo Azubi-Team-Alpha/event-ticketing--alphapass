@@ -1,10 +1,9 @@
 /**
  * AlphaPass API SDK & Shared Utility Script
- * Connects frontend pages to AWS API Gateway + Lambda backend:
- * https://17vngt0v8l.execute-api.us-east-1.amazonaws.com/dev
+ * Connects frontend pages to AWS API Gateway + Lambda backend
  */
 
-const API_BASE_URL = window.ALPHAPASS_API_URL || 'https://17vngt0v8l.execute-api.us-east-1.amazonaws.com/dev';
+const API_BASE_URL = window.ALPHAPASS_API_URL || '';
 
 // ── Generic API Fetch Handler ────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
