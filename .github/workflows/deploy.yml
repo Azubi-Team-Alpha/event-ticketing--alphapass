@@ -10,7 +10,7 @@ on:
 jobs:
   # ── STAGE 1: AUTOMATED UNIT & INTEGRATION TESTING ───────────────────────────
   test:
-    name: 🧪 Run Backend Unit & Integration Tests
+    name:  Run Backend Unit & Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -34,7 +34,7 @@ jobs:
 
   # ── STAGE 2: BUILD & PACKAGE LAMBDA ARTIFACT ─────────────────────────────────
   package:
-    name: 📦 Package Backend Dependencies
+    name:  Package Backend Dependencies
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +61,7 @@ jobs:
   deploy:
     name:  Deploy Infrastructure & Frontend (AWS)
     needs: [test, package]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
