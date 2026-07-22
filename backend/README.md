@@ -1,13 +1,14 @@
 # Ticket Hub Backend API (AlphaPass)
 **Internship Portfolio — Project 2 - Team Alpha**
 
-Welcome to the backend service of **Ticket Hub (AlphaPass)**. This service is a high-performance, containerized REST API built with **FastAPI**, **SQLAlchemy** (with SQLite/PostgreSQL support), and **Alembic** migrations. It supports secure organizer/admin authentication, public guest checkout with transactional emails, QR-code ticket PDF generation, transfers, and resales.
+Welcome to the backend service of **Ticket Hub (AlphaPass)**. This service is a high-performance, serverless REST API built with **FastAPI**, **Boto3 DynamoDB Client**, and **Mangum ASGI Adapter**. It supports secure organizer/admin authentication, public guest checkout with transactional emails, QR-code ticket PDF generation, transfers, and resales.
 
 ---
 
 ## 🛠️ Tech Stack & Core Services
 - **Framework:** FastAPI (Python 3.12+)
-- **Database ORM:** SQLAlchemy 2.0+ (SQLite for local testing, PostgreSQL for Docker/Production)
+- **Database Layer:** Amazon DynamoDB (Serverless On-Demand Tables via Boto3 Client)
+
 - **Database Migrations:** Alembic 1.13+
 - **Authentication:** JSON Web Tokens (JWT) using `python-jose` & `bcrypt`
 - **Security:** Hashed passwords & role-based route guards
@@ -74,23 +75,6 @@ uvicorn app.main:app --reload --port 8000
 ```
 - Interactive API Documentation (Swagger UI): [http://localhost:8000/docs](http://localhost:8000/docs)
 - Alternative Documentation (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)
-
----
-
-## 🐳 Running with Docker Compose
-
-If you prefer a multi-tier local environment using PostgreSQL:
-1. Navigate to the project root directory.
-2. Spin up the database, backend, and frontend containers:
-   ```bash
-   docker compose up --build -d
-   ```
-3. Run migrations and seed data in the backend container:
-   ```bash
-   docker compose exec backend alembic upgrade head
-   docker compose exec backend python -m app.db.seed
-   ```
-4. Access the backend Swagger UI at [http://localhost:8000/docs](http://localhost:8000/docs).
 
 ---
 

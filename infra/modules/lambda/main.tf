@@ -9,7 +9,6 @@ data "archive_file" "lambda_zip" {
     ".pytest_cache",
     "test.db",
     "tests",
-    "Dockerfile",
     "README.md",
     "TESTING.md",
     "alembic",
