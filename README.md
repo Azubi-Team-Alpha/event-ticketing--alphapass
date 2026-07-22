@@ -101,11 +101,22 @@ alphapass/
 │   ├── index.html            # Web entry point
 │   └── frontend_guide.md     # Detailed SPA integration guide
 ├── infra/                    # Terraform Infrastructure-as-code
-│   ├── modules/              # Infrastructure Modules (DynamoDB, Lambda, SNS, S3, APIGW)
+│   ├── modules/              # Infrastructure Modules (DynamoDB, Lambda, SNS, S3, APIGW, Budgets)
 │   ├── main.tf               # Global orchestration
 │   └── variables.tf          # Variable parameters
-└── .secrets/                 # Trello task mapping configurations
+└── .secrets/                 # Project Presentation & Submission Documentation
+    ├── presentation_submission_report.md     # Official Submission Architecture Report
+    └── presentation_slides_and_speaker_notes.md # Presentation Deck & Live Video Demo Script with Speaker Notes
 ```
+
+---
+
+## 📚 Project Presentation & Video Demo Documentation
+
+All official presentation, slide deck, and video demo recording assets are curated under the `.secrets/` directory:
+
+1. **[Presentation Submission Report](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.secrets/presentation_submission_report.md):** Comprehensive technical report covering system architecture, DynamoDB data model, security controls, and CI/CD pipelines.
+2. **[Presentation Deck & Speaker Script](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.secrets/presentation_slides_and_speaker_notes.md):** Slide-by-slide presentation deck with word-for-word voiceover script and presenter notes for recording a live video demo of the AlphaPass web platform.
 
 ---
 
@@ -201,17 +212,19 @@ AlphaPass includes complete GitHub Actions CI/CD workflows under `.github/workfl
 Automatically triggered on `push` or `pull_request` to `main`, or via manual `workflow_dispatch`:
 * **Stage 1 (Test)**: Executes `pytest` across all backend test suites.
 * **Stage 2 (Package)**: Prepares production Python dependencies for AWS Lambda.
-* **Stage 3 (Deploy)**: Executes `terraform apply -var="environment=dev" -auto-approve` and syncs static assets to S3.
+* **Stage 3 (Sanitation & Deploy)**: Executes pre-deploy sanitation clearing any orphaned resources, provisions AWS infrastructure with `terraform apply`, dynamically updates `frontend/js/config.js` with the live API Gateway endpoint URL, syncs static assets to S3, and posts all raw endpoint URLs directly to `$GITHUB_STEP_SUMMARY`.
 
 ### 2. Manual Infrastructure Teardown Button ([.github/workflows/teardown.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/teardown.yml))
-Allows tearing down all AWS infrastructure directly from the GitHub Actions UI:
+Allows tearing down all AWS infrastructure directly from the GitHub Actions UI in under 1 minute:
 1. Go to **Actions** -> **AlphaPass Infrastructure Teardown**.
-2. Click **Run workflow** and enter `"DESTROY"` to initiate `terraform destroy`.
+2. Click **Run workflow** and enter `"DESTROY"` to initiate automated teardown.
+3. Performs automated `terraform destroy` alongside an AWS CLI purge script that empties versioned S3 buckets (purging all object versions & delete markers) and deletes AWS Budgets, API Gateways, Lambda functions, DynamoDB tables, SNS topics, CloudWatch alarms, and IAM roles.
 
 ---
 
 ## 👥 Team Alpha (Project Contributors)
-* **Azubi-AWS-AI Internship Program**
+* **Azubi Cloud & AI Academy Internship Program**
 * **Project Reference:** Project 2 (Team Alpha Portfolio)
+
 
 
