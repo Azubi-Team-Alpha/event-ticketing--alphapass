@@ -25,3 +25,9 @@ output "frontend_url" {
   value       = module.frontend_hosting.site_url
   description = "Publicly accessible HTTP URL of the deployed frontend"
 }
+
+output "lambda_function_name" {
+  value       = module.lambda.function_name
+  description = "The name of the deployed AWS Lambda backend function"
+}
+

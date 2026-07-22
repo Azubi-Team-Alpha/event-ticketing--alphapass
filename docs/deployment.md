@@ -109,6 +109,32 @@ aws s3 sync ../frontend/ s3://$S3_BUCKET --delete --cache-control "max-age=3600,
 
 ---
 
+## 🔄 GitHub Actions CI/CD Pipeline & Manual Teardown
+
+The repository includes fully automated GitHub Actions CI/CD workflows under `.github/workflows/`:
+
+### 1. Automated Deployment Pipeline ([.github/workflows/deploy.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/deploy.yml))
+Triggers automatically on `push` or `pull_request` to `main`, or manually via **Workflow Dispatch**:
+
+- **Stage 1: Test (`test`)**: Runs full `pytest` suite across all backend unit and integration test cases.
+- **Stage 2: Build & Package (`package`)**: Installs dependencies into the Lambda deployment directory.
+- **Stage 3: Deploy Infrastructure & Code (`deploy`)**: Initializes Terraform, executes `terraform apply -var="environment=dev" -auto-approve` to provision all AWS serverless resources, deploys the backend package directly to the AWS Lambda function (`aws lambda update-function-code`), and syncs static assets to S3.
+
+### 2. Manual Infrastructure Teardown Button ([.github/workflows/teardown.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/teardown.yml))
+Provides an interactive button on the **GitHub Actions UI** to tear down / destroy all provisioned AWS infrastructure:
+
+1. Navigate to **GitHub Actions** tab -> **AlphaPass Infrastructure Teardown**.
+2. Click **Run workflow**.
+3. Type `"DESTROY"` into the confirmation box to authorize `terraform destroy -var="environment=dev" -auto-approve`.
+
+### Required GitHub Secrets
+Configure the following secrets under **Settings > Secrets and variables > Actions**:
+- `AWS_ACCESS_KEY_ID`: IAM User Access Key with permissions for Lambda, S3, DynamoDB, APIGW, SNS, CloudWatch, Budgets.
+- `AWS_SECRET_ACCESS_KEY`: IAM User Secret Key.
+- `AWS_REGION`: Deployment region (default: `us-east-1`).
+
+---
+
 ## 🎯 Final Recommendation & Selected Action Plan
 
 For **AlphaPass (Project 2 — Team Alpha)**, **Option 2 (Automated Direct Serverless Stack - No Docker)** has been **OFFICIALLY SELECTED** as the production architecture strategy.
@@ -117,3 +143,4 @@ Key Highlights of Option 2 Choice:
 1. **Zero Container Overhead**: Docker dependency has been removed from cloud deployment, avoiding Docker daemon requirements and ECR registry storage costs.
 2. **CI/CD Compatibility**: Uses direct Terraform `.zip` packaging for fast, zero-downtime serverless deployments.
 3. **100% Serverless Cost Savings**: Zero base monthly cost ($0.00 when idle). Pay strictly per API Gateway call, Lambda millisecond, and DynamoDB operation.
+

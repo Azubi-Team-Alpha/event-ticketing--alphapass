@@ -1,0 +1,126 @@
+name: AlphaPass CI/CD Deployment
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # ── STAGE 1: AUTOMATED UNIT & INTEGRATION TESTING ───────────────────────────
+  test:
+    name: 🧪 Run Backend Unit & Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Execute pytest Suite
+        run: |
+          cd backend
+          pytest -v
+
+  # ── STAGE 2: BUILD & PACKAGE LAMBDA ARTIFACT ─────────────────────────────────
+  package:
+    name: 📦 Package Backend Dependencies
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Production Dependencies into Backend
+        run: |
+          pip install --target backend/ -r backend/requirements.txt --upgrade
+
+      - name: Cache Packaged Backend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-backend
+          path: backend/
+          retention-days: 1
+
+  # ── STAGE 3: INFRASTRUCTURE & FRONTEND DEPLOYMENT ──────────────────────────
+  deploy:
+    name:  Deploy Infrastructure & Frontend (AWS)
+    needs: [test, package]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Packaged Backend Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged-backend
+          path: backend/
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Setup HashiCorp Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Init
+        run: |
+          cd infra
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infra
+          terraform plan -var="environment=dev"
+
+      - name: Terraform Apply (Provision Infrastructure & Package Backend)
+        run: |
+          cd infra
+          terraform apply -var="environment=dev" -auto-approve
+
+      - name: Deploy Backend Application Code to AWS Lambda Function
+        run: |
+          cd infra
+          LAMBDA_NAME=$(terraform output -raw lambda_function_name)
+          echo "Updating backend code on AWS Lambda function: $LAMBDA_NAME"
+          
+          # Explicitly trigger AWS Lambda code deployment with packaged ZIP artifact
+          aws lambda update-function-code \
+            --function-name "$LAMBDA_NAME" \
+            --zip-file "fileb://modules/lambda/lambda.zip"
+
+      - name: Deploy Frontend Static Website Assets to AWS S3
+        run: |
+          cd infra
+          BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
+          API_URL=$(terraform output -raw api_endpoint)
+          FRONTEND_URL=$(terraform output -raw frontend_website_endpoint)
+          
+          echo "S3 Bucket Target: $BUCKET_NAME"
+          echo "API Endpoint: $API_URL"
+          echo "Frontend S3 URL: http://$FRONTEND_URL"
+
+          aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
+

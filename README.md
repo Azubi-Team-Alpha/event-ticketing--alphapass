@@ -193,7 +193,25 @@ To build and deploy the AWS serverless architecture:
 
 ---
 
+## 🔄 Automated CI/CD Pipeline & Infrastructure Teardown
+
+AlphaPass includes complete GitHub Actions CI/CD workflows under `.github/workflows/`:
+
+### 1. Continuous Integration & Deployment Workflow ([.github/workflows/deploy.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/deploy.yml))
+Automatically triggered on `push` or `pull_request` to `main`, or via manual `workflow_dispatch`:
+* **Stage 1 (Test)**: Executes `pytest` across all backend test suites.
+* **Stage 2 (Package)**: Prepares production Python dependencies for AWS Lambda.
+* **Stage 3 (Deploy)**: Executes `terraform apply -var="environment=dev" -auto-approve` and syncs static assets to S3.
+
+### 2. Manual Infrastructure Teardown Button ([.github/workflows/teardown.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/teardown.yml))
+Allows tearing down all AWS infrastructure directly from the GitHub Actions UI:
+1. Go to **Actions** -> **AlphaPass Infrastructure Teardown**.
+2. Click **Run workflow** and enter `"DESTROY"` to initiate `terraform destroy`.
+
+---
+
 ## 👥 Team Alpha (Project Contributors)
 * **Azubi-AWS-AI Internship Program**
 * **Project Reference:** Project 2 (Team Alpha Portfolio)
+
 
