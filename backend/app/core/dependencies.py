@@ -82,14 +82,12 @@ def get_current_organizer(
 
 
 def get_active_organizer(organizer: AttrDict = Depends(get_current_organizer)) -> AttrDict:
-    """Requires organizer to be email-verified and active."""
-    if not organizer.get("email_verified", False):
-        raise HTTPException(status_code=403, detail="Please verify your email first")
-    status = organizer.get("status")
-    if status not in ("active", "verified"):
+    """Requires organizer to be active and not suspended."""
+    status = organizer.get("status", "active")
+    if status == "suspended":
         raise HTTPException(
             status_code=403,
-            detail="Your organizer account is pending admin approval"
+            detail="Your organizer account is suspended"
         )
     return organizer
 

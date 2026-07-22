@@ -282,20 +282,68 @@
     <script src="js/app-api.js"></script>
 
     <script>
-        function checkAdminAuth() {
+        async function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
             const badge = document.getElementById('adminAuthBadge');
             const loginSec = document.getElementById('adminLoginFormSec');
             const dashSec = document.getElementById('adminDashSec');
 
-            if (token) {
-                badge.innerHTML = '<span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-user-shield me-1"></i> Authenticated Admin</span>';
-                loginSec.style.display = 'none';
-                dashSec.style.display = 'block';
-            } else {
+            if (!token) {
                 badge.innerHTML = '<span class="badge bg-danger px-3 py-2 fs-6">Admin Auth Required</span>';
                 loginSec.style.display = 'flex';
                 dashSec.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Live Admin Dashboard API fetch & Auth Guardrail
+                const stats = await apiFetch('/admin/dashboard');
+
+                document.getElementById('admStatEvents').textContent = stats.total_events || 0;
+                document.getElementById('admStatPending').textContent = (stats.total_events || 0) - (stats.published_events || 0);
+                document.getElementById('admStatCommission').textContent = '₵' + (stats.total_platform_fees || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('admStatOrganizers').textContent = stats.total_organizers || 0;
+
+                badge.innerHTML = '<span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-user-shield me-1"></i> Authenticated Admin</span>';
+                loginSec.style.display = 'none';
+                dashSec.style.display = 'block';
+                loadPendingEvents();
+            } catch (err) {
+                console.warn('Admin session validation failed:', err.message);
+                localStorage.removeItem('admin_token');
+                badge.innerHTML = '<span class="badge bg-danger px-3 py-2 fs-6">Admin Session Invalid</span>';
+                loginSec.style.display = 'flex';
+                dashSec.style.display = 'none';
+                showToast('Admin access restricted. Please sign in.', 'danger');
+            }
+        }
+
+        async function loadPendingEvents() {
+            const tbody = document.getElementById('pendingEventsTable');
+            try {
+                const events = await apiFetch('/events');
+                const pending = (Array.isArray(events) ? events : (events.items || [])).filter(e => e.status === 'draft' || e.status === 'pending');
+                
+                if (pending.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fa fa-check-circle text-success me-2"></i> No pending event submissions in queue. All events reviewed!</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = pending.map(e => `
+                    <tr>
+                        <td class="fw-bold text-dark ps-3">${e.title}</td>
+                        <td class="text-muted small">${e.organizer_name || 'Organizer'}</td>
+                        <td class="text-muted small">${e.city || 'Accra'}</td>
+                        <td><span class="badge bg-warning text-dark">${(e.status || 'PENDING').toUpperCase()}</span></td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${e.id}', true)"><i class="fa fa-check me-1"></i> Approve</button>
+                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="approveEvent('${e.id}', false)"><i class="fa fa-times me-1"></i> Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Failed to load pending events:', err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to fetch pending events.</td></tr>`;
             }
         }
 
@@ -305,9 +353,10 @@
                     method: 'PUT',
                     body: JSON.stringify({ approved: isApproved })
                 });
-                showToast(isApproved ? 'Event Approved & Published!' : 'Event Rejected', isApproved ? 'success' : 'warning');
+                showToast(isApproved ? 'Event Approved & Published Live!' : 'Event Rejected', isApproved ? 'success' : 'warning');
+                await checkAdminAuth();
             } catch (err) {
-                showToast(isApproved ? 'Event Approved (Demo)' : 'Event Rejected (Demo)', isApproved ? 'success' : 'warning');
+                showToast('Action failed: ' + err.message, 'danger');
             }
         }
 
@@ -325,8 +374,8 @@
                         body: JSON.stringify({ email, password })
                     });
                     localStorage.setItem('admin_token', res.access_token);
-                    showToast('Admin Authenticated!', 'success');
-                    checkAdminAuth();
+                    showToast('Admin Authenticated Successfully!', 'success');
+                    await checkAdminAuth();
                 } catch (err) {
                     showToast('Admin login failed: ' + err.message, 'danger');
                 }
@@ -350,15 +399,16 @@
                 const desc = document.getElementById('catDesc').value.trim();
 
                 try {
-                    await apiFetch('/admin/categories', {
+                    await apiFetch('/events/categories', {
                         method: 'POST',
                         body: JSON.stringify({ name, description: desc })
                     });
-                    bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+                    const modalEl = document.getElementById('categoryModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
                     showToast(`Category '${name}' created!`, 'success');
                 } catch (err) {
-                    showToast(`Category '${name}' created (Demo Mode)!`, 'success');
-                    bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+                    showToast(`Category creation: ` + err.message, 'danger');
                 }
             });
         });

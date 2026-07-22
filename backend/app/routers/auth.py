@@ -110,8 +110,8 @@ def organizer_signup(body: OrganizerRegister, background_tasks: BackgroundTasks)
         "business_name": body.business_name,
         "phone": body.phone,
         "verification_token": token,
-        "status": "pending",
-        "email_verified": False,
+        "status": "active",
+        "email_verified": True,
     })
     
     _log("organizer", org_id, body.email, "organizer.signup")
