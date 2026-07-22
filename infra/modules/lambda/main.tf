@@ -1,21 +1,29 @@
-# Generate a zip package of the backend code
+# Build python dependencies into deployment directory
+resource "null_resource" "build_lambda_package" {
+  triggers = {
+    backend_hash = filemd5("${path.module}/../../../backend/requirements.txt")
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      mkdir -p ${path.module}/build
+      rm -rf ${path.module}/build/*
+      pip install -r ${path.module}/../../../backend/requirements.txt --target ${path.module}/build
+      rm -rf ${path.module}/build/boto3* ${path.module}/build/botocore* ${path.module}/build/s3transfer* ${path.module}/build/jmespath* ${path.module}/build/urllib3*
+      find ${path.module}/build -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/build -type f -name "*.pyc" -delete 2>/dev/null || true
+      cp -r ${path.module}/../../../backend/app ${path.module}/build/
+      cp ${path.module}/../../../backend/index.py ${path.module}/build/
+    EOT
+  }
+}
+
+# Generate a zip package of the backend code and dependencies
 data "archive_file" "lambda_zip" {
+  depends_on  = [null_resource.build_lambda_package]
   type        = "zip"
-  source_dir  = "${path.module}/../../../backend"
+  source_dir  = "${path.module}/build"
   output_path = "${path.module}/lambda.zip"
-  excludes = [
-    ".venv",
-    "__pycache__",
-    ".pytest_cache",
-    "test.db",
-    "tests",
-    "README.md",
-    "TESTING.md",
-    "alembic",
-    "alembic.ini",
-    "requirements-dev.txt",
-    ".env"
-  ]
 }
 
 # IAM Role for Lambda
