@@ -455,8 +455,9 @@ class OrderResponse(BaseModel):
 
 
 class OrderLookup(BaseModel):
-    order_id: str
-    guest_email: EmailStr
+    order_id: Optional[str] = None
+    guest_email: Optional[EmailStr] = None
+    email: Optional[EmailStr] = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

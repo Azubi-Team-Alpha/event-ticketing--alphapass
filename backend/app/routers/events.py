@@ -149,7 +149,7 @@ def list_categories():
             name=c.get("name", ""),
             slug=c.get("slug", ""),
             icon=c.get("icon"),
-            sort_order=int(c.get("sort_order", 0)),
+            sort_order=int(c["sort_order"]) if c.get("sort_order") is not None else 0,
         )
         for c in raw_cats
     ]

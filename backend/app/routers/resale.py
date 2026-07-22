@@ -48,6 +48,7 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
     )
 
 
+@router.get("/listings", response_model=list[ResaleListingResponse])
 @router.get("", response_model=list[ResaleListingResponse])
 def browse_resale(event_id: str | None = Query(None)):
     listings = dynamodb_helper.list_resale_listings_by_status("active")

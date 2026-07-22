@@ -296,10 +296,34 @@ def get_order(order_id: str):
 
 @router.post("/lookup", response_model=OrderResponse)
 def lookup_order(body: OrderLookup):
-    order = dynamodb_helper.get_order(body.order_id)
-    if not order or order.get("guest_email", "").lower() != body.guest_email.lower():
-        raise HTTPException(404, "Order not found")
-    return _format_order_response(order)
+    target_email = (body.guest_email or body.email or "").strip().lower()
+
+    if body.order_id:
+        order = dynamodb_helper.get_order(body.order_id)
+        if not order:
+            raise HTTPException(404, "Order not found")
+        if target_email and order.get("guest_email", "").lower() != target_email:
+            raise HTTPException(404, "Order not found")
+        return _format_order_response(order)
+
+    if target_email:
+        all_orders = dynamodb_helper.list_orders()
+        matching = [o for o in all_orders if o.get("guest_email", "").lower() == target_email]
+        if not matching:
+            raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
+
+        latest = sorted(matching, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
+        formatted_latest = _format_order_response(latest)
+
+        all_tix = []
+        for m in matching:
+            fmt_m = _format_order_response(m)
+            all_tix.extend(fmt_m.get("tickets", []))
+
+        formatted_latest["tickets"] = all_tix
+        return formatted_latest
+
+    raise HTTPException(400, "Please provide an order_id or email address")
 
 
 @router.put("/{order_id}/cancel")
