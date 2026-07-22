@@ -1,27 +1,36 @@
 """
-Ticket Hub – FastAPI dependency injectors.
-Supports three authenticated roles: Admin, Organizer.
-Guest routes have no dependency (or use optional_auth).
+AlphaPass – FastAPI dependency injectors for DynamoDB.
+Supports three authenticated roles: Admin, Organizer, and CurrentUser.
 """
-from fastapi import Depends, HTTPException, status
+from typing import Any, Dict
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
 from jose import JWTError
 
-from app.db.base import get_db
-from app.models.models import Admin, Organizer
+from app.db.dynamodb import dynamodb_helper
 from app.core.security import decode_access_token
 
 bearer_scheme   = HTTPBearer(auto_error=True)
 optional_bearer = HTTPBearer(auto_error=False)
 
 
+class AttrDict(dict):
+    """Dict subclass allowing dot notation attribute access."""
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(f"'AttrDict' object has no attribute '{name}'")
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
+
+
 # ── Admin ─────────────────────────────────────────────────────────────────────
 
 def get_current_admin(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-) -> Admin:
+) -> AttrDict:
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
@@ -31,14 +40,17 @@ def get_current_admin(
     if payload.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    admin = db.query(Admin).filter(Admin.id == payload["sub"]).first()
-    if not admin or not admin.is_active:
+    admin_data = dynamodb_helper.get_admin(payload["sub"])
+    if not admin_data or not admin_data.get("is_active", True):
         raise HTTPException(status_code=401, detail="Admin account not found or inactive")
-    return admin
+    
+    admin_dict = AttrDict(admin_data)
+    admin_dict.id = admin_data.get("AdminID", payload["sub"])
+    return admin_dict
 
 
-def get_super_admin(admin: Admin = Depends(get_current_admin)) -> Admin:
-    if not admin.is_super:
+def get_super_admin(admin: AttrDict = Depends(get_current_admin)) -> AttrDict:
+    if not admin.get("is_super", False):
         raise HTTPException(status_code=403, detail="Super-admin access required")
     return admin
 
@@ -47,8 +59,7 @@ def get_super_admin(admin: Admin = Depends(get_current_admin)) -> Admin:
 
 def get_current_organizer(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-) -> Organizer:
+) -> AttrDict:
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
@@ -58,36 +69,34 @@ def get_current_organizer(
     if payload.get("role") != "organizer":
         raise HTTPException(status_code=403, detail="Organizer access required")
 
-    organizer = db.query(Organizer).filter(Organizer.id == payload["sub"]).first()
-    if not organizer:
+    org_data = dynamodb_helper.get_organizer(payload["sub"])
+    if not org_data:
         raise HTTPException(status_code=401, detail="Organizer not found")
 
-    from app.models.models import OrganizerStatus
-    if organizer.status == OrganizerStatus.suspended:
+    if org_data.get("status") == "suspended":
         raise HTTPException(status_code=403, detail="Organizer account is suspended")
-    return organizer
+    
+    org_dict = AttrDict(org_data)
+    org_dict.id = org_data.get("OrganizerID", payload["sub"])
+    return org_dict
 
 
-def get_active_organizer(organizer: Organizer = Depends(get_current_organizer)) -> Organizer:
-    """Requires organizer to be email-verified and active."""
-    from app.models.models import OrganizerStatus
-    if not organizer.email_verified:
-        raise HTTPException(status_code=403, detail="Please verify your email first")
-    if organizer.status not in (OrganizerStatus.active, OrganizerStatus.verified):
+def get_active_organizer(organizer: AttrDict = Depends(get_current_organizer)) -> AttrDict:
+    """Requires organizer to be active and not suspended."""
+    status = organizer.get("status", "active")
+    if status == "suspended":
         raise HTTPException(
             status_code=403,
-            detail="Your organizer account is pending admin approval"
+            detail="Your organizer account is suspended"
         )
     return organizer
 
 
-# ── Legacy shims ──────────────────────────────────────────────────────────────
+# ── Generic User ──────────────────────────────────────────────────────────────
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-):
-    """Legacy: returns Admin or Organizer depending on token role."""
+) -> AttrDict:
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
@@ -95,20 +104,28 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     role = payload.get("role")
+    sub = payload.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    sub_id = str(sub)
     if role == "admin":
-        obj = db.query(Admin).filter(Admin.id == payload["sub"]).first()
+        data = dynamodb_helper.get_admin(sub_id)
+        if data:
+            data["id"] = data.get("AdminID", sub_id)
     elif role == "organizer":
-        obj = db.query(Organizer).filter(Organizer.id == payload["sub"]).first()
+        data = dynamodb_helper.get_organizer(sub_id)
+        if data:
+            data["id"] = data.get("OrganizerID", sub_id)
     else:
         raise HTTPException(status_code=401, detail="Invalid token role")
 
-    if not obj:
+    if not data:
         raise HTTPException(status_code=401, detail="User not found")
-    return obj
+    return AttrDict(data)
 
 
-def get_admin_user(current=Depends(get_current_user)):
-    """Legacy shim: checks if the resolved user is an Admin."""
-    if not isinstance(current, Admin):
+def get_admin_user(current: AttrDict = Depends(get_current_user)) -> AttrDict:
+    if "AdminID" not in current:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current

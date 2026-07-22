@@ -1,16 +1,15 @@
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
-from app.models.models import Ticket
 from app.core.qr import generate_qr_code
 
 
-def generate_ticket_pdf(ticket: Ticket) -> bytes:
+def generate_ticket_pdf(ticket) -> bytes:
     buffer = io.BytesIO()
 
     # 1. Setup document (Margins: 0.5 inch / 36 pt)
@@ -23,14 +22,80 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         bottomMargin=36
     )
 
+    ticket_code = getattr(ticket, "ticket_code", None) or (ticket.get("ticket_code") if isinstance(ticket, dict) else "TICKET")
+    attendee_name = getattr(ticket, "attendee_name", None) or (ticket.get("attendee_name") if isinstance(ticket, dict) else "Guest")
+
+    # Extract event data
+    event = getattr(ticket, "event", None) or (ticket.get("event") if isinstance(ticket, dict) else None)
+    if isinstance(event, dict):
+        event_title = event.get("title", "Special Event")
+        venue = event.get("venue_name", "TBD")
+        address = event.get("address", "")
+        city_country = f"{event.get('city') or ''}, {event.get('country') or ''}".strip(", ")
+        policies = event.get("policies", "")
+        starts_val = event.get("starts_at")
+        ends_val = event.get("ends_at")
+    elif event:
+        event_title = getattr(event, "title", "Special Event")
+        venue = getattr(event, "venue_name", "TBD")
+        address = getattr(event, "address", "")
+        city = getattr(event, "city", "")
+        country = getattr(event, "country", "")
+        city_country = f"{city or ''}, {country or ''}".strip(", ")
+        policies = getattr(event, "policies", "")
+        starts_val = getattr(event, "starts_at", None)
+        ends_val = getattr(event, "ends_at", None)
+    else:
+        event_title = "Special Event"
+        venue = "TBD"
+        address = ""
+        city_country = ""
+        policies = ""
+        starts_val = None
+        ends_val = None
+
+    # Dates
+    def _parse_dt(val):
+        if not val:
+            return None
+        if isinstance(val, datetime):
+            return val
+        try:
+            dt = datetime.fromisoformat(str(val))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except ValueError:
+            return None
+
+    dt_start = _parse_dt(starts_val)
+    dt_end = _parse_dt(ends_val)
+    starts_at = dt_start.strftime('%A, %B %d, %Y at %I:%M %p') if dt_start else "TBD"
+    ends_at = dt_end.strftime('%I:%M %p') if dt_end else "TBD"
+    date_str = f"{starts_at} - {ends_at}" if dt_end else starts_at
+
+    location_str = f"{venue}\n{address}\n{city_country}".strip()
+
+    # Ticket type
+    tt = getattr(ticket, "ticket_type", None) or (ticket.get("ticket_type") if isinstance(ticket, dict) else None)
+    if isinstance(tt, dict):
+        ticket_type_name = tt.get("name", "General Admission")
+        price_str = f"${tt.get('price', '0.00')}"
+    elif tt:
+        ticket_type_name = getattr(tt, "name", "General Admission")
+        price = getattr(tt, "price", "0.00")
+        price_str = f"${price}"
+    else:
+        ticket_type_name = ticket.get("ticket_type_name", "General Admission") if isinstance(ticket, dict) else "General Admission"
+        price_str = "$0.00"
+
     # 2. Get QR image wrap
-    qr_bytes = generate_qr_code(ticket.ticket_code)
+    qr_bytes = generate_qr_code(ticket_code)
     qr_image = Image(io.BytesIO(qr_bytes), width=1.5 * inch, height=1.5 * inch)
 
     # 3. Create Styles
     styles = getSampleStyleSheet()
 
-    # Custom color palette (flat colors)
     primary_color = colors.HexColor("#6366f1")    # Indigo
     dark_text = colors.HexColor("#1e293b")        # Slate-800
     light_bg = colors.HexColor("#f8fafc")         # Slate-50
@@ -91,7 +156,7 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         fontSize=8,
         leading=10,
         textColor=gray_text,
-        alignment=1  # Center
+        alignment=1
     )
 
     code_val_style = ParagraphStyle(
@@ -101,7 +166,7 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         fontSize=9,
         leading=11,
         textColor=dark_text,
-        alignment=1  # Center
+        alignment=1
     )
 
     story = []
@@ -109,8 +174,8 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
     # ── HEADER CARD ──
     header_data = [
         [
-            Paragraph("TICKET HUB", title_style),
-            Paragraph(f"TICKET #{ticket.ticket_code[:8].upper()}", ParagraphStyle('RightHeader', parent=title_style, alignment=2))
+            Paragraph("ALPHAPASS", title_style),
+            Paragraph(f"TICKET #{ticket_code[:8].upper()}", ParagraphStyle('RightHeader', parent=title_style, alignment=2))
         ],
         [
             Paragraph("Official Event Ticket", subtitle_style),
@@ -129,21 +194,6 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
     story.append(Spacer(1, 15))
 
     # ── CONTENT TABLE ──
-    event = ticket.event
-    event_title = event.title if event else "Special Event"
-    starts_at = event.starts_at.strftime('%A, %B %d, %Y at %I:%M %p') if event and event.starts_at else "TBD"
-    ends_at = event.ends_at.strftime('%I:%M %p') if event and event.ends_at else "TBD"
-    date_str = f"{starts_at} - {ends_at}"
-    venue = event.venue_name if event and event.venue_name else "TBD"
-    address = event.address if event and event.address else ""
-    city_country = f"{event.city or ''}, {event.country or ''}".strip(", ") if event else ""
-    location_str = f"{venue}\n{address}\n{city_country}".strip()
-
-    attendee_name = ticket.attendee_name or "Guest"
-    ticket_type_name = ticket.ticket_type.name if ticket.ticket_type else "General Admission"
-    price_str = f"${ticket.ticket_type.price}" if ticket.ticket_type else "$0.00"
-
-    # Left Column Flow
     left_flow = [
         Paragraph(event_title, event_title_style),
         Paragraph("DATE & TIME", label_style),
@@ -153,7 +203,6 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         Paragraph(location_str.replace('\n', '<br/>'), value_style),
         Spacer(1, 12),
 
-        # Grid details
         Table([
             [Paragraph("ATTENDEE", label_style), Paragraph("TICKET TYPE", label_style), Paragraph("PRICE", label_style)],
             [Paragraph(attendee_name, value_style), Paragraph(ticket_type_name, value_style), Paragraph(price_str, value_style)]
@@ -164,15 +213,13 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         ])
     ]
 
-    # Right Column Flow
     right_flow = [
         qr_image,
         Spacer(1, 6),
         Paragraph("TICKET CODE", code_label_style),
-        Paragraph(ticket.ticket_code, code_val_style)
+        Paragraph(ticket_code, code_val_style)
     ]
 
-    # Outer Layout
     main_table = Table([[left_flow, right_flow]], colWidths=[5.3 * inch, 2.2 * inch])
     main_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), light_bg),
@@ -183,7 +230,6 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
     story.append(main_table)
     story.append(Spacer(1, 20))
 
-    # ── TERMS & INSTRUCTIONS ──
     terms_title_style = ParagraphStyle(
         'TermsTitle',
         parent=styles['Normal'],
@@ -207,12 +253,11 @@ def generate_ticket_pdf(ticket: Ticket) -> bytes:
         "• Please present this ticket at the venue entrance. The QR code must be clearly readable on a phone screen or printed paper.<br/>"
         "• Each ticket is valid for one (1) entry and can only be scanned once. Duplicate scans will be rejected.<br/>"
         "• Admission policies (age restrictions, dress code, etc.) are set by the organizer. Event policies: "
-        f"<i>{(event.policies if event else None) or 'Standard platform terms apply.'}</i><br/>"
+        f"<i>{policies or 'Standard platform terms apply.'}</i><br/>"
         "• Keep this ticket secure. Do not share the QR code or link to prevent unauthorized transfers.",
         terms_body_style
     ))
 
-    # Build PDF
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()

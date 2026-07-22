@@ -1,12 +1,15 @@
 """Order (guest checkout) tests."""
+import uuid
 import pytest
 from fastapi.testclient import TestClient
+from app.db.dynamodb import dynamodb_helper
 
 
 def _make_order(client, sample_event):
-    tt_id = sample_event.ticket_types[0].id
+    event_id = sample_event["id"]
+    tt_id = sample_event["ticket_types"][0]["id"]
     return client.post("/orders", json={
-        "event_id": sample_event.id,
+        "event_id": event_id,
         "guest_name": "Alice Smith",
         "guest_email": "alice@test.com",
         "guest_phone": "+1-555-1234",
@@ -47,9 +50,10 @@ def test_order_wrong_email_lookup(client: TestClient, sample_event):
 
 
 def test_order_oversell_rejected(client: TestClient, sample_event):
-    tt_id = sample_event.ticket_types[0].id
+    event_id = sample_event["id"]
+    tt_id = sample_event["ticket_types"][0]["id"]
     resp = client.post("/orders", json={
-        "event_id": sample_event.id,
+        "event_id": event_id,
         "guest_name": "Bob",
         "guest_email": "bob@test.com",
         "items": [{"ticket_type_id": tt_id, "quantity": 999}],  # exceeds quantity
@@ -58,9 +62,10 @@ def test_order_oversell_rejected(client: TestClient, sample_event):
 
 
 def test_order_purchase_limit_rejected(client: TestClient, sample_event):
-    tt_id = sample_event.ticket_types[0].id
+    event_id = sample_event["id"]
+    tt_id = sample_event["ticket_types"][0]["id"]
     resp = client.post("/orders", json={
-        "event_id": sample_event.id,
+        "event_id": event_id,
         "guest_name": "Charlie",
         "guest_email": "charlie@test.com",
         "items": [{"ticket_type_id": tt_id, "quantity": 6}],  # exceeds limit of 5
@@ -75,28 +80,31 @@ def test_order_cancel(client: TestClient, sample_event):
     assert resp.status_code == 200
 
 
-def test_bulk_order_mixed_types(client: TestClient, sample_event, db):
-    from decimal import Decimal
-    from app.models.models import TicketType
-    from datetime import datetime, timedelta
+def test_bulk_order_mixed_types(client: TestClient, sample_event):
+    event_id = sample_event["id"]
+    vip_id = str(uuid.uuid4())
+    
+    tts = sample_event.get("ticket_types", [])
+    tts.append({
+        "id": vip_id,
+        "name": "VIP",
+        "price": "150.00",
+        "quantity": 20,
+        "quantity_sold": 0,
+        "purchase_limit": 5,
+        "min_purchase": 1,
+        "is_active": True,
+    })
+    dynamodb_helper.update_event(event_id, {"ticket_types": tts})
 
-    vip = TicketType(
-        event_id=sample_event.id,
-        name="VIP", price=Decimal("150.00"),
-        quantity=20, purchase_limit=5,
-    )
-    db.add(vip)
-    db.commit()
-    db.refresh(vip)
-
-    tt_id = sample_event.ticket_types[0].id
+    tt_id = tts[0]["id"]
     resp = client.post("/orders", json={
-        "event_id": sample_event.id,
+        "event_id": event_id,
         "guest_name": "Group Leader",
         "guest_email": "group@test.com",
         "items": [
             {"ticket_type_id": tt_id, "quantity": 3},
-            {"ticket_type_id": vip.id, "quantity": 2},
+            {"ticket_type_id": vip_id, "quantity": 2},
         ],
     })
     assert resp.status_code == 201

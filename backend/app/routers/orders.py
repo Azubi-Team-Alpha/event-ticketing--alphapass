@@ -1,51 +1,151 @@
-"""Guest checkout – single ticket and bulk/group order purchases."""
+"""Guest checkout – single ticket and bulk/group order purchases using DynamoDB."""
+import uuid
+import secrets
 from decimal import Decimal
 from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
-from sqlalchemy.orm import Session
 
-from app.db.base import get_db
-from app.models.models import (
-    Event, EventStatus, TicketType, PromoCode, Order, OrderItem, Ticket,
-    OrderStatus, TicketStatus, DiscountType, AuditLog,
-)
+from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
     OrderCreate, OrderResponse, OrderLookup, AttendeeUpdate,
     PromoCodeValidation, ApplyPromoCode, RefundRequest,
 )
 from app.core.config import settings
 from app.core.qr import upload_qr_to_s3
+from app.core.email import send_email
 
 router = APIRouter()
 
 
-def _apply_promo(promo: PromoCode, subtotal: Decimal) -> Decimal:
-    """Returns the discount amount to subtract."""
-    if promo.discount_type == DiscountType.percentage:
-        return (subtotal * promo.discount_value / 100).quantize(Decimal("0.01"))
+def _format_dt(val: Any) -> Optional[datetime]:
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        return val
+    try:
+        dt = datetime.fromisoformat(str(val))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
+
+
+def _apply_promo(promo: Dict[str, Any], subtotal: Decimal) -> Decimal:
+    disc_type = promo.get("discount_type", "percentage")
+    disc_val = Decimal(str(promo.get("discount_value", 0)))
+    if disc_type == "percentage":
+        return (subtotal * disc_val / Decimal("100")).quantize(Decimal("0.01"))
     else:
-        return min(Decimal(str(promo.discount_value)), subtotal)
+        return min(disc_val, subtotal)
+
+
+def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
+    order_id = order.get("OrderID") or order.get("id")
+    event_id = order.get("event_id", "")
+    event = dynamodb_helper.get_event(event_id) or {}
+    
+    items = order.get("items", [])
+    tickets = order.get("tickets", [])
+
+    formatted_items = []
+    for item in items:
+        oi_id = item.get("id") or str(uuid.uuid4())
+        tt_id = item.get("ticket_type_id", "")
+        tt_name = item.get("ticket_type_name", "Standard")
+        
+        item_tickets = [t for t in tickets if t.get("order_item_id") == oi_id or t.get("ticket_type_id") == tt_id]
+        
+        formatted_tix = []
+        for t in item_tickets:
+            formatted_tix.append({
+                "id": t.get("TicketID") or t.get("id", str(uuid.uuid4())),
+                "order_item_id": oi_id,
+                "ticket_code": t.get("ticket_code", ""),
+                "qr_image_url": t.get("qr_image_url"),
+                "status": t.get("status", "active"),
+                "is_used": t.get("is_used", False),
+                "used_at": _format_dt(t.get("used_at")),
+                "attendee_name": t.get("attendee_name"),
+                "attendee_email": t.get("attendee_email"),
+                "issued_at": _format_dt(t.get("issued_at")) or datetime.now(timezone.utc),
+            })
+
+        formatted_items.append({
+            "id": oi_id,
+            "order_id": order_id,
+            "ticket_type_id": tt_id,
+            "quantity": int(item.get("quantity", 1)),
+            "unit_price": Decimal(str(item.get("unit_price", 0))),
+            "line_total": Decimal(str(item.get("line_total", 0))),
+            "ticket_type": {
+                "id": tt_id,
+                "event_id": event_id,
+                "name": tt_name,
+                "price": Decimal(str(item.get("unit_price", 0))),
+                "quantity": int(item.get("quantity", 1)),
+                "quantity_sold": 0,
+                "purchase_limit": 10,
+                "min_purchase": 1,
+                "is_active": True,
+                "sort_order": 0,
+                "quantity_remaining": 0,
+                "created_at": datetime.now(timezone.utc),
+            },
+            "tickets": formatted_tix,
+        })
+
+    all_flattened_tickets = []
+    for item_resp in formatted_items:
+        all_flattened_tickets.extend(item_resp.get("tickets", []))
+
+    return {
+        "id": order_id,
+        "event_id": event_id,
+        "promo_code_id": order.get("promo_code_id"),
+        "guest_name": order.get("guest_name", ""),
+        "guest_email": order.get("guest_email", ""),
+        "guest_phone": order.get("guest_phone"),
+        "status": order.get("status", "confirmed"),
+        "subtotal": Decimal(str(order.get("subtotal", 0))),
+        "discount_amount": Decimal(str(order.get("discount_amount", 0))),
+        "platform_fee": Decimal(str(order.get("platform_fee", 0))),
+        "total_amount": Decimal(str(order.get("total_amount", 0))),
+        "payment_reference": order.get("payment_reference"),
+        "payment_method": order.get("payment_method"),
+        "created_at": _format_dt(order.get("created_at")) or datetime.now(timezone.utc),
+        "event_title": event.get("title"),
+        "total_tickets": sum(int(i.get("quantity", 1)) for i in items),
+        "items": formatted_items,
+        "tickets": all_flattened_tickets,
+    }
 
 
 # ── Promo code validation (public endpoint) ───────────────────────────────────
 
 @router.post("/validate-promo", response_model=PromoCodeValidation)
-def validate_promo(body: ApplyPromoCode, db: Session = Depends(get_db)):
-    promo = db.query(PromoCode).filter(
-        PromoCode.event_id == body.event_id,
-        PromoCode.code == body.code.upper(),
-        PromoCode.is_active == True,
-    ).first()
-    if not promo:
+def validate_promo(body: ApplyPromoCode):
+    code_str = body.code.upper()
+    promo = dynamodb_helper.get_promo_code(code_str)
+    if not promo or promo.get("event_id") != body.event_id or not promo.get("is_active", True):
         return PromoCodeValidation(valid=False, message="Invalid or expired promo code")
-    if promo.expires_at and promo.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
-        return PromoCodeValidation(valid=False, message="Promo code has expired")
-    if promo.max_uses and promo.used_count >= promo.max_uses:
+    
+    expires_at = promo.get("expires_at")
+    if expires_at:
+        exp_dt = _format_dt(expires_at)
+        if exp_dt and exp_dt < datetime.now(timezone.utc):
+            return PromoCodeValidation(valid=False, message="Promo code has expired")
+
+    max_uses = promo.get("max_uses")
+    if max_uses and int(promo.get("used_count", 0)) >= int(max_uses):
         return PromoCodeValidation(valid=False, message="Promo code usage limit reached")
+
     return PromoCodeValidation(
-        valid=True, message="Promo code applied",
-        discount_type=promo.discount_type.value,
-        discount_value=Decimal(str(promo.discount_value)),
+        valid=True,
+        message="Promo code applied",
+        discount_type=promo.get("discount_type", "percentage"),
+        discount_value=Decimal(str(promo.get("discount_value", 0))),
     )
 
 
@@ -55,268 +155,288 @@ def validate_promo(body: ApplyPromoCode, db: Session = Depends(get_db)):
 def create_order(
     body: OrderCreate,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
 ):
     # 1. Validate event
-    event = db.query(Event).filter(Event.id == body.event_id).first()
-    if not event or event.status != EventStatus.published:
+    event = dynamodb_helper.get_event(body.event_id)
+    if not event or event.get("status") != "published":
         raise HTTPException(404, "Event not found or not available")
-    if event.starts_at < datetime.now(timezone.utc).replace(tzinfo=None):
+    
+    starts_at = _format_dt(event.get("starts_at"))
+    if starts_at and starts_at < datetime.now(timezone.utc):
         raise HTTPException(400, "Event has already started")
 
     # 2. Validate ticket types & availability
+    ticket_types = event.get("ticket_types", [])
     subtotal = Decimal("0.00")
-    item_data = []
+    order_items = []
+    all_tickets = []
+
     for item in body.items:
-        tt = db.query(TicketType).filter(
-            TicketType.id == item.ticket_type_id,
-            TicketType.event_id == body.event_id,
-            TicketType.is_active == True,
-        ).with_for_update().first()
+        tt = next((t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)), None)
         if not tt:
-            raise HTTPException(404, f"Ticket type {item.ticket_type_id} not found")
-        if tt.quantity_remaining < item.quantity:
-            raise HTTPException(400, f"Not enough tickets available for '{tt.name}' (requested {item.quantity}, available {tt.quantity_remaining})")
-        if item.quantity > tt.purchase_limit:
-            raise HTTPException(400, f"Maximum {tt.purchase_limit} tickets per order for '{tt.name}'")
-        if item.quantity < tt.min_purchase:
-            raise HTTPException(400, f"Minimum {tt.min_purchase} tickets required for '{tt.name}'")
-        line = Decimal(str(tt.price)) * item.quantity
+            raise HTTPException(404, f"Ticket type '{item.ticket_type_id}' not found or inactive")
+
+        avail = int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))
+        if item.quantity > avail:
+            raise HTTPException(400, f"Not enough tickets available for '{tt.get('name')}' ({avail} left)")
+        
+        limit = int(tt.get("purchase_limit", 10))
+        min_p = int(tt.get("min_purchase", 1))
+        if item.quantity > limit:
+            raise HTTPException(400, f"Maximum {limit} tickets per order for '{tt.get('name')}'")
+        if item.quantity < min_p:
+            raise HTTPException(400, f"Minimum {min_p} tickets required for '{tt.get('name')}'")
+
+        price = Decimal(str(tt.get("price", 0)))
+        line = price * item.quantity
         subtotal += line
-        item_data.append((tt, item, line))
+
+        oi_id = str(uuid.uuid4())
+        order_items.append({
+            "id": oi_id,
+            "ticket_type_id": item.ticket_type_id,
+            "ticket_type_name": tt.get("name", "Standard"),
+            "quantity": item.quantity,
+            "unit_price": str(price),
+            "line_total": str(line),
+        })
+
+        # Update sold count on event ticket_type
+        tt["quantity_sold"] = int(tt.get("quantity_sold", 0)) + item.quantity
+
+        for _ in range(item.quantity):
+            t_id = str(uuid.uuid4())
+            code = f"AP-{secrets.token_hex(4).upper()}"
+            t_entry = {
+                "TicketID": t_id,
+                "id": t_id,
+                "order_item_id": oi_id,
+                "ticket_type_id": item.ticket_type_id,
+                "ticket_type_name": tt.get("name", "Standard"),
+                "ticket_code": code,
+                "attendee_name": item.attendee_name or body.guest_name,
+                "attendee_email": item.attendee_email or body.guest_email,
+                "status": "active",
+                "is_used": False,
+                "issued_at": datetime.now(timezone.utc).isoformat(),
+            }
+            all_tickets.append(t_entry)
 
     # 3. Apply promo code
     promo = None
     discount = Decimal("0.00")
     if body.promo_code:
-        promo = db.query(PromoCode).filter(
-            PromoCode.event_id == body.event_id,
-            PromoCode.code == body.promo_code.upper(),
-            PromoCode.is_active == True,
-        ).first()
-        if not promo:
+        code_str = body.promo_code.upper()
+        promo = dynamodb_helper.get_promo_code(code_str)
+        if not promo or promo.get("event_id") != body.event_id:
             raise HTTPException(400, "Invalid promo code")
-        if promo.expires_at and promo.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
-            raise HTTPException(400, "Promo code has expired")
-        if promo.max_uses and promo.used_count >= promo.max_uses:
-            raise HTTPException(400, "Promo code usage limit reached")
         discount = _apply_promo(promo, subtotal)
+        dynamodb_helper.update_promo_code(code_str, {"used_count": int(promo.get("used_count", 0)) + 1})
 
-    # 4. Calculate fees
+    # 4. Group discount & platform fees
     total_quantity = sum(item.quantity for item in body.items)
-    if event.group_discount_threshold and total_quantity >= event.group_discount_threshold and event.group_discount_percent:
-        group_discount = (subtotal * (Decimal(str(event.group_discount_percent)) / 100)).quantize(Decimal("0.01"))
-        discount += group_discount
+    threshold = event.get("group_discount_threshold")
+    grp_pct = event.get("group_discount_percent")
+    if threshold and total_quantity >= int(threshold) and grp_pct:
+        grp_discount = (subtotal * (Decimal(str(grp_pct)) / Decimal("100"))).quantize(Decimal("0.01"))
+        discount += grp_discount
 
-    commission = Decimal(str(settings.PLATFORM_COMMISSION_PERCENT)) / 100
+    commission = Decimal(str(settings.PLATFORM_COMMISSION_PERCENT)) / Decimal("100")
     taxable = max(Decimal("0.00"), subtotal - discount)
     platform_fee = (taxable * commission).quantize(Decimal("0.01"))
     total = taxable + platform_fee
 
-    # 5. Create order
-    order = Order(
-        event_id=body.event_id,
-        promo_code_id=promo.id if promo else None,
-        guest_name=body.guest_name,
-        guest_email=body.guest_email,
-        guest_phone=body.guest_phone,
-        status=OrderStatus.confirmed,  # would be 'pending' until payment webhook in prod
-        subtotal=subtotal,
-        discount_amount=discount,
-        platform_fee=platform_fee,
-        total_amount=total,
-        payment_reference=body.payment_reference,
-        payment_method=body.payment_method,
-    )
-    db.add(order)
-    db.flush()
+    # 5. Create order object
+    order_id = str(uuid.uuid4())
+    order_data = {
+        "OrderID": order_id,
+        "id": order_id,
+        "event_id": body.event_id,
+        "promo_code_id": body.promo_code.upper() if body.promo_code else None,
+        "guest_name": body.guest_name,
+        "guest_email": body.guest_email,
+        "guest_phone": body.guest_phone,
+        "status": "confirmed",
+        "subtotal": str(subtotal),
+        "discount_amount": str(discount),
+        "platform_fee": str(platform_fee),
+        "total_amount": str(total),
+        "payment_reference": body.payment_reference,
+        "payment_method": body.payment_method,
+        "items": order_items,
+        "tickets": all_tickets,
+    }
 
-    # 6. Create order items + tickets
-    all_tickets = []
-    for tt, item, line in item_data:
-        oi = OrderItem(
-            order_id=order.id,
-            ticket_type_id=tt.id,
-            quantity=item.quantity,
-            unit_price=tt.price,
-            line_total=line,
-        )
-        db.add(oi)
-        db.flush()
+    dynamodb_helper.create_order(order_id, order_data)
 
-        for i in range(item.quantity):
-            ticket = Ticket(
-                order_item_id=oi.id,
-                attendee_name=item.attendee_name or body.guest_name,
-                attendee_email=item.attendee_email or body.guest_email,
-                status=TicketStatus.active,
-            )
-            db.add(ticket)
-            db.flush()
-            all_tickets.append(ticket)
+    # Save individual ticket entries to tickets table for direct lookup by code
+    for t in all_tickets:
+        t["order_id"] = order_id
+        t["event_id"] = body.event_id
+        dynamodb_helper.create_ticket(t["TicketID"], t)
 
-        # Update sold count
-        tt.quantity_sold += item.quantity  # type: ignore
+    # Update event ticket_types in DynamoDB
+    dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
 
-    # 7. Update promo usage
-    if promo:
-        promo.used_count += 1  # type: ignore
+    # Generate QR codes inline/sync for reliability in Lambda
+    _generate_qr_and_notify(all_tickets, order_id, body.guest_email, body.guest_name, event.get("title", ""), total)
 
-    db.commit()
-    db.refresh(order)
-
-    # 8. Generate QR codes in background
-    background_tasks.add_task(_generate_qr_codes, [t.id for t in all_tickets])
-
-    # 9. Send confirmation email
-    background_tasks.add_task(
-        _send_order_confirmation,
-        order.guest_email, order.guest_name, event.title,
-        order.id, len(all_tickets), str(order.total_amount),
-    )
-
-    return order
+    return _format_order_response(order_data)
 
 
 # ── Lookup Order ──────────────────────────────────────────────────────────────
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(order_id: str, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+def get_order(order_id: str):
+    order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    return order
+    return _format_order_response(order)
 
 
 @router.post("/lookup", response_model=OrderResponse)
-def lookup_order(body: OrderLookup, db: Session = Depends(get_db)):
-    """Guest re-download: find order by ID + email."""
-    order = db.query(Order).filter(
-        Order.id == body.order_id,
-        Order.guest_email == body.guest_email,
-    ).first()
-    if not order:
-        raise HTTPException(404, "Order not found")
-    return order
+def lookup_order(body: OrderLookup):
+    target_email = (body.guest_email or body.email or "").strip().lower()
+
+    if body.order_id:
+        order = dynamodb_helper.get_order(body.order_id)
+        if not order:
+            raise HTTPException(404, "Order not found")
+        if target_email and order.get("guest_email", "").lower() != target_email:
+            raise HTTPException(404, "Order not found")
+        return _format_order_response(order)
+
+    if target_email:
+        all_orders = dynamodb_helper.list_orders()
+        matching = [o for o in all_orders if o.get("guest_email", "").lower() == target_email]
+        if not matching:
+            raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
+
+        latest = sorted(matching, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
+        formatted_latest = _format_order_response(latest)
+
+        all_tix = []
+        for m in matching:
+            fmt_m = _format_order_response(m)
+            all_tix.extend(fmt_m.get("tickets", []))
+
+        formatted_latest["tickets"] = all_tix
+        return formatted_latest
+
+    raise HTTPException(400, "Please provide an order_id or email address")
 
 
 @router.put("/{order_id}/cancel")
-def cancel_order(order_id: str, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+def cancel_order(order_id: str):
+    order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    if order.status != OrderStatus.confirmed:
+    if order.get("status") != "confirmed":
         raise HTTPException(400, "Only confirmed orders can be cancelled")
-    order.status = OrderStatus.cancelled  # type: ignore
-    for item in order.items:
-        item.ticket_type.quantity_sold = max(0, item.ticket_type.quantity_sold - item.quantity)  # type: ignore
-        for ticket in item.tickets:
-            ticket.status = TicketStatus.cancelled  # type: ignore
-    db.commit()
+
+    dynamodb_helper.update_order(order_id, {"status": "cancelled"})
+    
+    # Update individual tickets status
+    tickets = order.get("tickets", [])
+    for t in tickets:
+        t_id = t.get("TicketID") or t.get("id")
+        if t_id:
+            dynamodb_helper.update_ticket(t_id, {"status": "cancelled"})
+
     return {"message": "Order cancelled"}
 
 
 # ── Update attendee info ──────────────────────────────────────────────────────
 
 @router.put("/{order_id}/tickets/{ticket_id}/attendee", response_model=dict)
-def update_attendee(
-    order_id: str, ticket_id: str,
-    body: AttendeeUpdate, db: Session = Depends(get_db),
-):
-    order = db.query(Order).filter(Order.id == order_id).first()
+def update_attendee(order_id: str, ticket_id: str, body: AttendeeUpdate):
+    order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
-    if not ticket or ticket.order_item.order_id != order_id:
+    
+    tickets = order.get("tickets", [])
+    found_t = None
+    for t in tickets:
+        if (t.get("TicketID") == ticket_id or t.get("id") == ticket_id):
+            found_t = t
+            break
+
+    if not found_t:
         raise HTTPException(404, "Ticket not found in this order")
-    ticket.attendee_name = body.attendee_name  # type: ignore
+
+    found_t["attendee_name"] = body.attendee_name
     if body.attendee_email:
-        ticket.attendee_email = str(body.attendee_email)  # type: ignore
-    db.commit()
+        found_t["attendee_email"] = body.attendee_email
+
+    dynamodb_helper.update_order(order_id, {"tickets": tickets})
+    dynamodb_helper.update_ticket(ticket_id, {
+        "attendee_name": body.attendee_name,
+        "attendee_email": body.attendee_email if body.attendee_email else found_t.get("attendee_email"),
+    })
+
     return {"message": "Attendee info updated"}
 
 
 # ── Organizer: view orders for an event ──────────────────────────────────────
 
 @router.get("/event/{event_id}", response_model=list[OrderResponse])
-def event_orders(
-    event_id: str,
-    is_bulk: bool | None = Query(None),
-    db: Session = Depends(get_db),
-):
-    from app.core.dependencies import get_current_organizer
-    query = db.query(Order).filter(Order.event_id == event_id)
+def event_orders(event_id: str, is_bulk: bool | None = Query(None)):
+    orders = dynamodb_helper.list_orders_by_event(event_id)
     if is_bulk is not None:
-        from sqlalchemy import func
-        subq = db.query(OrderItem.order_id).group_by(OrderItem.order_id).having(func.sum(OrderItem.quantity) >= 5).scalar_subquery()
         if is_bulk:
-            query = query.filter(Order.id.in_(subq))
+            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) >= 5]
         else:
-            query = query.filter(~Order.id.in_(subq))
-    orders = query.all()
-    return orders
+            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) < 5]
+    return [_format_order_response(o) for o in orders]
 
 
 @router.post("/{order_id}/refund-request")
-def request_order_refund(
-    order_id: str,
-    body: RefundRequest,
-    db: Session = Depends(get_db),
-):
-    order = db.query(Order).filter(Order.id == order_id).first()
+def request_order_refund(order_id: str, body: RefundRequest):
+    order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    if order.guest_email.lower() != body.guest_email.lower():
+    if order.get("guest_email", "").lower() != body.guest_email.lower():
         raise HTTPException(403, "Email does not match order guest email")
-    if order.status != OrderStatus.confirmed:
-        raise HTTPException(400, f"Refund can only be requested for confirmed orders (status: {order.status})")
+    if order.get("status") != "confirmed":
+        raise HTTPException(400, f"Refund can only be requested for confirmed orders (status: {order.get('status')})")
 
-    # Check if event allows refunds
-    event = order.event
-    if not event.allow_refunds:
+    event = dynamodb_helper.get_event(order.get("event_id", ""))
+    if event and not event.get("allow_refunds", True):
         raise HTTPException(400, "Refunds are not allowed for this event")
-    if event.starts_at < datetime.now(timezone.utc).replace(tzinfo=None):
-        raise HTTPException(400, "Cannot request a refund after the event has started")
 
-    # Update order status to refund_pending
-    order.status = OrderStatus.refund_pending  # type: ignore
-    db.add(AuditLog(
-        actor_type="guest", actor_email=order.guest_email,
-        action="order.refund_requested", resource_type="order", resource_id=order_id,
-        meta={"reason": body.reason},
-    ))
-    db.commit()
+    dynamodb_helper.update_order(order_id, {"status": "refund_pending"})
+    dynamodb_helper.create_audit_log({
+        "actor_type": "guest",
+        "actor_email": body.guest_email,
+        "action": "order.refund_requested",
+        "resource_type": "order",
+        "resource_id": order_id,
+        "meta": {"reason": body.reason},
+    })
     return {"message": "Refund request submitted successfully. It is now awaiting admin approval."}
 
 
-# ── Background helpers ────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _generate_qr_codes(ticket_ids: list[str]):
-    from app.db.base import SessionLocal
-    db = SessionLocal()
+def _generate_qr_and_notify(tickets: List[Dict[str, Any]], order_id: str, email: str, name: str, event_title: str, total: Decimal):
+    for t in tickets:
+        code = t.get("ticket_code")
+        t_id = t.get("TicketID") or t.get("id")
+        if code and t_id:
+            try:
+                qr_url = upload_qr_to_s3(code)
+                t["qr_image_url"] = qr_url
+                dynamodb_helper.update_ticket(t_id, {"qr_image_url": qr_url})
+            except Exception as e:
+                print(f"[QR] Failed for ticket {t_id}: {e}")
+
     try:
-        for tid in ticket_ids:
-            ticket = db.query(Ticket).filter(Ticket.id == tid).first()
-            if ticket and not ticket.qr_image_url:
-                try:
-                    url = upload_qr_to_s3(ticket.ticket_code)  # type: ignore
-                    ticket.qr_image_url = url  # type: ignore
-                except Exception as e:
-                    print(f"[QR] Failed for ticket {tid}: {e}")
-        db.commit()
-    finally:
-        db.close()
-
-
-def _send_order_confirmation(email, name, event_title, order_id, ticket_count, total):
-    try:
-        from app.core.email import send_email
         html = (
             f"<h2>Order Confirmed! 🎉</h2>"
             f"<p>Hi {name}, your order for <strong>{event_title}</strong> is confirmed.</p>"
             f"<p>Order ID: <code>{order_id}</code></p>"
-            f"<p>Tickets: {ticket_count} | Total: ${total}</p>"
-            f"<p>Your QR-code tickets will be attached shortly.</p>"
+            f"<p>Tickets: {len(tickets)} | Total: ${total}</p>"
+            f"<p>Your QR-code tickets are available in your AlphaPass portal.</p>"
         )
         send_email(email, f"Order Confirmed – {event_title}", html)
     except Exception as e:

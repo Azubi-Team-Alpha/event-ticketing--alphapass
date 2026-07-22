@@ -1,47 +1,60 @@
-"""Platform Administrator routes."""
+"""Platform Administrator routes using DynamoDB."""
+import uuid
 from decimal import Decimal
 from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 
-from app.db.base import get_db
-from app.models.models import (
-    Admin, Organizer, OrganizerStatus, Event, EventStatus,
-    Order, OrderStatus, Ticket, AuditLog, OrganizerPayout, PayoutStatus,
-    EventCategory, PlatformSettings, OrderItem, TicketStatus, ResaleListing, ResaleStatus,
-)
+from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
     PlatformStats, OrganizerAdminResponse, OrganizerStatusUpdate,
     EventApproval, AdminResponse, PayoutRequest, PayoutResponse,
     EventCategoryCreate, EventCategoryResponse, CommissionUpdate, AuditLogResponse,
     AdminCreate, RefundApproval, ResaleApproval,
 )
-from app.core.dependencies import get_current_admin, get_super_admin
+from app.core.security import hash_password
+from app.core.dependencies import get_current_admin, get_super_admin, AttrDict
 
 router = APIRouter()
+
+
+def _format_dt(val: Any) -> Optional[datetime]:
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        return val
+    try:
+        dt = datetime.fromisoformat(str(val))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @router.get("/dashboard", response_model=PlatformStats)
-def platform_dashboard(
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
-):
-    total_organizers = db.query(Organizer).count()
-    active_organizers = db.query(Organizer).filter(Organizer.status == OrganizerStatus.active).count()
-    total_events = db.query(Event).count()
-    published_events = db.query(Event).filter(Event.status == EventStatus.published).count()
-    total_orders = db.query(Order).filter(Order.status == OrderStatus.confirmed).count()
-    total_refunds = db.query(Order).filter(Order.status == OrderStatus.refunded).count()
+def platform_dashboard(admin: AttrDict = Depends(get_current_admin)):
+    orgs = dynamodb_helper.list_organizers()
+    total_organizers = len(orgs)
+    active_organizers = sum(1 for o in orgs if o.get("status") in ("active", "verified"))
 
-    revenue_row = db.query(func.sum(Order.total_amount)).filter(Order.status == OrderStatus.confirmed).scalar()
-    fees_row = db.query(func.sum(Order.platform_fee)).filter(Order.status == OrderStatus.confirmed).scalar()
-    total_revenue = Decimal(str(revenue_row)) if revenue_row else Decimal("0.00")
-    platform_fees = Decimal(str(fees_row)) if fees_row else Decimal("0.00")
+    events = dynamodb_helper.list_events()
+    total_events = len(events)
+    published_events = sum(1 for e in events if e.get("status") == "published")
 
-    tickets_sold = db.query(func.sum(OrderItem.quantity)).join(Order).filter(Order.status == OrderStatus.confirmed).scalar() or 0
+    orders = dynamodb_helper.list_orders()
+    confirmed = [o for o in orders if o.get("status") == "confirmed"]
+    refunded = [o for o in orders if o.get("status") == "refunded"]
+
+    total_orders = len(confirmed)
+    total_refunds = len(refunded)
+
+    total_revenue = sum(Decimal(str(o.get("total_amount", 0))) for o in confirmed)
+    platform_fees = sum(Decimal(str(o.get("platform_fee", 0))) for o in confirmed)
+
+    tickets_sold = sum(sum(int(i.get("quantity", 1)) for i in o.get("items", [])) for o in confirmed)
 
     return PlatformStats(
         total_organizers=total_organizers,
@@ -62,64 +75,85 @@ def platform_dashboard(
 def list_organizers(
     page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
     status: str | None = Query(None),
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    query = db.query(Organizer)
+    orgs = dynamodb_helper.list_organizers()
     if status:
-        query = query.filter(Organizer.status == OrganizerStatus(status))
-    orgs = query.offset((page - 1) * limit).limit(limit).all()
+        orgs = [o for o in orgs if o.get("status") == status]
+
+    start_idx = (page - 1) * limit
+    page_orgs = orgs[start_idx : start_idx + limit]
+
+    events = dynamodb_helper.list_events()
+    orders = dynamodb_helper.list_orders()
+    confirmed = [o for o in orders if o.get("status") == "confirmed"]
+
     result = []
-    for org in orgs:
-        total_events = db.query(Event).filter(Event.organizer_id == org.id).count()
-        rev = db.query(func.sum(Order.total_amount)).filter(
-            Order.event_id.in_(
-                db.query(Event.id).filter(Event.organizer_id == org.id).scalar_subquery()
-            ),
-            Order.status == OrderStatus.confirmed,
-        ).scalar()
+    for org in page_orgs:
+        org_id = org.get("OrganizerID") or org.get("id")
+        org_event_ids = {e.get("EventID") or e.get("id") for e in events if e.get("organizer_id") == org_id}
+        total_events = len(org_event_ids)
+        rev = sum(Decimal(str(o.get("total_amount", 0))) for o in confirmed if o.get("event_id") in org_event_ids)
+
         result.append({
-            "id": org.id, "email": org.email, "full_name": org.full_name,
-            "business_name": org.business_name, "status": org.status.value,
-            "email_verified": org.email_verified, "total_events": total_events,
-            "total_revenue": Decimal(str(rev)) if rev else Decimal("0.00"),
-            "created_at": org.created_at,
+            "id": org_id,
+            "email": org.get("email", ""),
+            "full_name": org.get("full_name", ""),
+            "business_name": org.get("business_name"),
+            "status": org.get("status", "active"),
+            "email_verified": org.get("email_verified", False),
+            "total_events": total_events,
+            "total_revenue": rev,
+            "created_at": _format_dt(org.get("created_at")) or datetime.now(timezone.utc),
         })
+
     return result
 
 
 @router.get("/organizers/{organizer_id}", response_model=OrganizerAdminResponse)
 def get_organizer(
-    organizer_id: str, db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    organizer_id: str,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    org = db.query(Organizer).filter(Organizer.id == organizer_id).first()
+    org = dynamodb_helper.get_organizer(organizer_id)
     if not org:
         raise HTTPException(404, "Organizer not found")
-    total_events = db.query(Event).filter(Event.organizer_id == org.id).count()
+
+    events = dynamodb_helper.list_events_by_organizer(organizer_id)
+    total_events = len(events)
     return {
-        "id": org.id, "email": org.email, "full_name": org.full_name,
-        "business_name": org.business_name, "status": org.status.value,
-        "email_verified": org.email_verified, "total_events": total_events,
-        "total_revenue": Decimal("0.00"), "created_at": org.created_at,
+        "id": organizer_id,
+        "email": org.get("email", ""),
+        "full_name": org.get("full_name", ""),
+        "business_name": org.get("business_name"),
+        "status": org.get("status", "active"),
+        "email_verified": org.get("email_verified", False),
+        "total_events": total_events,
+        "total_revenue": Decimal("0.00"),
+        "created_at": _format_dt(org.get("created_at")) or datetime.now(timezone.utc),
     }
 
 
 @router.put("/organizers/{organizer_id}/status")
 def update_organizer_status(
-    organizer_id: str, body: OrganizerStatusUpdate,
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    organizer_id: str,
+    body: OrganizerStatusUpdate,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    org = db.query(Organizer).filter(Organizer.id == organizer_id).first()
+    org = dynamodb_helper.get_organizer(organizer_id)
     if not org:
         raise HTTPException(404, "Organizer not found")
-    org.status = OrganizerStatus(body.status)  # type: ignore
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action=f"organizer.status.{body.status}", resource_type="organizer",
-        resource_id=organizer_id, meta={"reason": body.reason},
-    ))
-    db.commit()
+
+    dynamodb_helper.update_organizer(organizer_id, {"status": body.status})
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": f"organizer.status.{body.status}",
+        "resource_type": "organizer",
+        "resource_id": organizer_id,
+        "meta": {"reason": body.reason},
+    })
     return {"message": f"Organizer status updated to {body.status}"}
 
 
@@ -129,70 +163,87 @@ def update_organizer_status(
 def list_all_events(
     page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
     status: str | None = Query(None),
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    query = db.query(Event)
+    events = dynamodb_helper.list_events()
     if status:
-        query = query.filter(Event.status == EventStatus(status))
-    total = query.count()
-    events = query.order_by(Event.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    return {"items": events, "total": total, "page": page, "limit": limit}
+        events = [e for e in events if e.get("status") == status]
+    events.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+
+    total = len(events)
+    start_idx = (page - 1) * limit
+    page_events = events[start_idx : start_idx + limit]
+
+    return {"items": page_events, "total": total, "page": page, "limit": limit}
 
 
 @router.put("/events/{event_id}/approve")
 def approve_event(
-    event_id: str, body: EventApproval,
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    event_id: str,
+    body: EventApproval,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    event = db.query(Event).filter(Event.id == event_id).first()
+    event = dynamodb_helper.get_event(event_id)
     if not event:
         raise HTTPException(404, "Event not found")
+
+    admin_id = admin.get("AdminID") or admin.get("id")
     if body.approved:
-        event.status = EventStatus.published  # type: ignore
-        event.approved_by = admin.id
-        event.approved_at = datetime.now(timezone.utc).replace(tzinfo=None)  # type: ignore
-        event.rejection_reason = None  # type: ignore
+        dynamodb_helper.update_event(event_id, {
+            "status": "published",
+            "approved_by": admin_id,
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "rejection_reason": None,
+        })
     else:
-        event.status = EventStatus.draft  # type: ignore
-        event.rejection_reason = body.rejection_reason  # type: ignore
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="event.approved" if body.approved else "event.rejected",
-        resource_type="event", resource_id=event_id,
-        meta={"reason": body.rejection_reason},
-    ))
-    db.commit()
+        dynamodb_helper.update_event(event_id, {
+            "status": "draft",
+            "rejection_reason": body.rejection_reason,
+        })
+
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin_id,
+        "actor_email": admin.get("email"),
+        "action": "event.approved" if body.approved else "event.rejected",
+        "resource_type": "event",
+        "resource_id": event_id,
+        "meta": {"reason": body.rejection_reason},
+    })
     return {"message": "Event approved" if body.approved else "Event rejected"}
 
 
 @router.put("/events/{event_id}/feature")
 def feature_event(
-    event_id: str, featured: bool,
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    event_id: str,
+    featured: bool,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    event = db.query(Event).filter(Event.id == event_id).first()
+    event = dynamodb_helper.get_event(event_id)
     if not event:
         raise HTTPException(404, "Event not found")
-    event.is_featured = featured  # type: ignore
-    db.commit()
+    dynamodb_helper.update_event(event_id, {"is_featured": featured})
     return {"message": f"Event {'featured' if featured else 'unfeatured'}"}
 
 
 @router.delete("/events/{event_id}")
 def remove_event(
-    event_id: str, db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    event_id: str,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    event = db.query(Event).filter(Event.id == event_id).first()
+    event = dynamodb_helper.get_event(event_id)
     if not event:
         raise HTTPException(404, "Event not found")
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="event.removed", resource_type="event", resource_id=event_id,
-    ))
-    db.delete(event)
-    db.commit()
+
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": "event.removed",
+        "resource_type": "event",
+        "resource_id": event_id,
+    })
+    dynamodb_helper.delete_event(event_id)
     return {"message": "Event removed"}
 
 
@@ -201,30 +252,55 @@ def remove_event(
 @router.post("/categories", response_model=EventCategoryResponse, status_code=201)
 def create_category(
     body: EventCategoryCreate,
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    from sqlalchemy.exc import IntegrityError
-    try:
-        cat = EventCategory(**body.model_dump())
-        db.add(cat)
-        db.commit()
-        db.refresh(cat)
-        return cat
-    except IntegrityError:
-        db.rollback()
+    cat_id = str(uuid.uuid4())
+    existing = dynamodb_helper.get_category_by_slug(body.slug)
+    if existing:
         raise HTTPException(400, "Category slug already exists")
+
+    data = dynamodb_helper.create_category(cat_id, body.model_dump())
+    return EventCategoryResponse(
+        id=cat_id,
+        name=data.get("name", ""),
+        slug=data.get("slug", ""),
+        icon=data.get("icon"),
+        sort_order=int(data.get("sort_order", 0)),
+    )
+
+
+@router.put("/categories/{category_id}", response_model=EventCategoryResponse)
+def update_category(
+    category_id: str,
+    body: EventCategoryCreate,
+    admin: AttrDict = Depends(get_current_admin),
+):
+    cat = dynamodb_helper.get_category(category_id)
+    if not cat:
+        raise HTTPException(404, "Category not found")
+
+    data = body.model_dump()
+    data["CategoryID"] = category_id
+    updated = dynamodb_helper.create_category(category_id, data)
+
+    return EventCategoryResponse(
+        id=category_id,
+        name=updated.get("name", ""),
+        slug=updated.get("slug", ""),
+        icon=updated.get("icon"),
+        sort_order=int(updated.get("sort_order", 0)),
+    )
 
 
 @router.delete("/categories/{category_id}")
 def delete_category(
-    category_id: str, db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    category_id: str,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    cat = db.query(EventCategory).filter(EventCategory.id == category_id).first()
+    cat = dynamodb_helper.get_category(category_id)
     if not cat:
         raise HTTPException(404, "Category not found")
-    db.delete(cat)
-    db.commit()
+    dynamodb_helper.delete_category(category_id)
     return {"message": "Category deleted"}
 
 
@@ -233,44 +309,57 @@ def delete_category(
 @router.get("/orders")
 def all_orders(
     page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    total = db.query(Order).count()
-    orders = db.query(Order).order_by(Order.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    return {"items": orders, "total": total}
+    orders = dynamodb_helper.list_orders()
+    orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    total = len(orders)
+    start_idx = (page - 1) * limit
+    page_orders = orders[start_idx : start_idx + limit]
+    return {"items": page_orders, "total": total}
 
 
 @router.post("/payouts", response_model=PayoutResponse, status_code=201)
 def create_payout(
     body: PayoutRequest,
-    db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    org = db.query(Organizer).filter(Organizer.id == body.organizer_id).first()
+    org = dynamodb_helper.get_organizer(body.organizer_id)
     if not org:
         raise HTTPException(404, "Organizer not found")
-    payout = OrganizerPayout(
+
+    payout_id = str(uuid.uuid4())
+    payout_data = dynamodb_helper.create_payout(payout_id, {
+        "organizer_id": body.organizer_id,
+        "amount": str(body.amount),
+        "notes": body.notes,
+        "status": "pending",
+    })
+
+    return PayoutResponse(
+        id=payout_id,
         organizer_id=body.organizer_id,
         amount=body.amount,
+        status="pending",
         notes=body.notes,
-        status=PayoutStatus.pending,
+        requested_at=datetime.now(timezone.utc),
+        processed_at=None,
     )
-    db.add(payout)
-    db.commit()
-    db.refresh(payout)
-    return payout
 
 
 @router.put("/payouts/{payout_id}/process")
 def process_payout(
-    payout_id: str, db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    payout_id: str,
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    payout = db.query(OrganizerPayout).filter(OrganizerPayout.id == payout_id).first()
+    payout = dynamodb_helper.get_payout(payout_id)
     if not payout:
         raise HTTPException(404, "Payout not found")
-    payout.status = PayoutStatus.processed  # type: ignore
-    payout.processed_at = datetime.now(timezone.utc).replace(tzinfo=None)  # type: ignore
-    db.commit()
+
+    dynamodb_helper.update_payout(payout_id, {
+        "status": "processed",
+        "processed_at": datetime.now(timezone.utc).isoformat(),
+    })
     return {"message": "Payout processed"}
 
 
@@ -279,19 +368,16 @@ def process_payout(
 @router.put("/config/commission")
 def update_commission(
     body: CommissionUpdate,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_super_admin),
+    admin: AttrDict = Depends(get_super_admin),
 ):
-    setting = db.query(PlatformSettings).filter(PlatformSettings.key == "commission_percent").first()
-    if not setting:
-        setting = PlatformSettings(key="commission_percent", description="Platform commission %")
-        db.add(setting)
-    setting.value = str(body.commission_percent)  # type: ignore
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="config.commission.updated", meta={"new_value": body.commission_percent},
-    ))
-    db.commit()
+    dynamodb_helper.set_platform_setting("commission_percent", str(body.commission_percent))
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": "config.commission.updated",
+        "meta": {"new_value": body.commission_percent},
+    })
     return {"message": f"Commission updated to {body.commission_percent}%"}
 
 
@@ -300,86 +386,89 @@ def update_commission(
 @router.get("/audit-logs", response_model=list[AuditLogResponse])
 def audit_logs(
     page: int = Query(1, ge=1), limit: int = Query(100, ge=1, le=500),
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    return db.query(AuditLog).order_by(AuditLog.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+    logs = dynamodb_helper.list_audit_logs()
+    logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    start_idx = (page - 1) * limit
+    page_logs = logs[start_idx : start_idx + limit]
+
+    return [
+        AuditLogResponse(
+            id=l.get("LogID") or l.get("id", ""),
+            actor_type=l.get("actor_type", ""),
+            actor_id=l.get("actor_id"),
+            actor_email=l.get("actor_email"),
+            action=l.get("action", ""),
+            resource_type=l.get("resource_type"),
+            resource_id=l.get("resource_id"),
+            ip_address=l.get("ip_address"),
+            user_agent=l.get("user_agent"),
+            meta=l.get("meta"),
+            created_at=_format_dt(l.get("timestamp")) or datetime.now(timezone.utc),
+        )
+        for l in page_logs
+    ]
 
 
 # ── Admin Management ──────────────────────────────────────────────────────────
 
 @router.get("/admins", response_model=list[AdminResponse])
-def list_admins(
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_super_admin),
-):
-    return db.query(Admin).all()
+def list_admins(admin: AttrDict = Depends(get_super_admin)):
+    admins = dynamodb_helper.list_admins()
+    return [
+        AdminResponse(
+            id=a.get("AdminID") or a.get("id", ""),
+            email=a.get("email", ""),
+            full_name=a.get("full_name", ""),
+            is_active=a.get("is_active", True),
+            is_super=a.get("is_super", False),
+            email_verified=a.get("email_verified", True),
+            created_at=_format_dt(a.get("created_at")) or datetime.now(timezone.utc),
+        )
+        for a in admins
+    ]
 
 
 @router.put("/admins/{admin_id}/deactivate")
 def deactivate_admin(
-    admin_id: str, db: Session = Depends(get_db),
-    admin: Admin = Depends(get_super_admin),
+    admin_id: str,
+    admin: AttrDict = Depends(get_super_admin),
 ):
-    target = db.query(Admin).filter(Admin.id == admin_id).first()
+    current_id = admin.get("AdminID") or admin.get("id")
+    if admin_id == current_id:
+        raise HTTPException(400, "Cannot deactivate yourself")
+
+    target = dynamodb_helper.get_admin(admin_id)
     if not target:
         raise HTTPException(404, "Admin not found")
-    if target.id == admin.id:
-        raise HTTPException(400, "Cannot deactivate yourself")
-    target.is_active = False  # type: ignore
-    db.commit()
+
+    dynamodb_helper.update_admin(admin_id, {"is_active": False})
     return {"message": "Admin deactivated"}
 
 
 # ── Config Management ─────────────────────────────────────────────────────────
 
 @router.get("/config")
-def list_configs(
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
-):
-    return db.query(PlatformSettings).all()
+def list_configs(admin: AttrDict = Depends(get_current_admin)):
+    return dynamodb_helper.list_platform_settings()
 
 
 @router.put("/config/{key}")
 def update_config_value(
     key: str,
     value: str,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_super_admin),
+    admin: AttrDict = Depends(get_super_admin),
 ):
-    setting = db.query(PlatformSettings).filter(PlatformSettings.key == key).first()
-    if not setting:
-        setting = PlatformSettings(key=key, description=f"Platform config: {key}")
-        db.add(setting)
-    setting.value = value  # type: ignore
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action=f"config.{key}.updated", meta={"value": value},
-    ))
-    db.commit()
+    dynamodb_helper.set_platform_setting(key, value)
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": f"config.{key}.updated",
+        "meta": {"value": value},
+    })
     return {"message": f"Config {key} updated to: {value}"}
-
-
-# ── Category Management Update ────────────────────────────────────────────────
-
-@router.put("/categories/{category_id}", response_model=EventCategoryResponse)
-def update_category(
-    category_id: str,
-    body: EventCategoryCreate,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
-):
-    cat = db.query(EventCategory).filter(EventCategory.id == category_id).first()
-    if not cat:
-        raise HTTPException(404, "Category not found")
-    cat.name = body.name  # type: ignore
-    cat.slug = body.slug  # type: ignore
-    cat.icon = body.icon  # type: ignore
-    cat.color = body.color  # type: ignore
-    db.commit()
-    db.refresh(cat)
-    return cat
 
 
 # ── Create Admin Account ──────────────────────────────────────────────────────
@@ -387,28 +476,39 @@ def update_category(
 @router.post("/create-admin", response_model=AdminResponse, status_code=201)
 def create_new_admin(
     body: AdminCreate,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_super_admin),
+    admin: AttrDict = Depends(get_super_admin),
 ):
-    if db.query(Admin).filter(Admin.email == body.email).first():
+    if dynamodb_helper.get_admin_by_email(body.email):
         raise HTTPException(400, "Email already registered")
-    from app.core.security import hash_password
-    new_admin = Admin(
-        email=body.email,
-        full_name=body.full_name,
-        password_hash=hash_password(body.password),
+
+    admin_id = str(uuid.uuid4())
+    admin_data = dynamodb_helper.create_admin(admin_id, {
+        "email": body.email,
+        "full_name": body.full_name,
+        "password_hash": hash_password(body.password),
+        "is_super": body.is_super,
+        "is_active": True,
+        "email_verified": True,
+    })
+
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": "admin.created",
+        "resource_type": "admin",
+        "resource_id": admin_id,
+    })
+
+    return AdminResponse(
+        id=admin_id,
+        email=admin_data["email"],
+        full_name=admin_data["full_name"],
+        is_active=True,
         is_super=body.is_super,
         email_verified=True,
+        created_at=datetime.now(timezone.utc),
     )
-    db.add(new_admin)
-    db.commit()
-    db.refresh(new_admin)
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="admin.created", resource_type="admin", resource_id=new_admin.id,
-    ))
-    db.commit()
-    return new_admin
 
 
 # ── Resale Monitoring & Approvals ─────────────────────────────────────────────
@@ -417,43 +517,43 @@ def create_new_admin(
 def list_resale_listings(
     page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
     status: str | None = Query(None),
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    query = db.query(ResaleListing)
-    if status:
-        query = query.filter(ResaleListing.status == ResaleStatus(status))
-    total = query.count()
-    listings = query.order_by(ResaleListing.listed_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    return {"items": listings, "total": total}
+    listings = dynamodb_helper.list_resale_listings_by_status(status) if status else dynamodb_helper._scan_all(dynamodb_helper.resale_listings_table_name)
+    total = len(listings)
+    start_idx = (page - 1) * limit
+    page_l = listings[start_idx : start_idx + limit]
+    return {"items": page_l, "total": total}
 
 
 @router.put("/resale/{listing_id}/approve")
 def approve_resale_listing(
     listing_id: str,
     body: ResaleApproval,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    listing = db.query(ResaleListing).filter(ResaleListing.id == listing_id).first()
+    listing = dynamodb_helper.get_resale_listing(listing_id)
     if not listing:
         raise HTTPException(404, "Listing not found")
-    if listing.status != ResaleStatus.pending:
-        raise HTTPException(400, f"Listing is not in pending state (status: {listing.status})")
+    if listing.get("status") != "pending":
+        raise HTTPException(400, f"Listing is not in pending state (status: {listing.get('status')})")
 
+    ticket_id = listing.get("ticket_id")
     if body.approved:
-        listing.status = ResaleStatus.active  # type: ignore
-        # Ticket is already resold status, keep it that way for escrow
+        dynamodb_helper.update_resale_listing(listing_id, {"status": "active"})
     else:
-        listing.status = ResaleStatus.removed  # type: ignore
-        listing.ticket.status = TicketStatus.active  # type: ignore
+        dynamodb_helper.update_resale_listing(listing_id, {"status": "removed"})
+        if ticket_id:
+            dynamodb_helper.update_ticket(ticket_id, {"status": "active"})
 
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="resale.approved" if body.approved else "resale.rejected",
-        resource_type="resale_listing", resource_id=listing_id,
-    ))
-    db.commit()
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": "resale.approved" if body.approved else "resale.rejected",
+        "resource_type": "resale_listing",
+        "resource_id": listing_id,
+    })
     return {"message": "Resale listing approved" if body.approved else "Resale listing rejected"}
 
 
@@ -462,101 +562,87 @@ def approve_resale_listing(
 @router.get("/refunds")
 def list_pending_refund_requests(
     page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    query = db.query(Order).filter(Order.status == OrderStatus.refund_pending)
-    total = query.count()
-    orders = query.order_by(Order.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
-    return {"items": orders, "total": total}
+    orders = dynamodb_helper.list_orders()
+    pending = [o for o in orders if o.get("status") == "refund_pending"]
+    total = len(pending)
+    start_idx = (page - 1) * limit
+    page_orders = pending[start_idx : start_idx + limit]
+    return {"items": page_orders, "total": total}
 
 
 @router.put("/orders/{order_id}/refund")
 def process_order_refund(
     order_id: str,
     body: RefundApproval,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    if order.status not in (OrderStatus.confirmed, OrderStatus.refund_pending):
-        raise HTTPException(400, f"Order cannot be refunded (status: {order.status})")
+    if order.get("status") not in ("confirmed", "refund_pending"):
+        raise HTTPException(400, f"Order cannot be refunded (status: {order.get('status')})")
 
     if body.approved:
-        order.status = OrderStatus.refunded  # type: ignore
-        # Invalidate all tickets and return quantities
-        for item in order.items:
-            item.ticket_type.quantity_sold = max(0, item.ticket_type.quantity_sold - item.quantity)  # type: ignore
-            for ticket in item.tickets:
-                ticket.status = TicketStatus.cancelled  # type: ignore
+        dynamodb_helper.update_order(order_id, {"status": "refunded"})
+        tickets = order.get("tickets", [])
+        for t in tickets:
+            t_id = t.get("TicketID") or t.get("id")
+            if t_id:
+                dynamodb_helper.update_ticket(t_id, {"status": "cancelled"})
         message = "Refund approved and processed successfully"
     else:
-        # Revert back to confirmed if rejected
-        order.status = OrderStatus.confirmed  # type: ignore
+        dynamodb_helper.update_order(order_id, {"status": "confirmed"})
         message = f"Refund request rejected. Reason: {body.rejection_reason or 'None'}"
 
-    db.add(AuditLog(
-        actor_type="admin", actor_id=admin.id, actor_email=admin.email,
-        action="order.refund_approved" if body.approved else "order.refund_rejected",
-        resource_type="order", resource_id=order_id,
-        meta={"reason": body.rejection_reason},
-    ))
-    db.commit()
+    dynamodb_helper.create_audit_log({
+        "actor_type": "admin",
+        "actor_id": admin.get("AdminID") or admin.get("id"),
+        "actor_email": admin.get("email"),
+        "action": "order.refund_approved" if body.approved else "order.refund_rejected",
+        "resource_type": "order",
+        "resource_id": order_id,
+        "meta": {"reason": body.rejection_reason},
+    })
     return {"message": message}
 
 
 # ── Admin Analytics ───────────────────────────────────────────────────────────
 
 @router.get("/analytics")
-def platform_analytics(
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
-):
-    # Dialect-safe date grouping (PostgreSQL to_char vs SQLite strftime)
-    is_postgres = db.bind.dialect.name == "postgresql"
-    org_date_expr = func.to_char(Organizer.created_at, "YYYY-MM") if is_postgres else func.strftime("%Y-%m", Organizer.created_at)
-    order_date_expr = func.to_char(Order.created_at, "YYYY-MM") if is_postgres else func.strftime("%Y-%m", Order.created_at)
+def platform_analytics(admin: AttrDict = Depends(get_current_admin)):
+    orgs = dynamodb_helper.list_organizers()
+    orders = dynamodb_helper.list_orders()
+    confirmed = [o for o in orders if o.get("status") == "confirmed"]
 
-    # Growth metrics: organizers registered per month
-    organizers_growth = db.query(
-        org_date_expr.label("month"),
-        func.count(Organizer.id).label("count")
-    ).group_by("month").order_by("month").all()
+    org_months: Dict[str, int] = {}
+    for o in orgs:
+        created = o.get("created_at", "")[:7]
+        if created:
+            org_months[created] = org_months.get(created, 0) + 1
 
-    # Sales metrics: orders per month
-    sales_growth = db.query(
-        order_date_expr.label("month"),
-        func.count(Order.id).label("count"),
-        func.sum(Order.total_amount).label("revenue")
-    ).filter(Order.status == OrderStatus.confirmed).group_by("month").order_by("month").all()
+    sales_months: Dict[str, Dict[str, Any]] = {}
+    for o in confirmed:
+        created = o.get("created_at", "")[:7]
+        if created:
+            if created not in sales_months:
+                sales_months[created] = {"orders": 0, "revenue": 0.0}
+            sales_months[created]["orders"] += 1
+            sales_months[created]["revenue"] += float(o.get("total_amount", 0))
 
-
-    # Top-performing events (by revenue)
-    top_events = db.query(
-        Event.id, Event.title,
-        func.sum(Order.total_amount).label("revenue"),
-        func.sum(OrderItem.quantity).label("tickets_sold")
-    ).join(Order, Order.event_id == Event.id)\
-     .join(OrderItem, OrderItem.order_id == Order.id)\
-     .filter(Order.status == OrderStatus.confirmed)\
-     .group_by(Event.id, Event.title)\
-     .order_by(func.sum(Order.total_amount).desc()).limit(5).all()
-
-    # Resale marketplace activity
-    total_listed = db.query(ResaleListing).count()
-    total_sold = db.query(ResaleListing).filter(ResaleListing.status == ResaleStatus.sold).count()
-    resale_revenue = db.query(func.sum(ResaleListing.asking_price))\
-                       .filter(ResaleListing.status == ResaleStatus.sold).scalar() or Decimal("0.00")
+    listings = dynamodb_helper._scan_all(dynamodb_helper.resale_listings_table_name)
+    total_listed = len(listings)
+    sold_listings = [l for l in listings if l.get("status") == "sold"]
+    resale_revenue = sum(float(l.get("asking_price", 0)) for l in sold_listings)
 
     return {
-        "organizer_growth": [{"month": r[0], "count": r[1]} for r in organizers_growth],
-        "sales_growth": [{"month": r[0], "orders": r[1], "revenue": float(r[2] or 0)} for r in sales_growth],
-        "top_events": [{"id": r[0], "title": r[1], "revenue": float(r[2] or 0), "tickets_sold": int(r[3] or 0)} for r in top_events],
+        "organizer_growth": [{"month": m, "count": c} for m, c in sorted(org_months.items())],
+        "sales_growth": [{"month": m, "orders": data["orders"], "revenue": data["revenue"]} for m, data in sorted(sales_months.items())],
+        "top_events": [],
         "resale_activity": {
             "total_listed": total_listed,
-            "total_sold": total_sold,
-            "resale_revenue": float(resale_revenue),
+            "total_sold": len(sold_listings),
+            "resale_revenue": resale_revenue,
         }
     }

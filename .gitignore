@@ -64,8 +64,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# --- Generated Archives ---
+# --- Generated Archives & Build Artifacts ---
 *.zip
-/infra/modules/lambda/lambda.zip
+infra/modules/lambda/lambda.zip
+infra/modules/lambda/build/
+/infra/modules/lambda/build/
 
 .secrets/*

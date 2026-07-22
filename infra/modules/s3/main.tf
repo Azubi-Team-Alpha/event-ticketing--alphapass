@@ -60,7 +60,7 @@ resource "aws_s3_bucket_cors_configuration" "frontend" {
 
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods = ["GET", "HEAD"]
     allowed_origins = var.cors_allowed_origins
     expose_headers  = ["ETag"]
     max_age_seconds = 3600
@@ -87,3 +87,35 @@ resource "aws_s3_bucket_policy" "frontend" {
   policy     = data.aws_iam_policy_document.public_read.json
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
+
+# --- Upload Frontend Static Website Files to S3 Bucket ---
+resource "aws_s3_object" "frontend_files" {
+  for_each = fileset("${path.module}/../../../frontend", "**")
+
+  bucket       = aws_s3_bucket.frontend.id
+  key          = each.value
+  source       = "${path.module}/../../../frontend/${each.value}"
+  etag         = filemd5("${path.module}/../../../frontend/${each.value}")
+  content_type = lookup(
+    {
+      "html"  = "text/html",
+      "css"   = "text/css",
+      "js"    = "application/javascript",
+      "png"   = "image/png",
+      "jpg"   = "image/jpeg",
+      "jpeg"  = "image/jpeg",
+      "gif"   = "image/gif",
+      "svg"   = "image/svg+xml",
+      "ico"   = "image/x-icon",
+      "json"  = "application/json",
+      "woff"  = "font/woff",
+      "woff2" = "font/woff2",
+      "ttf"   = "font/ttf",
+      "eot"   = "application/vnd.ms-fontobject",
+      "otf"   = "font/otf"
+    },
+    split(".", each.value)[length(split(".", each.value)) - 1],
+    "text/html"
+  )
+}
+

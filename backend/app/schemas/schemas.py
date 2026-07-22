@@ -79,11 +79,11 @@ class OrganizerResponse(BaseModel):
     id: str
     email: str
     full_name: str
-    business_name: Optional[str]
-    business_description: Optional[str]
-    phone: Optional[str]
-    website: Optional[str]
-    logo_url: Optional[str]
+    business_name: Optional[str] = None
+    business_description: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
     status: str
     email_verified: bool
     created_at: datetime
@@ -139,8 +139,8 @@ class EventCategoryResponse(BaseModel):
     id: str
     name: str
     slug: str
-    icon: Optional[str]
-    color: Optional[str]
+    icon: Optional[str] = None
+    color: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -192,19 +192,19 @@ class TicketTypeResponse(BaseModel):
     id: str
     event_id: str
     name: str
-    description: Optional[str]
-    benefits: Optional[list[str]]
+    description: Optional[str] = None
+    benefits: Optional[list[str]] = None
     price: Decimal
     quantity: int
     quantity_sold: int
     quantity_remaining: int
-    sales_start: Optional[datetime]
-    sales_end: Optional[datetime]
-    purchase_limit: int
-    min_purchase: int
-    is_active: bool
-    is_sold_out: bool
-    sort_order: int
+    sales_start: Optional[datetime] = None
+    sales_end: Optional[datetime] = None
+    purchase_limit: int = 10
+    min_purchase: int = 1
+    is_active: bool = True
+    is_sold_out: bool = False
+    sort_order: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -439,14 +439,15 @@ class OrderResponse(BaseModel):
     event_id: str
     guest_name: str
     guest_email: str
-    guest_phone: Optional[str]
+    guest_phone: Optional[str] = None
     status: str
     subtotal: Decimal
     discount_amount: Decimal
     platform_fee: Decimal
     total_amount: Decimal
-    payment_reference: Optional[str]
+    payment_reference: Optional[str] = None
     items: list[OrderItemResponse] = []
+    tickets: list[TicketResponse] = []
     total_tickets: int
     created_at: datetime
 
@@ -454,8 +455,9 @@ class OrderResponse(BaseModel):
 
 
 class OrderLookup(BaseModel):
-    order_id: str
-    guest_email: EmailStr
+    order_id: Optional[str] = None
+    guest_email: Optional[EmailStr] = None
+    email: Optional[EmailStr] = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
