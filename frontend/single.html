@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Event Details & Passes - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-4 text-center text-lg-start mb-lg-0">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <a href="contact.html" class="text-muted me-2"><i class="fa fa-question-circle text-primary me-1"></i> Help</a><small> / </small>
+                    <a href="contact.html" class="text-muted mx-2"><i class="fa fa-headset text-primary me-1"></i> Support</a><small> / </small>
+                    <a href="contact.html" class="text-muted ms-2"><i class="fa fa-envelope text-primary me-1"></i> Contact</a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center d-flex align-items-center justify-content-center">
+                <small class="text-dark"><i class="fa fa-phone-alt text-primary me-2"></i>Pass Helpline:</small>
+                <a href="tel:+233240000000" class="text-muted ms-1">(+233) 240 000 000</a>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <div class="dropdown me-2">
+                        <a href="#" class="dropdown-toggle text-muted" data-bs-toggle="dropdown"><small><i class="fa fa-globe text-primary me-1"></i> GHS (₵)</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="#" class="dropdown-item">GHS (₵)</a>
+                            <a href="#" class="dropdown-item">USD ($)</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle text-muted ms-2" data-bs-toggle="dropdown"><small><i class="fa fa-user-circle text-primary me-1"></i> Portals & Account</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="wallet.html" class="dropdown-item"><i class="fa fa-ticket-alt me-2 text-primary"></i>My Ticket Wallet</a>
+                            <a href="organizer.html" class="dropdown-item"><i class="fa fa-briefcase me-2 text-primary"></i>Organizer Portal</a>
+                            <a href="admin.html" class="dropdown-item"><i class="fa fa-user-shield me-2 text-primary"></i>Admin Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header & Search Bar -->
+    <div class="container-fluid px-5 py-4 d-none d-lg-block bg-light">
+        <div class="row gx-0 align-items-center text-center">
+            <div class="col-md-4 col-lg-3 text-center text-lg-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-6 text-center">
+                <div class="position-relative ps-4">
+                    <form action="events.html" method="GET" class="d-flex border rounded-pill bg-white shadow-sm">
+                        <input class="form-control border-0 rounded-pill w-100 py-3 px-4" type="text" name="search" placeholder="Search events, summits, concerts...">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 px-5 border-0"><i class="fas fa-search me-1"></i> Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center">
+                    <a href="wallet.html" class="btn btn-outline-primary rounded-pill me-2"><i class="fas fa-wallet me-1"></i> Ticket Wallet</a>
+                    <a href="cart.html" class="btn btn-primary rounded-pill position-relative px-3 py-2">
+                        <i class="fas fa-shopping-cart me-1"></i> Cart
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar Start -->
+    <div class="container-fluid nav-bar p-0">
+        <div class="row gx-0 bg-primary px-5 align-items-center">
+            <div class="col-lg-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-2 py-lg-0">
+                    <a href="index.html" class="navbar-brand d-block d-lg-none">
+                        <h2 class="text-white m-0"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                        <span class="fa fa-bars"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav me-auto py-0">
+                            <a href="index.html" class="nav-item nav-link fw-bold">Home</a>
+                            <a href="events.html" class="nav-item nav-link active fw-bold">Event Explorer</a>
+                            <a href="resale.html" class="nav-item nav-link fw-bold">Resale Market</a>
+                            <a href="wallet.html" class="nav-item nav-link fw-bold">Ticket Wallet</a>
+                            <a href="organizer.html" class="nav-item nav-link fw-bold">Organizer Portal</a>
+                            <a href="admin.html" class="nav-item nav-link fw-bold">Admin Console</a>
+                            <a href="contact.html" class="nav-item nav-link me-2 fw-bold">Contact Us</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Single Event Content -->
+    <div class="container-fluid py-5" id="eventContainer">
+        <div class="container py-3">
+            <div class="row g-5">
+                <!-- Event Image & Badges -->
+                <div class="col-lg-6">
+                    <div class="border rounded-3 overflow-hidden shadow-sm mb-4">
+                        <img id="evtImg" src="img/header-img.jpg" class="img-fluid w-100" style="max-height: 400px; object-fit: cover;" alt="Event Banner">
+                    </div>
+                    <div class="card border-0 bg-light p-4 rounded-3 shadow-sm">
+                        <h5 class="fw-bold text-dark mb-3"><i class="fa fa-shield-alt text-primary me-2"></i> Event Security & Guarantee</h5>
+                        <ul class="list-unstyled text-muted small mb-0">
+                            <li class="mb-2"><i class="fa fa-check text-success me-2"></i> Official encrypted digital QR passes</li>
+                            <li class="mb-2"><i class="fa fa-check text-success me-2"></i> Verified transfer & resale guarantee</li>
+                            <li class="mb-0"><i class="fa fa-check text-success me-2"></i> Instant PDF ticket receipt on checkout</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Event Info & Ticket Selection -->
+                <div class="col-lg-6">
+                    <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-2" id="evtCategory">Category</span>
+                    <h2 class="fw-bold text-dark mb-3" id="evtTitle">Loading Event Details...</h2>
+
+                    <div class="d-flex align-items-center text-muted mb-3 flex-wrap gap-3">
+                        <div><i class="fa fa-calendar-alt text-primary me-1"></i> <span id="evtDate">Date</span></div>
+                        <div><i class="fa fa-clock text-primary me-1"></i> <span id="evtTime">Time</span></div>
+                        <div><i class="fa fa-map-marker-alt text-primary me-1"></i> <span id="evtVenue">Venue</span></div>
+                    </div>
+
+                    <p class="text-muted mb-4" id="evtDesc">Description loading...</p>
+
+                    <hr class="my-4">
+
+                    <h5 class="fw-bold mb-3"><i class="fa fa-ticket-alt text-primary me-2"></i> Select Ticket Tier</h5>
+                    
+                    <div id="ticketTypeContainer" class="mb-4">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <span class="me-3 fw-bold">Quantity:</span>
+                        <div class="input-group" style="width: 130px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(-1)">-</button>
+                            <input type="number" id="ticketQty" class="form-control text-center fw-bold" value="1" min="1" max="10" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-outline-primary rounded-pill btn-lg px-4 fw-bold" id="addToCartBtn"><i class="fa fa-cart-plus me-2"></i> Add to Cart</button>
+                        <button class="btn btn-warning text-dark rounded-pill btn-lg px-5 fw-bold" id="buyNowBtn"><i class="fa fa-bolt me-2"></i> Buy Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policies & Details Tab -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header bg-white border-0 pt-4 px-4">
+                            <ul class="nav nav-tabs card-header-tabs" id="eventTab" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active fw-bold" id="policies-tab" data-bs-toggle="tab" data-bs-target="#policies" type="button">Policies & Terms</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link fw-bold" id="organizer-tab" data-bs-toggle="tab" data-bs-target="#organizer" type="button">Organizer Info</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body p-4 tab-content" id="eventTabContent">
+                            <div class="tab-pane fade show active" id="policies">
+                                <p class="text-muted" id="evtPolicies">Standard event admission policies apply.</p>
+                            </div>
+                            <div class="tab-pane fade" id="organizer">
+                                <h6 class="fw-bold text-dark mb-2" id="evtOrganizer">Team Alpha Organizer</h6>
+                                <p class="text-muted small">Verified official event organizer on AlphaPass platform.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+        <div class="container py-4">
+            <div class="row g-5">
+                <div class="col-lg-6">
+                    <a href="index.html" class="navbar-brand">
+                        <h2 class="text-primary mb-3"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <p class="text-white-50">AlphaPass Event Details & Ticketing Engine.</p>
+                </div>
+                <div class="col-lg-6 text-lg-end">
+                    <a href="events.html" class="btn btn-outline-light rounded-pill px-4 me-2">Back to Explorer</a>
+                    <a href="cart.html" class="btn btn-primary rounded-pill px-4">Go to Cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        let currentEvent = null;
+        let selectedTicketType = null;
+
+        function adjustQty(delta) {
+            const qtyInput = document.getElementById('ticketQty');
+            let val = parseInt(qtyInput.value) + delta;
+            if (val < 1) val = 1;
+            if (val > 10) val = 10;
+            qtyInput.value = val;
+        }
+
+        async function initPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id') || 'evt-cloud-2026';
+
+            try {
+                currentEvent = await apiFetch(`/events/${id}`);
+                if (!currentEvent) throw new Error('Event not found');
+
+                document.getElementById('evtCategory').textContent = currentEvent.category_name || 'Event';
+                document.getElementById('evtTitle').textContent = currentEvent.title;
+                document.getElementById('evtImg').src = currentEvent.image_url || 'img/header-img.jpg';
+                document.getElementById('evtDesc').textContent = currentEvent.description;
+                document.getElementById('evtDate').textContent = new Date(currentEvent.starts_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                document.getElementById('evtTime').textContent = new Date(currentEvent.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('evtVenue').textContent = `${currentEvent.venue_name}, ${currentEvent.city}`;
+                document.getElementById('evtPolicies').textContent = currentEvent.policies || 'Standard entry policy applies.';
+                document.getElementById('evtOrganizer').textContent = currentEvent.organizer_name || 'Official Organizer';
+
+                const ttContainer = document.getElementById('ticketTypeContainer');
+                if (!currentEvent.ticket_types || currentEvent.ticket_types.length === 0) {
+                    currentEvent.ticket_types = [
+                        { id: 'tt-gen', name: 'General Admission', price: currentEvent.min_price || 100.00, description: 'Standard entry ticket', benefits: ['Regular Entry'] }
+                    ];
+                }
+
+                selectedTicketType = currentEvent.ticket_types[0];
+
+                ttContainer.innerHTML = currentEvent.ticket_types.map((tt, idx) => `
+                    <div class="form-check card border ${idx === 0 ? 'border-primary bg-light' : 'border-light'} p-3 mb-2 rounded-3 shadow-sm cursor-pointer" onclick="selectTicket('${tt.id}')" id="tt-card-${tt.id}">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <input class="form-check-input me-2" type="radio" name="ticketTypeRadio" id="radio-${tt.id}" ${idx === 0 ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold text-dark" for="radio-${tt.id}">${tt.name}</label>
+                                <div class="small text-muted">${tt.description || ''}</div>
+                            </div>
+                            <span class="fs-5 fw-bold text-primary">₵${parseFloat(tt.price).toFixed(2)}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('eventContainer').innerHTML = '<div class="text-center py-5"><h3>Event not found</h3><a href="events.html" class="btn btn-primary mt-3">Browse Events</a></div>';
+            }
+        }
+
+        function selectTicket(ttId) {
+            selectedTicketType = currentEvent.ticket_types.find(t => t.id === ttId);
+            currentEvent.ticket_types.forEach(t => {
+                const card = document.getElementById(`tt-card-${t.id}`);
+                const radio = document.getElementById(`radio-${t.id}`);
+                if (t.id === ttId) {
+                    card.classList.add('border-primary', 'bg-light');
+                    radio.checked = true;
+                } else {
+                    card.classList.remove('border-primary', 'bg-light');
+                    radio.checked = false;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+
+            document.getElementById('addToCartBtn').addEventListener('click', () => {
+                if (!currentEvent || !selectedTicketType) return;
+                const qty = parseInt(document.getElementById('ticketQty').value);
+                CartManager.addItem({
+                    event_id: currentEvent.id,
+                    event_title: currentEvent.title,
+                    ticket_type_id: selectedTicketType.id,
+                    ticket_type_name: selectedTicketType.name,
+                    price: parseFloat(selectedTicketType.price),
+                    quantity: qty
+                });
+                showToast(`Added ${qty} x ${selectedTicketType.name} to cart!`, 'success');
+            });
+
+            document.getElementById('buyNowBtn').addEventListener('click', () => {
+                if (!currentEvent || !selectedTicketType) return;
+                const qty = parseInt(document.getElementById('ticketQty').value);
+                CartManager.addItem({
+                    event_id: currentEvent.id,
+                    event_title: currentEvent.title,
+                    ticket_type_id: selectedTicketType.id,
+                    ticket_type_name: selectedTicketType.name,
+                    price: parseFloat(selectedTicketType.price),
+                    quantity: qty
+                });
+                window.location.href = 'checkout.html';
+            });
+        });
+    </script>
+</body>
+
+</html>

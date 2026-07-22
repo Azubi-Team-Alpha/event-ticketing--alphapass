@@ -1,190 +1,369 @@
-cd<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaPass | Web Client Portal</title>
+    <meta charset="utf-8">
+    <title>AlphaPass - Premium Event Ticketing & Pass Platform</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="AlphaPass Event Ticketing Platform for Concerts, Cloud Summits, Tech Conferences & Resales" name="description">
+
+    <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.4);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.15);
-            --secondary: #10b981;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Outfit', sans-serif;
-        }
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-            background-image: 
-                radial-gradient(circle at 10% 20%, var(--primary-glow) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
-        }
+    <!-- Libraries Stylesheet -->
+    <link href="lib/animate/animate.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 2rem;
-            text-align: center;
-            z-index: 10;
-        }
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 3rem 2rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-        }
-
-        .badge {
-            display: inline-block;
-            background: rgba(99, 102, 241, 0.15);
-            color: #818cf8;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 100px;
-            padding: 0.4rem 1.2rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(to right, #ffffff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.subtitle {
-            font-size: 1.1rem;
-            color: var(--text-sub);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .status-box {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.2rem;
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .dot.online {
-            background-color: var(--secondary);
-            box-shadow: 0 0 10px var(--secondary);
-        }
-
-        .dot.pending {
-            background-color: #f59e0b;
-            box-shadow: 0 0 10px #f59e0b;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .footer {
-            margin-top: 2rem;
-            font-size: 0.85rem;
-            color: rgba(148, 163, 184, 0.6);
-        }
-    </style>
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
 </head>
+
 <body>
-    <div class="container">
-        <div class="glass-card">
-            <span class="badge">AlphaPass — Team Alpha</span>
-            <h1>Web Client Portal</h1>
-            <p class="subtitle">Welcome to the future front-end client interface of Ticket Hub (AlphaPass). The user interface is currently under construction.</p>
-            
-            <div class="status-box">
-                <div class="status-item">
-                    <span class="dot online"></span>
-                    <span>Backend API: <strong>Online</strong></span>
+
+    <!-- Spinner Start -->
+    <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading AlphaPass...</span>
+        </div>
+    </div>
+    <!-- Spinner End -->
+
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-4 text-center text-lg-start mb-lg-0">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <a href="contact.html" class="text-muted me-2"><i class="fa fa-question-circle text-primary me-1"></i> Help</a><small> / </small>
+                    <a href="contact.html" class="text-muted mx-2"><i class="fa fa-headset text-primary me-1"></i> Support</a><small> / </small>
+                    <a href="contact.html" class="text-muted ms-2"><i class="fa fa-envelope text-primary me-1"></i> Contact</a>
                 </div>
-                <div class="status-item">
-                    <span class="dot pending"></span>
-                    <span>Frontend Client: <strong>Coming Soon</strong></span>
+            </div>
+            <div class="col-lg-4 text-center d-flex align-items-center justify-content-center">
+                <small class="text-dark"><i class="fa fa-phone-alt text-primary me-2"></i>Pass Helpline:</small>
+                <a href="tel:+233240000000" class="text-muted ms-1">(+233) 240 000 000</a>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center" style="height: 45px;">
+                    <div class="dropdown me-2">
+                        <a href="#" class="dropdown-toggle text-muted" data-bs-toggle="dropdown"><small><i class="fa fa-globe text-primary me-1"></i> GHS (₵)</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="#" class="dropdown-item">GHS (₵)</a>
+                            <a href="#" class="dropdown-item">USD ($)</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle text-muted ms-2" data-bs-toggle="dropdown"><small><i class="fa fa-user-circle text-primary me-1"></i> Portals & Account</small></a>
+                        <div class="dropdown-menu rounded">
+                            <a href="wallet.html" class="dropdown-item"><i class="fa fa-ticket-alt me-2 text-primary"></i>My Ticket Wallet</a>
+                            <a href="organizer.html" class="dropdown-item"><i class="fa fa-briefcase me-2 text-primary"></i>Organizer Portal</a>
+                            <a href="admin.html" class="dropdown-item"><i class="fa fa-user-shield me-2 text-primary"></i>Admin Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header & Search Bar -->
+    <div class="container-fluid px-5 py-4 d-none d-lg-block bg-light">
+        <div class="row gx-0 align-items-center text-center">
+            <div class="col-md-4 col-lg-3 text-center text-lg-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-6 text-center">
+                <div class="position-relative ps-4">
+                    <form action="events.html" method="GET" class="d-flex border rounded-pill bg-white shadow-sm">
+                        <input class="form-control border-0 rounded-pill w-100 py-3 px-4" type="text" name="search" id="homeSearchInput" placeholder="Search events, summits, concerts, cities...">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 px-5 border-0"><i class="fas fa-search me-1"></i> Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 text-center text-lg-end">
+                <div class="d-inline-flex align-items-center">
+                    <a href="wallet.html" class="btn btn-outline-primary rounded-pill me-2"><i class="fas fa-wallet me-1"></i> Ticket Wallet</a>
+                    <a href="cart.html" class="btn btn-primary rounded-pill position-relative px-3 py-2">
+                        <i class="fas fa-shopping-cart me-1"></i> Cart
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+    <!-- Navbar Start -->
+    <div class="container-fluid nav-bar p-0">
+        <div class="row gx-0 bg-primary px-5 align-items-center">
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="dropdown">
+                    <button class="btn btn-primary border-0 fs-5 w-100 py-3 text-start fw-bold" type="button" data-bs-toggle="dropdown">
+                        <i class="fa fa-bars me-2"></i> Event Categories
+                    </button>
+                    <div class="dropdown-menu rounded-bottom w-100 shadow border-0 m-0">
+                        <a href="events.html?category_id=cat-1" class="dropdown-item py-2"><i class="fa fa-music me-2 text-primary"></i> Music & Concerts</a>
+                        <a href="events.html?category_id=cat-2" class="dropdown-item py-2"><i class="fa fa-laptop-code me-2 text-primary"></i> Tech & Cloud Summits</a>
+                        <a href="events.html?category_id=cat-3" class="dropdown-item py-2"><i class="fa fa-chart-line me-2 text-primary"></i> Business & Startup</a>
+                        <a href="events.html?category_id=cat-4" class="dropdown-item py-2"><i class="fa fa-theater-masks me-2 text-primary"></i> Arts & Theatre</a>
+                        <a href="events.html?category_id=cat-5" class="dropdown-item py-2"><i class="fa fa-gamepad me-2 text-primary"></i> Sports & Gaming</a>
+                        <a href="events.html?category_id=cat-6" class="dropdown-item py-2"><i class="fa fa-graduation-cap me-2 text-primary"></i> Workshops & Bootcamps</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-9">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-2 py-lg-0">
+                    <a href="index.html" class="navbar-brand d-block d-lg-none">
+                        <h2 class="text-white m-0"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                        <span class="fa fa-bars"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <div class="navbar-nav ms-auto py-0">
+                            <a href="index.html" class="nav-item nav-link active fw-bold">Home</a>
+                            <a href="events.html" class="nav-item nav-link fw-bold">Event Explorer</a>
+                            <a href="resale.html" class="nav-item nav-link fw-bold"><span class="badge bg-warning text-dark me-1">HOT</span> Resale Market</a>
+                            <a href="wallet.html" class="nav-item nav-link fw-bold">Ticket Wallet</a>
+                            <a href="organizer.html" class="nav-item nav-link fw-bold">Organizer Portal</a>
+                            <a href="admin.html" class="nav-item nav-link fw-bold">Admin Console</a>
+                            <a href="contact.html" class="nav-item nav-link me-2 fw-bold">Contact Us</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Carousel / Hero Banner Start -->
+    <div class="container-fluid p-0 mb-5">
+        <div id="header-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active" style="min-height: 480px; background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url('img/carousel-1.jpg') center/cover no-repeat;">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center h-100">
+                        <div class="p-3" style="max-width: 900px;">
+                            <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-3 fs-6">Featured Event Pass</span>
+                            <h1 class="display-3 text-white fw-bold mb-4 animate__animated animate__fadeInDown">AWS & Cloud AI Summit Accra 2026</h1>
+                            <p class="fs-5 text-white-50 mb-4 animate__animated animate__fadeInUp">Experience West Africa's biggest Cloud Engineering & AI summit. Instant digital QR check-in & verified transfers.</p>
+                            <a href="single.html?id=evt-cloud-2026" class="btn btn-warning text-dark rounded-pill py-3 px-5 me-3 animate__animated animate__fadeInLeft fw-bold"><i class="fa fa-ticket-alt me-2"></i> Get Passes Now</a>
+                            <a href="events.html" class="btn btn-light rounded-pill py-3 px-5 animate__animated animate__fadeInRight fw-bold">Explore All Events</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" style="min-height: 480px; background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url('img/carousel-2.png') center/cover no-repeat;">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center h-100">
+                        <div class="p-3" style="max-width: 900px;">
+                            <span class="badge bg-warning text-dark text-uppercase px-3 py-2 rounded-pill mb-3 fs-6">Live Music & Festival</span>
+                            <h1 class="display-3 text-white fw-bold mb-4 animate__animated animate__fadeInDown">Afrobeat Horizon Festival 2026</h1>
+                            <p class="fs-5 text-white-50 mb-4 animate__animated animate__fadeInUp">Live performances by top artists at Labadi Beach Arena. Secure your general admission & VIP lounge passes.</p>
+                            <a href="single.html?id=evt-afro-fest" class="btn btn-warning text-dark rounded-pill py-3 px-5 me-3 animate__animated animate__fadeInLeft fw-bold"><i class="fa fa-star me-2"></i> VIP & Standard Tickets</a>
+                            <a href="resale.html" class="btn btn-outline-light rounded-pill py-3 px-5 animate__animated animate__fadeInRight fw-bold">Secondary Ticket Market</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#header-carousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#header-carousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+    <!-- Carousel End -->
+
+    <!-- Features / Value Prop Start -->
+    <div class="container-fluid py-4 bg-white shadow-sm mb-5">
+        <div class="container">
+            <div class="row g-4 text-center">
+                <div class="col-md-3">
+                    <div class="p-3 rounded border border-light shadow-sm bg-light">
+                        <i class="fa fa-qrcode fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Instant Digital Pass</h5>
+                        <p class="text-muted small mb-0">Receive encrypted QR ticket passes directly on checkout and PDF download.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 rounded border border-light shadow-sm bg-light">
+                        <i class="fa fa-exchange-alt fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Verified Ticket Resale</h5>
+                        <p class="text-muted small mb-0">Safely list or buy secondary market tickets with price cap protection.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 rounded border border-light shadow-sm bg-light">
+                        <i class="fa fa-user-friends fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Seamless Transfer</h5>
+                        <p class="text-muted small mb-0">Transfer tickets to friends or colleagues instantly with 1-click email assignment.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 rounded border border-light shadow-sm bg-light">
+                        <i class="fa fa-shield-alt fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Organizer & Admin Hub</h5>
+                        <p class="text-muted small mb-0">Full analytics, ticket sales tracking, payouts, and high-speed QR check-in scanning.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Features End -->
+
+    <!-- Featured Events Section -->
+    <div class="container-fluid py-5">
+        <div class="container">
+            <div class="row g-4 align-items-center mb-4">
+                <div class="col-md-8">
+                    <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-2">Upcoming Events</span>
+                    <h2 class="display-6 fw-bold">Explore Hot & Featured Events</h2>
+                    <p class="text-muted">Discover conferences, concerts, startup summits, and gaming tournaments happening near you.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="events.html" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">View All Events <i class="fa fa-arrow-right ms-2"></i></a>
                 </div>
             </div>
 
-            <a href="http://localhost:8000/docs" class="btn" target="_blank">Explore API Documentation</a>
-        </div>
-        <div class="footer">
-            Azubi Cloud & AI Academy — Internship Project Portfolio Reference 2
+            <!-- Dynamic Event Cards Grid -->
+            <div class="row g-4" id="homeEventGrid">
+                <!-- Loaded via JS -->
+            </div>
         </div>
     </div>
+
+    <!-- Secondary Resale Banner -->
+    <div class="container-fluid bg-primary py-5 my-5 text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill text-uppercase mb-3 fw-bold">Official Secondary Market</span>
+                    <h2 class="display-5 text-white fw-bold mb-3">Sold Out Event? Find Resale Tickets Here!</h2>
+                    <p class="fs-5 text-white-50 mb-0">AlphaPass guarantees verified resale tickets. Price gouging is prevented with our strict markup percent caps.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a href="resale.html" class="btn btn-light text-primary rounded-pill py-3 px-5 btn-lg fw-bold"><i class="fa fa-ticket-alt me-2"></i> Browse Resale Exchange</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+        <div class="container py-5">
+            <div class="row g-5">
+                <div class="col-lg-4 col-md-6">
+                    <a href="index.html" class="navbar-brand">
+                        <h2 class="text-primary mb-3"><i class="fas fa-ticket-alt me-2"></i>AlphaPass</h2>
+                    </a>
+                    <p class="text-white-50">AlphaPass is the premier serverless event ticketing, ticket resale exchange, and event management platform. Powered by AWS Cloud & FastAPI.</p>
+                    <div class="d-flex pt-2">
+                        <a class="btn btn-outline-light btn-social rounded-circle me-2" href="#"><i class="fab fa-twitter"></i></a>
+                        <a class="btn btn-outline-light btn-social rounded-circle me-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a class="btn btn-outline-light btn-social rounded-circle me-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a class="btn btn-outline-light btn-social rounded-circle" href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="text-white mb-4">Quick Links</h5>
+                    <a class="btn btn-link text-white-50" href="index.html">Home</a>
+                    <a class="btn btn-link text-white-50" href="events.html">Event Explorer</a>
+                    <a class="btn btn-link text-white-50" href="resale.html">Resale Market</a>
+                    <a class="btn btn-link text-white-50" href="wallet.html">Ticket Wallet</a>
+                    <a class="btn btn-link text-white-50" href="contact.html">Support</a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-4">Portals</h5>
+                    <a class="btn btn-link text-white-50" href="organizer.html">Organizer Portal & Sign in</a>
+                    <a class="btn btn-link text-white-50" href="organizer.html">Create Event & Tickets</a>
+                    <a class="btn btn-link text-white-50" href="organizer.html">Entry Scanner Console</a>
+                    <a class="btn btn-link text-white-50" href="admin.html">Admin Dashboard</a>
+                    <a class="btn btn-link text-white-50" href="admin.html">Pending Approvals</a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-4">Contact Info</h5>
+                    <p class="mb-2"><i class="fa fa-map-marker-alt me-3 text-primary"></i>Ring Road West, Accra Digital Centre, Ghana</p>
+                    <p class="mb-2"><i class="fa fa-phone-alt me-3 text-primary"></i>+233 240 000 000</p>
+                    <p class="mb-2"><i class="fa fa-envelope me-3 text-primary"></i>support@alphapass.io</p>
+                </div>
+            </div>
+        </div>
+        <div class="container py-4 border-top border-secondary">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; <a class="text-primary fw-bold" href="#">AlphaPass</a>, Team Alpha — Azubi AWS Cloud & AI Academy 2026. All Rights Reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="text-white-50 small">Designed with Bootstrap & Custom Electronics Template Integration</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/wow/wow.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template & API Script -->
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const grid = document.getElementById('homeEventGrid');
+            try {
+                const events = await apiFetch('/events');
+                if (!events || events.length === 0) {
+                    grid.innerHTML = '<div class="col-12 text-center text-muted py-5">No events found.</div>';
+                    return;
+                }
+
+                grid.innerHTML = events.map(evt => `
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                            <div class="position-relative">
+                                <img src="${evt.image_url || 'img/header-img.jpg'}" class="card-img-top" style="height: 220px; object-fit: cover;" alt="${evt.title}">
+                                <span class="position-absolute top-0 end-0 bg-primary text-white px-3 py-1 m-2 rounded-pill small fw-bold">${evt.category_name || 'Event'}</span>
+                            </div>
+                            <div class="card-body d-flex flex-column p-4">
+                                <div class="d-flex align-items-center text-muted small mb-2">
+                                    <i class="fa fa-calendar-alt text-primary me-2"></i> ${new Date(evt.starts_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    <span class="mx-2">•</span>
+                                    <i class="fa fa-map-marker-alt text-primary me-2"></i> ${evt.city || 'Accra'}
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-3">${evt.title}</h5>
+                                <p class="card-text text-muted small flex-grow-1 mb-3">${evt.description.substring(0, 100)}...</p>
+                                <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                                    <div>
+                                        <small class="text-muted d-block">From</small>
+                                        <span class="fs-5 fw-bold text-primary">₵${(evt.min_price || 100).toFixed(2)}</span>
+                                    </div>
+                                    <a href="single.html?id=${evt.id}" class="btn btn-warning text-dark rounded-pill px-4 fw-bold"><i class="fa fa-ticket-alt me-1"></i> Get Tickets</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Failed to load home events:', err);
+            }
+        });
+    </script>
 </body>
+
 </html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Contact & Support - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-6 text-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-lg-6 text-end">
+                <a href="events.html" class="btn btn-outline-primary rounded-pill px-4 me-2">Event Explorer</a>
+                <a href="wallet.html" class="btn btn-primary rounded-pill px-4">Ticket Wallet</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Banner -->
+    <div class="container-fluid bg-primary py-4 mb-4 text-white">
+        <div class="container py-2">
+            <h1 class="display-5 text-white fw-bold"><i class="fa fa-headset me-2"></i> Support & Contact Hub</h1>
+            <p class="mb-0 text-white-50">Have questions about your event tickets, QR passes, or organizer onboarding? Reach out anytime.</p>
+        </div>
+    </div>
+
+    <!-- Main Section -->
+    <div class="container-fluid py-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-light mb-4">
+                        <h4 class="fw-bold mb-3"><i class="fa fa-map-marker-alt text-primary me-2"></i> Head Office</h4>
+                        <p class="text-muted mb-2">Accra Digital Centre, Ring Road West, Accra, Ghana</p>
+                        <p class="text-muted mb-2"><i class="fa fa-phone-alt text-primary me-2"></i> +233 240 000 000</p>
+                        <p class="text-muted mb-0"><i class="fa fa-envelope text-primary me-2"></i> support@alphapass.io</p>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-primary text-white">
+                        <h5 class="fw-bold mb-2"><i class="fa fa-question-circle text-warning me-2"></i> Frequently Asked Questions</h5>
+                        <p class="small text-white-50 mb-0">How do I access my ticket pass? Search your email in the <a href="wallet.html" class="text-warning text-decoration-underline fw-bold">Ticket Wallet</a> page to download PDF or view live QR code.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-3 p-4">
+                        <h4 class="fw-bold mb-4">Send Us a Message</h4>
+                        <form id="contactForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Your Name *</label>
+                                <input type="text" id="contactName" class="form-control py-2" placeholder="Full Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Your Email *</label>
+                                <input type="email" id="contactEmail" class="form-control py-2" placeholder="email@example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Subject</label>
+                                <input type="text" id="contactSubject" class="form-control py-2" placeholder="Pass inquiry, event hosting, etc.">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Message *</label>
+                                <textarea id="contactMsg" class="form-control" rows="4" placeholder="How can we help you?" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary rounded-pill py-3 px-5 fw-bold"><i class="fa fa-paper-plane me-1"></i> Submit Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-4 mt-5">
+        <div class="container py-3 text-center">
+            <p class="mb-0">&copy; AlphaPass Support Center.</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showToast('Thank you! Your message has been sent to support.', 'success');
+            document.getElementById('contactForm').reset();
+        });
+    </script>
+</body>
+
+</html>

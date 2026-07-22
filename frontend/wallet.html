@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Ticket Wallet & Management - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none border-bottom d-lg-block">
+        <div class="row gx-0 align-items-center">
+            <div class="col-lg-6 text-start">
+                <a href="index.html" class="navbar-brand p-0">
+                    <h1 class="display-6 text-primary m-0"><i class="fas fa-ticket-alt text-primary me-2"></i>AlphaPass</h1>
+                </a>
+            </div>
+            <div class="col-lg-6 text-end">
+                <a href="events.html" class="btn btn-outline-primary rounded-pill px-4 me-2">Browse Events</a>
+                <a href="organizer.html" class="btn btn-primary rounded-pill px-4">Organizer Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Banner -->
+    <div class="container-fluid bg-primary py-4 mb-4 text-white">
+        <div class="container py-2">
+            <h1 class="display-5 text-white fw-bold"><i class="fa fa-wallet me-2"></i> Guest Ticket Wallet</h1>
+            <p class="mb-0 text-white-50">Look up your event passes, download PDF tickets, transfer ownership, or list for resale.</p>
+        </div>
+    </div>
+
+    <!-- Main Wallet Search & Cards Section -->
+    <div class="container-fluid py-4">
+        <div class="container">
+            <!-- Email Lookup Form -->
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-5 bg-light">
+                <h4 class="fw-bold mb-3"><i class="fa fa-search text-primary me-2"></i> Look Up Passes by Guest Email</h4>
+                <form id="walletLookupForm" class="row g-3">
+                    <div class="col-md-9">
+                        <input type="email" id="lookupEmail" class="form-control py-3" placeholder="Enter guest email address (e.g. alice@example.com)" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold" id="lookupBtn"><i class="fa fa-search me-1"></i> Retrieve Passes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Wallet Results Grid -->
+            <div id="walletResultsContainer">
+                <div class="text-center py-5 text-muted">
+                    <i class="fa fa-ticket-alt fa-4x text-primary opacity-50 mb-3"></i>
+                    <h5>Enter your email above to load your active ticket passes.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Ticket Modal -->
+    <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-exchange-alt me-2"></i> Transfer Ticket Pass</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="transferForm">
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">Transfer ticket <strong id="transferTicketCode">TKT-000</strong> to a new attendee name & email.</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Recipient Full Name *</label>
+                            <input type="text" id="transferToName" class="form-control" placeholder="Recipient Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Recipient Email *</label>
+                            <input type="email" id="transferToEmail" class="form-control" placeholder="recipient@example.com" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4">Confirm Transfer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resale Ticket Modal -->
+    <div class="modal fade" id="resaleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-header-title text-dark fw-bold"><i class="fa fa-store me-2"></i> List Ticket on Resale Market</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="resaleForm">
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">List ticket <strong id="resaleTicketCode">TKT-000</strong> on the official AlphaPass Secondary Exchange.</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Asking Price (₵) *</label>
+                            <input type="number" step="0.01" id="resalePrice" class="form-control" placeholder="150.00" required>
+                            <div class="small text-muted mt-1">Maximum allowed price markup is 10% over face value.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">List for Resale</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="container-fluid bg-dark text-white-50 footer pt-4 mt-5">
+        <div class="container py-3 text-center">
+            <p class="mb-0">&copy; AlphaPass Ticket Wallet Engine.</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        let currentSelectedCode = null;
+
+        async function fetchWallet(email) {
+            const container = document.getElementById('walletResultsContainer');
+            container.innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-3x text-primary"></i><p class="mt-2 text-muted">Retrieving order passes...</p></div>';
+
+            try {
+                const order = await apiFetch('/orders/lookup', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                });
+
+                if (!order || !order.tickets || order.tickets.length === 0) {
+                    container.innerHTML = '<div class="alert alert-warning text-center">No active tickets found for this email address.</div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold m-0"><i class="fa fa-receipt text-primary me-2"></i> Order ${order.order_id || order.id}</h4>
+                            <span class="badge bg-success fs-6">${order.status || 'PAID'}</span>
+                        </div>
+                        <div class="row g-4">
+                            ${order.tickets.map(tkt => `
+                                <div class="col-md-6">
+                                    <div class="card border border-light shadow-sm p-4 rounded-3 bg-light">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="badge bg-primary">${tkt.ticket_type_name || 'General Pass'}</span>
+                                            <code class="fw-bold fs-6 text-dark">${tkt.ticket_code}</code>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-1">${tkt.event_title || 'AWS & Cloud AI Summit Accra 2026'}</h5>
+                                        <div class="small text-muted mb-3"><i class="fa fa-user me-1"></i> Attendee: ${tkt.attendee_name || order.guest_name}</div>
+                                        
+                                        <div class="text-center my-3">
+                                            <img src="${tkt.qr_code || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${tkt.ticket_code}`}" class="img-fluid rounded border p-2 bg-white" style="max-width: 160px;" alt="Ticket QR">
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <a href="${API_BASE_URL}/tickets/${tkt.ticket_code}/pdf" target="_blank" class="btn btn-outline-primary rounded-pill btn-sm fw-bold"><i class="fa fa-download me-1"></i> Download PDF Ticket</a>
+                                            <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
+                                            <button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}')"><i class="fa fa-store me-1"></i> List for Resale</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div class="alert alert-danger text-center">Error fetching tickets: ${err.message}</div>`;
+            }
+        }
+
+        function openTransferModal(code) {
+            currentSelectedCode = code;
+            document.getElementById('transferTicketCode').textContent = code;
+            const modal = new bootstrap.Modal(document.getElementById('transferModal'));
+            modal.show();
+        }
+
+        function openResaleModal(code) {
+            currentSelectedCode = code;
+            document.getElementById('resaleTicketCode').textContent = code;
+            const modal = new bootstrap.Modal(document.getElementById('resaleModal'));
+            modal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('alphapass_guest_email') || 'alice@example.com';
+            document.getElementById('lookupEmail').value = savedEmail;
+            fetchWallet(savedEmail);
+
+            document.getElementById('walletLookupForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('lookupEmail').value.trim();
+                localStorage.setItem('alphapass_guest_email', email);
+                fetchWallet(email);
+            });
+
+            document.getElementById('transferForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const toName = document.getElementById('transferToName').value.trim();
+                const toEmail = document.getElementById('transferToEmail').value.trim();
+                const fromEmail = document.getElementById('lookupEmail').value.trim();
+
+                try {
+                    await apiFetch(`/transfers/${currentSelectedCode}/transfer?guest_email=${encodeURIComponent(fromEmail)}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ to_name: toName, to_email: toEmail })
+                    });
+                    bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
+                    showToast(`Ticket ${currentSelectedCode} transferred successfully to ${toName}!`, 'success');
+                    fetchWallet(fromEmail);
+                } catch (err) {
+                    showToast('Transfer failed: ' + err.message, 'danger');
+                }
+            });
+
+            document.getElementById('resaleForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const price = parseFloat(document.getElementById('resalePrice').value);
+                const email = document.getElementById('lookupEmail').value.trim();
+
+                try {
+                    await apiFetch(`/resale/tickets/${currentSelectedCode}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ asking_price: price, guest_email: email })
+                    });
+                    bootstrap.Modal.getInstance(document.getElementById('resaleModal')).hide();
+                    showToast(`Ticket ${currentSelectedCode} listed for resale at ₵${price.toFixed(2)}!`, 'success');
+                } catch (err) {
+                    showToast('Resale listing failed: ' + err.message, 'danger');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

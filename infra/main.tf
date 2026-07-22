@@ -1,6 +1,3 @@
-# ==============================================================================
-# ALPHAPASS (TICKET HUB) - SERVERLESS INFRASTRUCTURE FOUNDATION (MODULARIZED)
-# ==============================================================================
 
 terraform {
   required_version = ">= 1.5.0"
@@ -75,11 +72,10 @@ module "budgets" {
   notification_email = var.notification_email
 }
 
-# --- Module: Frontend Static Hosting (S3 + CloudFront) ---
+# --- Module: Frontend Static Hosting (S3 Direct Website Hosting) ---
 module "frontend_hosting" {
-  source              = "./modules/frontend_hosting"
-  environment         = var.environment
-  price_class         = var.cloudfront_price_class
-  domain_aliases      = var.frontend_domain_aliases
-  acm_certificate_arn = var.frontend_acm_certificate_arn
+  source      = "./modules/s3"
+  environment = var.environment
 }
+
+
