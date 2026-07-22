@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # AWS
     AWS_REGION: str = "us-east-1"
     S3_BUCKET_NAME: str = "alphapass-assets-dev"
-    SES_SENDER_EMAIL: str = "noreply@alphapass.com"
+    SES_SENDER_EMAIL: str = "noreply@alphapass.alphateam.live"
 
     # DynamoDB Table Names (resolved from environment variables injected by Lambda/Terraform)
     EVENTS_TABLE: str = "alphapass-events-dev"
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     PASSWORD_RESET_EXPIRE_HOURS: int = 2
 
     # Frontend URL (for email links)
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://alphapass.alphateam.live"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
