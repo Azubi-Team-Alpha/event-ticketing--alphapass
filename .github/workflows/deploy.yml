@@ -80,6 +80,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
+      - name: Pre-Deploy Infrastructure Sanitation (Purge Conflicting Orphaned Resources)
+        run: |
+          echo "=== Pre-Deploy Infrastructure Sanitation ==="
+          REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
+          ENV="dev"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
+          
+          # Purge S3 bucket if it exists prior to fresh deployment (prevents BucketAlreadyExists)
+          BUCKET_NAME="alphapass-frontend-${ENV}"
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null; then
+            echo "Found existing S3 bucket $BUCKET_NAME prior to deployment. Clearing..."
+            aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
+            
+            VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+            if [ -n "$VERSIONS" ] && [ "$VERSIONS" != '{"Objects": null}' ] && [ "$VERSIONS" != '{"Objects": []}' ]; then
+              aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$VERSIONS" 2>/dev/null || true
+            fi
+
+            MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+            if [ -n "$MARKERS" ] && [ "$MARKERS" != '{"Objects": null}' ] && [ "$MARKERS" != '{"Objects": []}' ]; then
+              aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$MARKERS" 2>/dev/null || true
+            fi
+
+            aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
+          fi
+
+          # Delete AWS Budget if it exists prior to fresh deployment (prevents DuplicateRecordException)
+          BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
+          if [ -n "$ACCOUNT_ID" ]; then
+            if aws budgets describe-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null; then
+              echo "Found existing AWS Budget $BUDGET_NAME prior to deployment. Clearing..."
+              aws budgets delete-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null || true
+            fi
+          fi
+
       - name: Setup HashiCorp Terraform
         uses: hashicorp/setup-terraform@v3
         with:
