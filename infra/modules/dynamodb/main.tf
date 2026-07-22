@@ -7,6 +7,26 @@ resource "aws_dynamodb_table" "events" {
     name = "EventID"
     type = "S"
   }
+  attribute {
+    name = "organizer_id"
+    type = "S"
+  }
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "organizer_id-index"
+    hash_key        = "organizer_id"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "status-index"
+    hash_key        = "status"
+    projection_type = "ALL"
+  }
 
   tags = {
     Name = "AlphaPass Events Table"
@@ -37,6 +57,36 @@ resource "aws_dynamodb_table" "organizers" {
     name = "OrganizerID"
     type = "S"
   }
+  attribute {
+    name = "email"
+    type = "S"
+  }
+  attribute {
+    name = "verification_token"
+    type = "S"
+  }
+  attribute {
+    name = "reset_token"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "email-index"
+    hash_key        = "email"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "verification_token-index"
+    hash_key        = "verification_token"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "reset_token-index"
+    hash_key        = "reset_token"
+    projection_type = "ALL"
+  }
 
   tags = {
     Name = "AlphaPass Organizers Table"
@@ -51,6 +101,16 @@ resource "aws_dynamodb_table" "admins" {
   attribute {
     name = "AdminID"
     type = "S"
+  }
+  attribute {
+    name = "email"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "email-index"
+    hash_key        = "email"
+    projection_type = "ALL"
   }
 
   tags = {
@@ -67,6 +127,26 @@ resource "aws_dynamodb_table" "orders" {
     name = "OrderID"
     type = "S"
   }
+  attribute {
+    name = "event_id"
+    type = "S"
+  }
+  attribute {
+    name = "guest_email"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "event_id-index"
+    hash_key        = "event_id"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "guest_email-index"
+    hash_key        = "guest_email"
+    projection_type = "ALL"
+  }
 
   tags = {
     Name = "AlphaPass Orders Table"
@@ -81,6 +161,36 @@ resource "aws_dynamodb_table" "tickets" {
   attribute {
     name = "TicketID"
     type = "S"
+  }
+  attribute {
+    name = "ticket_code"
+    type = "S"
+  }
+  attribute {
+    name = "order_id"
+    type = "S"
+  }
+  attribute {
+    name = "attendee_email"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ticket_code-index"
+    hash_key        = "ticket_code"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "order_id-index"
+    hash_key        = "order_id"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "attendee_email-index"
+    hash_key        = "attendee_email"
+    projection_type = "ALL"
   }
 
   tags = {
@@ -97,6 +207,16 @@ resource "aws_dynamodb_table" "promo_codes" {
     name = "Code"
     type = "S"
   }
+  attribute {
+    name = "event_id"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "event_id-index"
+    hash_key        = "event_id"
+    projection_type = "ALL"
+  }
 
   tags = {
     Name = "AlphaPass Promo Codes Table"
@@ -111,6 +231,26 @@ resource "aws_dynamodb_table" "resale_listings" {
   attribute {
     name = "ListingID"
     type = "S"
+  }
+  attribute {
+    name = "ticket_id"
+    type = "S"
+  }
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ticket_id-index"
+    hash_key        = "ticket_id"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "status-index"
+    hash_key        = "status"
+    projection_type = "ALL"
   }
 
   tags = {
@@ -127,6 +267,16 @@ resource "aws_dynamodb_table" "transfers" {
     name = "TransferID"
     type = "S"
   }
+  attribute {
+    name = "ticket_id"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ticket_id-index"
+    hash_key        = "ticket_id"
+    projection_type = "ALL"
+  }
 
   tags = {
     Name = "AlphaPass Ticket Transfers Table"
@@ -141,6 +291,16 @@ resource "aws_dynamodb_table" "payouts" {
   attribute {
     name = "PayoutID"
     type = "S"
+  }
+  attribute {
+    name = "organizer_id"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "organizer_id-index"
+    hash_key        = "organizer_id"
+    projection_type = "ALL"
   }
 
   tags = {

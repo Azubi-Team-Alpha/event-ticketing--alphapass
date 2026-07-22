@@ -40,13 +40,28 @@ module "sns" {
 
 # --- Module: AWS Lambda backend function ---
 module "lambda" {
-  source                   = "./modules/lambda"
-  environment              = var.environment
-  events_table_name        = module.dynamodb.events_table_name
-  events_table_arn         = module.dynamodb.events_table_arn
-  registrations_table_name = module.dynamodb.registrations_table_name
-  registrations_table_arn  = module.dynamodb.registrations_table_arn
-  sns_topic_arn            = module.sns.topic_arn
+  source      = "./modules/lambda"
+  environment = var.environment
+  secret_key  = var.secret_key
+
+  # All DynamoDB table names
+  events_table_name            = module.dynamodb.events_table_name
+  events_table_arn             = module.dynamodb.events_table_arn
+  registrations_table_name     = module.dynamodb.registrations_table_name
+  registrations_table_arn      = module.dynamodb.registrations_table_arn
+  organizers_table_name        = module.dynamodb.organizers_table_name
+  admins_table_name            = module.dynamodb.admins_table_name
+  orders_table_name            = module.dynamodb.orders_table_name
+  tickets_table_name           = module.dynamodb.tickets_table_name
+  promo_codes_table_name       = module.dynamodb.promo_codes_table_name
+  resale_listings_table_name   = module.dynamodb.resale_listings_table_name
+  transfers_table_name         = module.dynamodb.transfers_table_name
+  payouts_table_name           = module.dynamodb.payouts_table_name
+  platform_settings_table_name = module.dynamodb.platform_settings_table_name
+  audit_logs_table_name        = module.dynamodb.audit_logs_table_name
+  event_categories_table_name  = module.dynamodb.event_categories_table_name
+
+  sns_topic_arn = module.sns.topic_arn
 }
 
 # --- Module: API Gateway REST Interface ---

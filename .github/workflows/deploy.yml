@@ -93,12 +93,12 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infra
-          terraform plan -var="environment=dev"
+          terraform plan -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}"
 
       - name: Terraform Apply (Provision Infrastructure & Package Backend)
         run: |
           cd infra
-          terraform apply -var="environment=dev" -auto-approve
+          terraform apply -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}" -auto-approve
 
       - name: Deploy Backend Application Code to AWS Lambda Function
         run: |
