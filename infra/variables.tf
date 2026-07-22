@@ -19,5 +19,6 @@ variable "notification_email" {
 variable "secret_key" {
   type        = string
   sensitive   = true
+  default     = "alphapass-default-secret-key-dev"
   description = "JWT signing secret key for the Lambda backend"
 }
