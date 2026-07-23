@@ -82,3 +82,13 @@ def test_search_events(client: TestClient, sample_event):
     resp = client.get("/events?search=Conference")
     assert resp.status_code == 200
     assert resp.json()["total"] >= 1
+
+
+def test_upload_event_banner(client: TestClient, organizer_headers):
+    files = {"file": ("banner.jpg", b"fake-image-binary-data", "image/jpeg")}
+    resp = client.post("/events/upload-banner", files=files, headers=organizer_headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "image_url" in data
+    assert "s3.us-east-1.amazonaws.com" in data["image_url"]
+

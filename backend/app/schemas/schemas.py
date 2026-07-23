@@ -219,6 +219,11 @@ class EventCreate(BaseModel):
     policies: Optional[str] = None
     category_id: Optional[str] = None
 
+    # Image / Banner
+    banner_image_url: Optional[str] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+
     # Location
     venue_name: Optional[str] = None
     address: Optional[str] = None
@@ -252,6 +257,9 @@ class EventUpdate(BaseModel):
     description: Optional[str] = None
     policies: Optional[str] = None
     category_id: Optional[str] = None
+    banner_image_url: Optional[str] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     venue_name: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None

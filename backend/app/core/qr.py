@@ -39,3 +39,23 @@ def upload_qr_to_s3(ticket_code: str) -> str:
     )
 
     return f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{key}"
+
+
+def upload_image_to_s3(file_bytes: bytes, filename: str, content_type: str = "image/jpeg") -> str:
+    """
+    Uploads an event cover image or asset to the S3 bucket.
+    Returns the public S3 URL of the uploaded image.
+    """
+    import uuid
+    s3 = boto3.client("s3", region_name=settings.AWS_REGION)
+    key = f"events/banners/{uuid.uuid4()}_{filename}"
+
+    s3.put_object(
+        Bucket=settings.S3_BUCKET_NAME,
+        Key=key,
+        Body=file_bytes,
+        ContentType=content_type,
+    )
+
+    return f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{key}"
+

@@ -304,6 +304,11 @@
                                 <input type="text" id="newEventCity" class="form-control" placeholder="Accra" required>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Event Cover / Banner Image URL (S3 bucket asset)</label>
+                            <input type="url" id="newEventBanner" class="form-control"
+                                placeholder="https://alphapass-assets-dev.s3.amazonaws.com/events/banners/cover.jpg">
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-dark">Start Date & Time *</label>
@@ -543,13 +548,23 @@
                 const desc = document.getElementById('newEventDesc').value.trim();
                 const venue = document.getElementById('newEventVenue').value.trim();
                 const city = document.getElementById('newEventCity').value.trim();
+                const banner = document.getElementById('newEventBanner').value.trim();
                 const start = document.getElementById('newEventStart').value;
                 const end = document.getElementById('newEventEnd').value;
 
                 try {
                     const createdEvent = await apiFetch('/events/organizer', {
                         method: 'POST',
-                        body: JSON.stringify({ title, description: desc, venue_name: venue, city, starts_at: start, ends_at: end })
+                        body: JSON.stringify({
+                            title,
+                            description: desc,
+                            venue_name: venue,
+                            city,
+                            banner_image_url: banner || undefined,
+                            image_url: banner || undefined,
+                            starts_at: start,
+                            ends_at: end
+                        })
                     });
                     
                     // Automatically publish event
