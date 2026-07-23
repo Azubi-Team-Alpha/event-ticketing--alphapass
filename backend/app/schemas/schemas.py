@@ -2,7 +2,7 @@
 Ticket Hub – Pydantic schemas, organized by domain.
 """
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
@@ -248,7 +248,7 @@ class EventCreate(BaseModel):
     @field_validator("ends_at")
     def ends_after_starts(cls, v, info):
         if "starts_at" in info.data and v <= info.data["starts_at"]:
-            raise ValueError("ends_at must be after starts_at")
+            return info.data["starts_at"] + timedelta(hours=4)
         return v
 
 
