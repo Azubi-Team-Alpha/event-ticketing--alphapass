@@ -264,9 +264,11 @@
             document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                const submitBtn = document.getElementById('placeOrderBtn');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i> Processing Order...';
+                const submitBtn = document.getElementById('submitOrderBtn') || document.getElementById('placeOrderBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i> Processing Order...';
+                }
 
                 const name = document.getElementById('guestName').value.trim();
                 const email = document.getElementById('guestEmail').value.trim();
@@ -279,8 +281,10 @@
 
                 if (!cartItems || cartItems.length === 0) {
                     showToast('Cart is empty', 'warning');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
+                    }
                     return;
                 }
 
@@ -332,8 +336,10 @@
                 } catch (err) {
                     console.error('Checkout failed:', err);
                     showToast('Checkout failed. ' + err.message, 'danger');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
+                    }
                 }
             });
         });
