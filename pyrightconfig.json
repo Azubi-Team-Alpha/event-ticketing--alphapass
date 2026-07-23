@@ -1,6 +1,7 @@
 {
     "venvPath": "backend",
     "venv": ".venv",
+    "pythonPath": "backend/.venv/bin/python",
     "extraPaths": [
         "backend",
         "backend/.venv/lib/python3.14/site-packages"
