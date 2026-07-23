@@ -87,7 +87,7 @@ def list_organizers(
             "email": org.get("email", ""),
             "full_name": org.get("full_name", ""),
             "business_name": org.get("business_name"),
-            "status": org.get("status", "active"),
+            "status": "suspended" if org.get("status") == "suspended" else "active",
             "email_verified": org.get("email_verified", False),
             "total_events": total_events,
             "total_revenue": rev,

@@ -90,6 +90,9 @@ const CartManager = {
             return [];
         }
     },
+    getItems() {
+        return this.getCart();
+    },
     addItem(item) {
         const cart = this.getCart();
         const existingIndex = cart.findIndex(c => c.ticket_type_id === item.ticket_type_id && c.event_id === item.event_id);
