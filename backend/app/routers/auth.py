@@ -36,7 +36,7 @@ def admin_signup(body: AdminRegister):
     
     admin_count = dynamodb_helper.count_admins()
     if admin_count > 0:
-        expected = getattr(settings, "ADMIN_INVITE_CODE", None)
+        expected = settings.ADMIN_INVITE_CODE
         if expected and body.invite_code != expected:
             raise HTTPException(403, "Invalid invite code")
 

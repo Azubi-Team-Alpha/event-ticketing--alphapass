@@ -14,22 +14,9 @@ from app.schemas.schemas import (
 )
 from app.core.security import hash_password
 from app.core.dependencies import get_current_admin, get_super_admin, AttrDict
+from app.core.utils import format_dt as _format_dt
 
 router = APIRouter()
-
-
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
