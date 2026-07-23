@@ -352,10 +352,18 @@ def process_payout(
 
 # ── Platform Config ───────────────────────────────────────────────────────────
 
+@router.get("/config/commission")
+def get_commission(
+    admin: AttrDict = Depends(get_current_admin),
+):
+    val = dynamodb_helper.get_platform_setting("commission_percent") or "5.0"
+    return {"commission_percent": float(val)}
+
+
 @router.put("/config/commission")
 def update_commission(
     body: CommissionUpdate,
-    admin: AttrDict = Depends(get_super_admin),
+    admin: AttrDict = Depends(get_current_admin),
 ):
     dynamodb_helper.set_platform_setting("commission_percent", str(body.commission_percent))
     dynamodb_helper.create_audit_log({
@@ -366,6 +374,7 @@ def update_commission(
         "meta": {"new_value": body.commission_percent},
     })
     return {"message": f"Commission updated to {body.commission_percent}%"}
+
 
 
 # ── Audit Logs ────────────────────────────────────────────────────────────────

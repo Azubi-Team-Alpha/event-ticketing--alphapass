@@ -200,10 +200,43 @@ def my_payouts(org: AttrDict = Depends(get_current_organizer)):
             id=p.get("PayoutID") or p.get("id", ""),
             organizer_id=org_id,
             amount=Decimal(str(p.get("amount", 0))),
+            currency="GHS",
             status=p.get("status", "pending"),
             notes=p.get("notes"),
-            requested_at=_format_dt(p.get("created_at")) or datetime.now(timezone.utc),
+            created_at=_format_dt(p.get("created_at")) or datetime.now(timezone.utc),
             processed_at=_format_dt(p.get("processed_at")),
         )
         for p in payouts
     ]
+
+
+@router.post("/payouts", response_model=PayoutResponse, status_code=201)
+def request_payout(
+    body: Dict[str, Any],
+    org: AttrDict = Depends(get_current_organizer),
+):
+    import uuid
+    org_id = org.get("OrganizerID") or org.get("id")
+    amount = float(body.get("amount", 0))
+    if amount <= 0:
+        raise HTTPException(400, "Payout amount must be greater than 0")
+
+    payout_id = str(uuid.uuid4())
+    notes = f"Bank/MoMo: {body.get('bank', 'MTN MoMo')}, Account: {body.get('account_number', '')}"
+    payout_data = dynamodb_helper.create_payout(payout_id, {
+        "organizer_id": org_id,
+        "amount": amount,
+        "status": "pending",
+        "notes": notes,
+    })
+
+    return PayoutResponse(
+        id=payout_id,
+        organizer_id=org_id,
+        amount=Decimal(str(amount)),
+        currency="GHS",
+        status="pending",
+        notes=notes,
+        created_at=datetime.now(timezone.utc),
+    )
+
