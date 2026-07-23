@@ -161,11 +161,11 @@
                     </div>
                 </div>
 
-                <div class="row g-4">
+                <div class="row g-4 mb-4">
                     <!-- Event Approvals Table -->
                     <div class="col-lg-8">
-                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                            <h5 class="fw-bold text-dark mb-3">Pending Event Approval Submissions</h5>
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-clipboard-check text-warning me-2"></i> Pending Event Submissions</h5>
                             <div class="table-responsive">
                                 <table class="table align-middle table-hover">
                                     <thead class="bg-dark text-white">
@@ -183,11 +183,32 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Organizers Table -->
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-users-cog text-primary me-2"></i> Registered Event Organizers</h5>
+                            <div class="table-responsive">
+                                <table class="table align-middle table-hover">
+                                    <thead class="bg-dark text-white">
+                                        <tr>
+                                            <th class="py-3 ps-3">Organizer / Business</th>
+                                            <th class="py-3">Email</th>
+                                            <th class="py-3">Events</th>
+                                            <th class="py-3">Status</th>
+                                            <th class="py-3 text-end pe-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="organizersTable">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Platform Fee Config -->
+                    <!-- Side Panels: Fee Config & Audit Logs -->
                     <div class="col-lg-4">
-                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
                             <h5 class="fw-bold text-dark mb-3"><i class="fa fa-percentage text-primary me-2"></i> Commission Rate</h5>
                             <form id="commissionForm">
                                 <div class="mb-3">
@@ -196,6 +217,13 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold py-2">Update Rate</button>
                             </form>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-history text-danger me-2"></i> Audit Logs</h5>
+                            <div id="auditLogsContainer" style="max-height: 380px; overflow-y: auto;">
+                                <div class="text-center text-muted py-3"><i class="fa fa-spinner fa-spin me-2"></i> Loading audit logs...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -273,6 +301,8 @@
                 loginSec.style.display = 'none';
                 dashSec.style.display = 'block';
                 loadPendingEvents();
+                loadOrganizers();
+                loadAuditLogs();
 
                 // Fetch current commission rate
                 apiFetch('/admin/config/commission').then(cRes => {
@@ -288,6 +318,77 @@
                 loginSec.style.display = 'flex';
                 dashSec.style.display = 'none';
                 showToast('Admin access restricted. Please sign in.', 'danger');
+            }
+        }
+
+        async function loadOrganizers() {
+            const tbody = document.getElementById('organizersTable');
+            try {
+                const res = await apiFetch('/admin/organizers');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No organizers registered yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(o => {
+                    const orgId = o.id || o.OrganizerID || '';
+                    const isSuspended = o.status === 'suspended';
+                    return `
+                    <tr>
+                        <td class="fw-bold text-dark ps-3">${o.business_name || o.full_name || 'Organizer'}</td>
+                        <td class="text-muted small">${o.email}</td>
+                        <td><span class="badge bg-secondary">${o.total_events || 0} events</span></td>
+                        <td><span class="badge ${isSuspended ? 'bg-danger' : 'bg-success'}">${(o.status || 'ACTIVE').toUpperCase()}</span></td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm ${isSuspended ? 'btn-success' : 'btn-outline-danger'} rounded-pill px-3 fw-bold" onclick="toggleOrganizerStatus('${orgId}', '${o.status || 'active'}')">
+                                <i class="fa ${isSuspended ? 'fa-check' : 'fa-ban'} me-1"></i> ${isSuspended ? 'Activate' : 'Suspend'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load organizers:', err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load organizers.</td></tr>`;
+            }
+        }
+
+        async function toggleOrganizerStatus(orgId, currentStatus) {
+            const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+            try {
+                await apiFetch(`/admin/organizers/${orgId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: newStatus, reason: `Admin toggled status to ${newStatus}` })
+                });
+                showToast(`Organizer status updated to ${newStatus.toUpperCase()}`, newStatus === 'active' ? 'success' : 'warning');
+                await loadOrganizers();
+            } catch (err) {
+                showToast('Failed to update organizer status: ' + err.message, 'danger');
+            }
+        }
+
+        async function loadAuditLogs() {
+            const container = document.getElementById('auditLogsContainer');
+            try {
+                const logs = await apiFetch('/admin/audit-logs');
+                const list = Array.isArray(logs) ? logs : (logs.items || []);
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted py-3 small">No audit activity logged yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = list.slice(0, 10).map(l => `
+                    <div class="border-bottom py-2">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <strong class="text-dark">${l.action || 'system.event'}</strong>
+                            <span>${l.timestamp ? new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                        </div>
+                        <div class="small text-muted">${l.actor_email || 'admin@alphapass'} • ${l.resource_type || 'res'}:${l.resource_id || ''}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `<div class="text-center text-muted py-3 small">Audit logs unavailable.</div>`;
             }
         }
 

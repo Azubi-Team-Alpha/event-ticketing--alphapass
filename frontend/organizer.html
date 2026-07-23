@@ -500,19 +500,24 @@
                     return;
                 }
 
-                tbody.innerHTML = list.map(e => `
+                tbody.innerHTML = list.map(e => {
+                    const eventId = e.id || e.EventID || '';
+                    const titleEsc = (e.title || '').replace(/'/g, "\\'");
+                    const dateStr = e.starts_at ? new Date(e.starts_at).toLocaleDateString() : 'TBD';
+                    return `
                     <tr>
                         <td class="fw-bold text-dark ps-3">${e.title}</td>
                         <td class="text-muted small">${e.venue_name || ''}, ${e.city || ''}</td>
-                        <td class="text-muted small">${new Date(e.starts_at).toLocaleDateString()}</td>
+                        <td class="text-muted small">${dateStr}</td>
                         <td><span class="badge bg-success">${(e.status || 'PUBLISHED').toUpperCase()}</span></td>
                         <td class="text-end pe-3">
-                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-3 fw-bold me-1" onclick="openAttendeesModal('${e.id}', '${e.title.replace(/'/g, "\\'")}')"><i class="fa fa-users me-1"></i> Roster</button>
-                            <a class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" href="single.html?id=${e.id}" target="_blank"><i class="fa fa-eye me-1"></i> View</a>
-                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${e.id}')"><i class="fa fa-plus me-1"></i> + Pass</button>
+                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-3 fw-bold me-1" onclick="openAttendeesModal('${eventId}', '${titleEsc}')"><i class="fa fa-users me-1"></i> Roster</button>
+                            <a class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" href="single.html?id=${eventId}" target="_blank"><i class="fa fa-eye me-1"></i> View Details</a>
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${eventId}')"><i class="fa fa-plus me-1"></i> + Pass</button>
                         </td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
             } catch (err) {
                 console.error('Failed to load organizer events:', err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load events.</td></tr>`;
@@ -539,14 +544,17 @@
                     return;
                 }
 
-                tbody.innerHTML = list.map(a => `
+                tbody.innerHTML = list.map(a => {
+                    const isCheckedIn = a.checked_in || a.is_used;
+                    return `
                     <tr>
                         <td><code>${a.ticket_code || a.ticket_id || 'PASS'}</code></td>
                         <td class="fw-bold">${a.attendee_name || a.guest_name || 'Guest'}</td>
                         <td class="text-muted small">${a.attendee_email || a.guest_email || ''}</td>
-                        <td><span class="badge ${a.is_used ? 'bg-secondary' : 'bg-success'}">${a.is_used ? 'CHECKED IN' : 'ACTIVE'}</span></td>
+                        <td><span class="badge ${isCheckedIn ? 'bg-secondary' : 'bg-success'}">${isCheckedIn ? 'CHECKED IN' : 'ACTIVE'}</span></td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-danger">Failed to load roster: ${err.message}</td></tr>`;
             }
