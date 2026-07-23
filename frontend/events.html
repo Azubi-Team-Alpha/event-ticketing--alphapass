@@ -250,7 +250,8 @@
                 if (catParam) queryParts.push(`category_id=${encodeURIComponent(catParam)}`);
                 if (queryParts.length > 0) path += '?' + queryParts.join('&');
 
-                allEvents = await apiFetch(path);
+                const res = await apiFetch(path);
+                allEvents = Array.isArray(res) ? res : (res.items || []);
                 if (catParam) document.getElementById('categoryFilter').value = catParam;
 
                 renderEvents(allEvents);
