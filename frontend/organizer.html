@@ -620,8 +620,15 @@
                 const venue = document.getElementById('newEventVenue').value.trim();
                 const city = document.getElementById('newEventCity').value.trim();
                 const banner = document.getElementById('newEventBanner').value.trim();
-                const start = document.getElementById('newEventStart').value;
-                const end = document.getElementById('newEventEnd').value;
+                let start = document.getElementById('newEventStart').value;
+                let end = document.getElementById('newEventEnd').value;
+
+                if (!start) start = new Date().toISOString().slice(0, 16);
+                if (!end || new Date(end) <= new Date(start)) {
+                    const sDate = new Date(start);
+                    sDate.setHours(sDate.getHours() + 4);
+                    end = sDate.toISOString().slice(0, 16);
+                }
 
                 try {
                     const createdEvent = await apiFetch('/events/organizer', {
@@ -638,9 +645,9 @@
                         })
                     });
                     
-                    // Automatically publish event
-                    if (createdEvent && createdEvent.id) {
-                        await apiFetch(`/events/organizer/${createdEvent.id}/publish`, { method: 'POST' }).catch(() => {});
+                    const eventId = createdEvent ? (createdEvent.id || createdEvent.EventID) : null;
+                    if (eventId) {
+                        await apiFetch(`/events/organizer/${eventId}/publish`, { method: 'POST' }).catch(() => {});
                     }
 
                     const modalEl = document.getElementById('createEventModal');
