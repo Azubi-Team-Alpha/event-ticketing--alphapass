@@ -88,12 +88,12 @@
                                     <div class="mb-3">
                                         <label class="form-label fw-bold text-dark">Organizer Email *</label>
                                         <input type="email" id="loginEmail" class="form-control py-2"
-                                            value="organizer@alphapass.alphateam.live" required>
+                                            placeholder="organizer@example.com" required>
                                     </div>
                                     <div class="mb-4">
                                         <label class="form-label fw-bold text-dark">Password *</label>
                                         <input type="password" id="loginPassword" class="form-control py-2"
-                                            value="password123" required>
+                                            placeholder="Enter your password" required>
                                     </div>
                                     <button type="submit"
                                         class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i
@@ -304,6 +304,11 @@
                                 <input type="text" id="newEventCity" class="form-control" placeholder="Accra" required>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Event Cover / Banner Image URL (S3 bucket asset)</label>
+                            <input type="url" id="newEventBanner" class="form-control"
+                                placeholder="https://alphapass-assets-dev.s3.amazonaws.com/events/banners/cover.jpg">
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-dark">Start Date & Time *</label>
@@ -320,6 +325,45 @@
                             data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create
                             Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Ticket Type Modal -->
+    <div class="modal fade" id="addTicketModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-ticket-alt me-2 text-warning"></i> Add Ticket Pass Type</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="addTicketForm">
+                    <input type="hidden" id="ticketTargetEventId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ticket Name *</label>
+                            <input type="text" id="ttName" class="form-control" placeholder="VIP Pass / Early Bird" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Price (₵) *</label>
+                            <input type="number" step="0.01" id="ttPrice" class="form-control" placeholder="150.00" required>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Total Quantity *</label>
+                                <input type="number" id="ttQuantity" class="form-control" value="100" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Purchase Limit</label>
+                                <input type="number" id="ttLimit" class="form-control" value="5" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Save Ticket Type</button>
                     </div>
                 </form>
             </div>
@@ -370,6 +414,15 @@
     <script src="js/app-api.js"></script>
 
     <script>
+        let currentTargetEventId = null;
+
+        function openAddTicketModal(eventId) {
+            currentTargetEventId = eventId;
+            document.getElementById('ticketTargetEventId').value = eventId;
+            const modal = new bootstrap.Modal(document.getElementById('addTicketModal'));
+            modal.show();
+        }
+
         async function checkAuth() {
             const token = localStorage.getItem('organizer_token');
             const badge = document.getElementById('authStatusBadge');
@@ -387,7 +440,8 @@
                 // Live Dashboard API stats fetch & Auth Guardrail
                 const stats = await apiFetch('/organizer/dashboard');
                 
-                document.getElementById('statRevenue').textContent = '₵' + (stats.total_revenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                const revenueVal = parseFloat(stats.gross_revenue || stats.total_revenue || 0);
+                document.getElementById('statRevenue').textContent = '₵' + revenueVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 document.getElementById('statTickets').textContent = stats.total_tickets_sold || 0;
                 document.getElementById('statEvents').textContent = stats.total_events || 0;
                 document.getElementById('statCheckins').textContent = stats.total_checkins || 0;
@@ -424,7 +478,8 @@
                         <td class="text-muted small">${new Date(e.starts_at).toLocaleDateString()}</td>
                         <td><span class="badge bg-success">${(e.status || 'PUBLISHED').toUpperCase()}</span></td>
                         <td class="text-end pe-3">
-                            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-bold" onclick="showToast('Event ID: ${e.id}', 'info')">View ></button>
+                            <a class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" href="single.html?id=${e.id}" target="_blank"><i class="fa fa-eye me-1"></i> View</a>
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${e.id}')"><i class="fa fa-plus me-1"></i> + Ticket Pass</button>
                         </td>
                     </tr>
                 `).join('');
@@ -493,13 +548,23 @@
                 const desc = document.getElementById('newEventDesc').value.trim();
                 const venue = document.getElementById('newEventVenue').value.trim();
                 const city = document.getElementById('newEventCity').value.trim();
+                const banner = document.getElementById('newEventBanner').value.trim();
                 const start = document.getElementById('newEventStart').value;
                 const end = document.getElementById('newEventEnd').value;
 
                 try {
                     const createdEvent = await apiFetch('/events/organizer', {
                         method: 'POST',
-                        body: JSON.stringify({ title, description: desc, venue_name: venue, city, starts_at: start, ends_at: end })
+                        body: JSON.stringify({
+                            title,
+                            description: desc,
+                            venue_name: venue,
+                            city,
+                            banner_image_url: banner || undefined,
+                            image_url: banner || undefined,
+                            starts_at: start,
+                            ends_at: end
+                        })
                     });
                     
                     // Automatically publish event
@@ -514,6 +579,29 @@
                     await checkAuth();
                 } catch (err) {
                     showToast('Event creation failed: ' + err.message, 'danger');
+                }
+            });
+
+            document.getElementById('addTicketForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const eventId = document.getElementById('ticketTargetEventId').value;
+                const name = document.getElementById('ttName').value.trim();
+                const price = parseFloat(document.getElementById('ttPrice').value);
+                const quantity = parseInt(document.getElementById('ttQuantity').value);
+                const limit = parseInt(document.getElementById('ttLimit').value);
+
+                try {
+                    await apiFetch(`/events/organizer/${eventId}/ticket-types`, {
+                        method: 'POST',
+                        body: JSON.stringify({ name, price, quantity, purchase_limit: limit })
+                    });
+                    const modalEl = document.getElementById('addTicketModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    showToast(`Ticket Pass type '${name}' added to event!`, 'success');
+                    await checkAuth();
+                } catch (err) {
+                    showToast('Failed to add ticket pass type: ' + err.message, 'danger');
                 }
             });
 
@@ -536,7 +624,7 @@
                     });
 
                     alertBox.style.display = 'block';
-                    if (res.success) {
+                    if (res.valid || res.success) {
                         alertBox.className = 'alert alert-success py-3 rounded-3 fw-bold';
                         alertBox.innerHTML = `<i class="fa fa-check-circle fa-2x d-block mb-2"></i> ${res.message}`;
                     } else {

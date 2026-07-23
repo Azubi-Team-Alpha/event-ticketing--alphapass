@@ -4,7 +4,7 @@ import secrets
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, Body
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
@@ -14,22 +14,10 @@ from app.schemas.schemas import (
 from app.core.config import settings
 from app.core.qr import upload_qr_to_s3
 from app.core.email import send_email
+from app.core.utils import format_dt as _format_dt
+from app.core.dependencies import get_current_user, AttrDict
 
 router = APIRouter()
-
-
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 def _apply_promo(promo: Dict[str, Any], subtotal: Decimal) -> Decimal:
@@ -222,7 +210,7 @@ def create_order(
             }
             all_tickets.append(t_entry)
 
-    # 3. Apply promo code
+    # 3. Apply promo code (atomic increment to prevent race conditions)
     promo = None
     discount = Decimal("0.00")
     if body.promo_code:
@@ -230,8 +218,17 @@ def create_order(
         promo = dynamodb_helper.get_promo_code(code_str)
         if not promo or promo.get("event_id") != body.event_id:
             raise HTTPException(400, "Invalid promo code")
+        # Validate usage limit before atomic increment
+        max_uses = promo.get("max_uses")
+        if max_uses and int(promo.get("used_count", 0)) >= int(max_uses):
+            raise HTTPException(400, "Promo code usage limit reached")
         discount = _apply_promo(promo, subtotal)
-        dynamodb_helper.update_promo_code(code_str, {"used_count": int(promo.get("used_count", 0)) + 1})
+        # Atomic increment: returns False if cap already hit concurrently
+        ok = dynamodb_helper.atomic_increment_promo_used_count(
+            code_str, max_uses=int(max_uses) if max_uses else None
+        )
+        if not ok:
+            raise HTTPException(400, "Promo code usage limit reached")
 
     # 4. Group discount & platform fees
     total_quantity = sum(item.quantity for item in body.items)
@@ -307,8 +304,8 @@ def lookup_order(body: OrderLookup):
         return _format_order_response(order)
 
     if target_email:
-        all_orders = dynamodb_helper.list_orders()
-        matching = [o for o in all_orders if o.get("guest_email", "").lower() == target_email]
+        # Use GSI (guest_email-index) instead of full table scan
+        matching = dynamodb_helper.list_orders_by_email(target_email)
         if not matching:
             raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
 
@@ -327,15 +324,22 @@ def lookup_order(body: OrderLookup):
 
 
 @router.put("/{order_id}/cancel")
-def cancel_order(order_id: str):
+def cancel_order(
+    order_id: str,
+    guest_email: str = Body(..., embed=True, description="Must match the order's guest email for ownership verification"),
+):
+    """Cancel a confirmed order. Requires the guest email that was used at checkout."""
     order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
+    # Ownership verification: caller must supply the correct guest email
+    if order.get("guest_email", "").strip().lower() != guest_email.strip().lower():
+        raise HTTPException(403, "Email does not match the order record")
     if order.get("status") != "confirmed":
         raise HTTPException(400, "Only confirmed orders can be cancelled")
 
     dynamodb_helper.update_order(order_id, {"status": "cancelled"})
-    
+
     # Update individual tickets status
     tickets = order.get("tickets", [])
     for t in tickets:
@@ -380,7 +384,18 @@ def update_attendee(order_id: str, ticket_id: str, body: AttendeeUpdate):
 # ── Organizer: view orders for an event ──────────────────────────────────────
 
 @router.get("/event/{event_id}", response_model=list[OrderResponse])
-def event_orders(event_id: str, is_bulk: bool | None = Query(None)):
+def event_orders(
+    event_id: str,
+    is_bulk: bool | None = Query(None),
+    current_user: AttrDict = Depends(get_current_user),
+):
+    """List all orders for an event. Requires organizer or admin authentication."""
+    # Organizers can only see orders for their own events
+    if "OrganizerID" in current_user:
+        event = dynamodb_helper.get_event(event_id)
+        org_id = current_user.get("OrganizerID") or current_user.get("id")
+        if not event or event.get("organizer_id") != org_id:
+            raise HTTPException(403, "Access denied: not your event")
     orders = dynamodb_helper.list_orders_by_event(event_id)
     if is_bulk is not None:
         if is_bulk:

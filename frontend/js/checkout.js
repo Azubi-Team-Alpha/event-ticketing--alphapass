@@ -1,4 +1,8 @@
-const API_BASE_URL = window.ALPHAPASS_API_URL || '';
+/**
+ * AlphaPass Checkout Page Script
+ * Handles ticket type loading, promo validation, and order submission.
+ * Connects to AWS API Gateway backend via app-api.js apiFetch.
+ */
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
@@ -16,6 +20,7 @@ const quantityInput = document.getElementById('quantity');
 const promoCodeInput = document.getElementById('promoCode');
 const promoStatusEl = document.getElementById('promoStatus');
 const applyPromoBtn = document.getElementById('applyPromoBtn');
+const eventTitleEl = document.getElementById('eventTitleDisplay');
 
 // ---- Read URL params (event_id, type_id, qty) ----
 const params = new URLSearchParams(window.location.search);
@@ -23,27 +28,60 @@ const eventId = params.get('event_id');
 const preselectedTypeId = params.get('type_id');
 const preselectedQty = params.get('qty');
 
-if (preselectedQty) quantityInput.value = preselectedQty;
+if (preselectedQty && quantityInput) quantityInput.value = preselectedQty;
 
-// ---- Populate ticket types dropdown ----
-async function loadTicketTypes() {
+// Applied promo state
+let appliedPromo = null;
+
+// ---- Load event details & populate ticket types ----
+async function loadEventAndTicketTypes() {
   if (!eventId) return;
   try {
     const event = await apiFetch(`/events/${eventId}`);
-    (event.ticket_types || []).forEach((t) => {
-      const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = `${t.name} — GHS ${t.price}`;
-      ticketTypeSelect.appendChild(opt);
-    });
-    if (preselectedTypeId) {
-      ticketTypeSelect.value = preselectedTypeId;
+
+    // Show event title on page
+    if (eventTitleEl) {
+      eventTitleEl.textContent = event.title || 'Event Checkout';
+    }
+    document.title = `Checkout – ${event.title || 'AlphaPass'}`;
+
+    // Populate ticket type options
+    if (ticketTypeSelect) {
+      (event.ticket_types || []).forEach((t) => {
+        if (!t.is_active || t.quantity_remaining <= 0) return; // skip inactive/sold out
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        const remaining = t.quantity_remaining !== undefined ? ` (${t.quantity_remaining} left)` : '';
+        opt.textContent = `${t.name} — GHS ${parseFloat(t.price).toFixed(2)}${remaining}`;
+        opt.dataset.price = t.price;
+        opt.dataset.limit = t.purchase_limit || 10;
+        ticketTypeSelect.appendChild(opt);
+      });
+      if (preselectedTypeId) {
+        ticketTypeSelect.value = preselectedTypeId;
+      }
+      updatePriceSummary();
     }
   } catch (err) {
-    showAlert('error', 'Could not load ticket types for this event.');
+    showAlert('error', 'Could not load event details. Please try again.');
   }
 }
-loadTicketTypes();
+loadEventAndTicketTypes();
+
+// ---- Update price summary on ticket type / qty change ----
+function updatePriceSummary() {
+  const summaryEl = document.getElementById('priceSummary');
+  if (!summaryEl || !ticketTypeSelect) return;
+  const selected = ticketTypeSelect.options[ticketTypeSelect.selectedIndex];
+  const price = parseFloat(selected?.dataset?.price || 0);
+  const qty = parseInt(quantityInput?.value || 1, 10);
+  if (isNaN(price) || isNaN(qty)) return;
+  const subtotal = price * qty;
+  summaryEl.textContent = `Subtotal: GHS ${subtotal.toFixed(2)}`;
+}
+
+if (ticketTypeSelect) ticketTypeSelect.addEventListener('change', updatePriceSummary);
+if (quantityInput) quantityInput.addEventListener('input', updatePriceSummary);
 
 // ---- Validation ----
 function clearErrors() {
@@ -52,19 +90,21 @@ function clearErrors() {
 }
 
 function setFieldError(fieldId, message) {
-  document.getElementById(`err-${fieldId}`).textContent = message;
-  document.getElementById(fieldId).classList.add('invalid');
+  const errEl = document.getElementById(`err-${fieldId}`);
+  const field = document.getElementById(fieldId);
+  if (errEl) errEl.textContent = message;
+  if (field) field.classList.add('invalid');
 }
 
 function validateForm() {
   clearErrors();
   let isValid = true;
 
-  const name = guestNameInput.value.trim();
-  const email = guestEmailInput.value.trim();
-  const phone = guestPhoneInput.value.trim();
-  const ticketTypeId = ticketTypeSelect.value;
-  const quantity = Number(quantityInput.value);
+  const name = guestNameInput?.value.trim();
+  const email = guestEmailInput?.value.trim();
+  const phone = guestPhoneInput?.value.trim();
+  const ticketTypeId = ticketTypeSelect?.value;
+  const quantity = Number(quantityInput?.value);
 
   if (!name) {
     setFieldError('guestName', 'Name is required.');
@@ -99,72 +139,109 @@ function validateForm() {
 
 // ---- Alert helper ----
 function showAlert(type, message) {
+  if (!alertBox) return;
   alertBox.textContent = message;
   alertBox.className = `alert ${type}`;
   alertBox.classList.remove('hidden');
 }
 
 function hideAlert() {
-  alertBox.classList.add('hidden');
+  if (alertBox) alertBox.classList.add('hidden');
 }
 
-// ---- Promo code check ----
-applyPromoBtn.addEventListener('click', async () => {
-  const code = promoCodeInput.value.trim();
-  if (!code) return;
+// ---- Promo code validation (uses correct POST endpoint) ----
+if (applyPromoBtn) {
+  applyPromoBtn.addEventListener('click', async () => {
+    const code = promoCodeInput?.value.trim();
+    if (!code || !eventId) return;
 
-  try {
-    const data = await apiFetch(`/promo/${encodeURIComponent(code)}`);
-    promoStatusEl.textContent = `Promo applied: ${data.discount_percent ?? ''}% off`;
-    promoStatusEl.style.color = 'green';
-  } catch (err) {
-    promoStatusEl.textContent = 'Promo code not found or expired.';
-    promoStatusEl.style.color = 'red';
-  }
-});
+    applyPromoBtn.disabled = true;
+    applyPromoBtn.textContent = 'Checking...';
+    try {
+      const data = await apiFetch(`/orders/validate-promo`, {
+        method: 'POST',
+        body: JSON.stringify({ code, event_id: eventId }),
+      });
+      if (data.valid) {
+        appliedPromo = data;
+        const discLabel = data.discount_type === 'percentage'
+          ? `${parseFloat(data.discount_value).toFixed(0)}% off`
+          : `GHS ${parseFloat(data.discount_value).toFixed(2)} off`;
+        if (promoStatusEl) {
+          promoStatusEl.textContent = `✅ Promo applied: ${discLabel}`;
+          promoStatusEl.style.color = 'green';
+        }
+      } else {
+        appliedPromo = null;
+        if (promoStatusEl) {
+          promoStatusEl.textContent = `❌ ${data.message || 'Invalid promo code'}`;
+          promoStatusEl.style.color = 'red';
+        }
+      }
+    } catch (err) {
+      appliedPromo = null;
+      if (promoStatusEl) {
+        promoStatusEl.textContent = 'Could not validate promo code.';
+        promoStatusEl.style.color = 'red';
+      }
+    } finally {
+      applyPromoBtn.disabled = false;
+      applyPromoBtn.textContent = 'Apply';
+    }
+  });
+}
 
 // ---- Submit handler ----
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  hideAlert();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAlert();
 
-  if (!validateForm()) {
-    showAlert('error', 'Please fix the highlighted fields before continuing.');
-    return;
-  }
+    if (!validateForm()) {
+      showAlert('error', 'Please fix the highlighted fields before continuing.');
+      return;
+    }
 
-  const payload = {
-    event_id: eventId,
-    guest_name: guestNameInput.value.trim(),
-    guest_email: guestEmailInput.value.trim(),
-    guest_phone: guestPhoneInput.value.trim() || undefined,
-    items: [
-      {
-        ticket_type_id: ticketTypeSelect.value,
-        quantity: Number(quantityInput.value),
-        attendee_name: guestNameInput.value.trim(),
-        attendee_email: guestEmailInput.value.trim(),
-      },
-    ],
-    promo_code: promoCodeInput.value.trim() || undefined,
-  };
+    const guestEmail = guestEmailInput.value.trim();
+    const payload = {
+      event_id: eventId,
+      guest_name: guestNameInput.value.trim(),
+      guest_email: guestEmail,
+      guest_phone: guestPhoneInput?.value.trim() || undefined,
+      items: [
+        {
+          ticket_type_id: ticketTypeSelect.value,
+          quantity: Number(quantityInput.value),
+          attendee_name: guestNameInput.value.trim(),
+          attendee_email: guestEmail,
+        },
+      ],
+      promo_code: appliedPromo ? (promoCodeInput?.value.trim() || undefined) : undefined,
+    };
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing…';
 
-  try {
-    const order = await apiFetch('/orders', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    showAlert('success', 'Order placed! Check your email for ticket confirmation.');
-    form.reset();
-    // Optional: redirect to a confirmation page
-    // window.location.href = `/tickets/${order.tickets[0].code}`;
-  } catch (err) {
-    showAlert('error', err.message || 'Something went wrong. Please try again.');
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Complete Purchase';
-  }
-});
+    try {
+      const order = await apiFetch('/orders', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      showAlert('success', `Order confirmed! Order ID: ${order.id}. Redirecting to your wallet…`);
+      form.reset();
+      appliedPromo = null;
+      if (promoStatusEl) promoStatusEl.textContent = '';
+
+      // Redirect to wallet with email and order ID pre-filled after short delay
+      setTimeout(() => {
+        window.location.href = `wallet.html?email=${encodeURIComponent(guestEmail)}&order_id=${encodeURIComponent(order.id)}`;
+      }, 2000);
+    } catch (err) {
+      showAlert('error', err.message || 'Something went wrong. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Complete Purchase';
+    }
+  });
+}

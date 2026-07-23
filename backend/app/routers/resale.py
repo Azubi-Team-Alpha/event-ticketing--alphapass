@@ -4,7 +4,7 @@ import secrets
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Body
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
@@ -12,29 +12,32 @@ from app.schemas.schemas import (
 )
 from app.core.qr import upload_qr_to_s3
 from app.core.email import send_email
+from app.core.utils import format_dt as _format_dt
 
 router = APIRouter()
 
 
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
-
-
 def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
     l_id = listing.get("ListingID") or listing.get("id", "")
+    ticket_id = listing.get("ticket_id", "")
+    ticket = dynamodb_helper.get_ticket(ticket_id) if ticket_id else None
+    
+    t_code = ticket.get("ticket_code") if ticket else listing.get("ticket_code")
+    e_title = None
+    if ticket:
+        order_id = ticket.get("order_id")
+        if order_id:
+            order = dynamodb_helper.get_order(order_id)
+            if order:
+                event = dynamodb_helper.get_event(order.get("event_id", ""))
+                if event:
+                    e_title = event.get("title")
+
     return ResaleListingResponse(
         id=l_id,
-        ticket_id=listing.get("ticket_id", ""),
+        ticket_id=ticket_id,
+        ticket_code=t_code,
+        event_title=e_title,
         seller_name=listing.get("seller_name", ""),
         seller_email=listing.get("seller_email", ""),
         asking_price=Decimal(str(listing.get("asking_price", 0))),
@@ -42,9 +45,6 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
         status=listing.get("status", "active"),
         listed_at=_format_dt(listing.get("listed_at")) or datetime.now(timezone.utc),
         sold_at=_format_dt(listing.get("sold_at")),
-        buyer_name=listing.get("buyer_name"),
-        buyer_email=listing.get("buyer_email"),
-        buyer_ticket_id=listing.get("buyer_ticket_id"),
     )
 
 
@@ -128,8 +128,12 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
     return _format_resale_response(listing_data)
 
 
-@router.delete("/tickets/{ticket_code}")
-def remove_listing(ticket_code: str, seller_email: str):
+@router.post("/tickets/{ticket_code}/remove", status_code=200)
+def remove_listing(
+    ticket_code: str,
+    seller_email: str = Body(..., embed=True, description="Must match the listing's seller email"),
+):
+    """Remove an active resale listing. seller_email must match the original listing seller."""
     ticket = dynamodb_helper.get_ticket_by_code(ticket_code)
     if not ticket:
         raise HTTPException(404, "Ticket not found")
@@ -138,13 +142,13 @@ def remove_listing(ticket_code: str, seller_email: str):
     listings = dynamodb_helper.list_resale_listings_by_ticket(ticket_id)
 
     active_l = None
-    for l in listings:
-        if l.get("status") == "active" and l.get("seller_email", "").lower() == seller_email.lower():
-            active_l = l
+    for listing in listings:
+        if listing.get("status") == "active" and listing.get("seller_email", "").lower() == seller_email.strip().lower():
+            active_l = listing
             break
 
     if not active_l:
-        raise HTTPException(404, "Active listing not found")
+        raise HTTPException(404, "Active listing not found or email mismatch")
 
     l_id = str(active_l.get("ListingID") or active_l.get("id") or "")
     dynamodb_helper.update_resale_listing(l_id, {"status": "removed"})

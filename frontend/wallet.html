@@ -210,9 +210,28 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem('alphapass_guest_email') || 'alice@example.com';
-            document.getElementById('lookupEmail').value = savedEmail;
-            fetchWallet(savedEmail);
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlEmail = urlParams.get('email');
+            const urlOrderId = urlParams.get('order_id');
+
+            // Show order confirmation banner when redirected from checkout
+            if (urlOrderId) {
+                const banner = document.createElement('div');
+                banner.className = 'container mt-3';
+                banner.innerHTML = `<div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fa fa-check-circle me-2"></i>
+                    <strong>Order Confirmed!</strong> Your order <code>${urlOrderId}</code> was placed successfully. Your tickets are shown below.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+                document.querySelector('#walletResultsContainer').before(banner);
+            }
+
+            // Pre-fill email from URL param or localStorage
+            const savedEmail = urlEmail || localStorage.getItem('alphapass_guest_email') || '';
+            if (savedEmail) {
+                document.getElementById('lookupEmail').value = savedEmail;
+                fetchWallet(savedEmail);
+            }
 
             document.getElementById('walletLookupForm').addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -252,6 +271,7 @@
                     });
                     bootstrap.Modal.getInstance(document.getElementById('resaleModal')).hide();
                     showToast(`Ticket ${currentSelectedCode} listed for resale at ₵${price.toFixed(2)}!`, 'success');
+                    setTimeout(() => fetchWallet(email), 1200);
                 } catch (err) {
                     showToast('Resale listing failed: ' + err.message, 'danger');
                 }

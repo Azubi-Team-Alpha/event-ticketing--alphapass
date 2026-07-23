@@ -188,8 +188,33 @@
         let cartItems = [];
         let promoInfo = null;
 
-        function loadCheckoutData() {
+        async function loadCheckoutData() {
             cartItems = CartManager.getCart();
+            
+            // Fallback: check URL parameters if cart is empty
+            const params = new URLSearchParams(window.location.search);
+            const paramEventId = params.get('event_id');
+            const paramTypeId = params.get('type_id');
+            const paramQty = parseInt(params.get('qty') || '1', 10);
+
+            if ((!cartItems || cartItems.length === 0) && paramEventId) {
+                try {
+                    const event = await apiFetch(`/events/${paramEventId}`);
+                    const ttList = event.ticket_types || [];
+                    const tt = ttList.find(t => t.id === paramTypeId) || ttList[0] || { id: paramTypeId || 'tt-gen', name: 'General Admission', price: event.min_price || 100 };
+                    cartItems = [{
+                        event_id: event.id,
+                        event_title: event.title,
+                        ticket_type_id: tt.id,
+                        ticket_type_name: tt.name,
+                        price: parseFloat(tt.price),
+                        quantity: paramQty
+                    }];
+                } catch (err) {
+                    console.error('Failed to load event for checkout:', err);
+                }
+            }
+
             const list = document.getElementById('checkoutItemsList');
 
             if (!cartItems || cartItems.length === 0) {
@@ -273,11 +298,18 @@
 
                     CartManager.clear();
 
-                    document.getElementById('modalOrderId').textContent = result.order_id || result.id || 'ORD-882103';
+                    const orderId = result.order_id || result.id || 'ORD-882103';
+                    document.getElementById('modalOrderId').textContent = orderId;
                     document.getElementById('modalGuestName').textContent = name;
                     
-                    const qrUrl = result.tickets && result.tickets[0] ? result.tickets[0].qr_code : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${result.order_id || 'ALPHA'}`;
+                    const qrUrl = result.tickets && result.tickets[0] ? result.tickets[0].qr_code : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${orderId}`;
                     document.getElementById('modalQrCode').src = qrUrl;
+
+                    // Update wallet link in modal
+                    const walletBtn = document.querySelector('#orderSuccessModal a[href="wallet.html"]');
+                    if (walletBtn) {
+                        walletBtn.href = `wallet.html?email=${encodeURIComponent(email)}&order_id=${encodeURIComponent(orderId)}`;
+                    }
 
                     const modal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
                     modal.show();

@@ -3,7 +3,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, UploadFile, File
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
@@ -14,22 +14,10 @@ from app.schemas.schemas import (
 )
 from app.core.dependencies import get_current_organizer, get_active_organizer, get_current_admin, get_current_user, AttrDict
 from app.core.config import settings
+from app.core.utils import format_dt as _format_dt
+from app.core.qr import upload_image_to_s3
 
 router = APIRouter()
-
-
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 def _format_event_response(e: Dict[str, Any]) -> Dict[str, Any]:
@@ -295,6 +283,24 @@ def create_event(
     
     created = dynamodb_helper.create_event(event_id, data)
     return _format_event_response(created)
+
+
+@router.post("/upload-banner", tags=["Events"])
+async def upload_event_banner(
+    file: UploadFile = File(...),
+    org: AttrDict = Depends(get_active_organizer),
+):
+    """
+    Upload an event cover/banner picture directly to AWS S3 bucket.
+    Returns the public S3 image URL.
+    """
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(400, "Uploaded file must be an image (JPG, PNG, WebP)")
+    
+    contents = await file.read()
+    image_url = upload_image_to_s3(contents, file.filename or "event_banner.jpg", file.content_type or "image/jpeg")
+    return {"image_url": image_url, "banner_image_url": image_url}
+
 
 
 @router.get("/organizer/{event_id}", response_model=EventResponse)

@@ -337,6 +337,28 @@ class DynamoDBHelper:
         item = response.get("Attributes")
         return self._convert_decimals(item) if item else None
 
+
+    def atomic_increment_promo_used_count(self, code: str, max_uses=None):
+        """
+        Atomically increment used_count. Conditionally capped by max_uses.
+        Returns True on success, False if cap reached (ConditionalCheckFailedException).
+        """
+        from boto3.dynamodb.conditions import Attr
+        table = self._get_table(self.promo_codes_table_name)
+        kwargs = {
+            "Key": {"Code": code},
+            "UpdateExpression": "ADD used_count :one SET updated_at = :ts",
+            "ExpressionAttributeValues": {":one": Decimal("1"), ":ts": _now_iso()},
+            "ReturnValues": "NONE",
+        }
+        if max_uses is not None:
+            kwargs["ConditionExpression"] = Attr("used_count").lt(int(max_uses))
+        try:
+            table.update_item(**kwargs)
+            return True
+        except table.meta.client.exceptions.ConditionalCheckFailedException:
+            return False
+
     # ── Resale Listings Table API ─────────────────────────────────────────────
 
     def create_resale_listing(self, listing_id: str, data: Dict[str, Any]) -> Dict[str, Any]:

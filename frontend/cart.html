@@ -249,10 +249,13 @@
                 const msg = document.getElementById('promoMsg');
                 if (!code) return;
 
+                const cart = CartManager.getCart();
+                const eventId = cart[0]?.event_id;
+
                 try {
                     const res = await apiFetch('/orders/validate-promo', {
                         method: 'POST',
-                        body: JSON.stringify({ code })
+                        body: JSON.stringify({ code, event_id: eventId })
                     });
 
                     if (res.valid) {

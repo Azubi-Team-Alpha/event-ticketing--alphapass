@@ -29,7 +29,7 @@ def create_access_token(
     payload = {
         "sub":  subject_id,
         "role": role,
-        "exp":  datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=expire),
+        "exp":  datetime.now(timezone.utc) + timedelta(minutes=expire),
     }
     if extra:
         payload.update(extra)

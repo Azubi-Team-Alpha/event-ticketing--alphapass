@@ -117,24 +117,24 @@
                         <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
                             <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center">
                                 <span class="badge bg-warning text-dark fw-bold">VERIFIED RESALE</span>
-                                <code>${l.ticket_code}</code>
+                                <code>${l.ticket_code || l.ticket_id || 'RESALE-PASS'}</code>
                             </div>
                             <div class="card-body p-4 d-flex flex-column">
-                                <h5 class="fw-bold text-dark mb-2">${l.event_title}</h5>
-                                <div class="text-muted small mb-3">Seller: ${l.seller_email}</div>
+                                <h5 class="fw-bold text-dark mb-2">${l.event_title || 'Verified Event Pass'}</h5>
+                                <div class="text-muted small mb-3">Seller: ${l.seller_email || l.seller_name || 'Verified Seller'}</div>
                                 
                                 <div class="d-flex justify-content-between align-items-center my-3 p-3 bg-light rounded">
                                     <div>
                                         <small class="text-muted d-block">Original</small>
-                                        <span class="text-decoration-line-through text-muted">₵${parseFloat(l.original_price).toFixed(2)}</span>
+                                        <span class="text-decoration-line-through text-muted">₵${parseFloat(l.face_value || l.original_price || 0).toFixed(2)}</span>
                                     </div>
                                     <div class="text-end">
                                         <small class="text-muted d-block">Resale Asking</small>
-                                        <span class="fs-4 fw-bold text-primary">₵${parseFloat(l.asking_price).toFixed(2)}</span>
+                                        <span class="fs-4 fw-bold text-primary">₵${parseFloat(l.asking_price || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
 
-                                <button class="btn btn-warning text-dark rounded-pill w-100 mt-auto py-2 fw-bold" onclick="openBuyModal('${l.id || l.listing_id}', '${l.event_title}', ${l.asking_price})"><i class="fa fa-bolt me-1"></i> Buy Resale Pass</button>
+                                <button class="btn btn-warning text-dark rounded-pill w-100 mt-auto py-2 fw-bold" onclick="openBuyModal('${l.id || l.listing_id}', '${l.event_title || 'Event Pass'}', ${l.asking_price})"><i class="fa fa-bolt me-1"></i> Buy Resale Pass</button>
                             </div>
                         </div>
                     </div>
@@ -162,13 +162,17 @@
                 const email = document.getElementById('buyerEmail').value.trim();
 
                 try {
-                    await apiFetch(`/resale/listings/${selectedListing.id}/buy`, {
+                    // Correct endpoint: POST /resale/{listing_id}/purchase
+                    await apiFetch(`/resale/${selectedListing.id}/purchase`, {
                         method: 'POST',
                         body: JSON.stringify({ buyer_name: name, buyer_email: email })
                     });
                     bootstrap.Modal.getInstance(document.getElementById('buyResaleModal')).hide();
-                    showToast(`Resale pass purchased! Added to wallet for ${email}`, 'success');
-                    loadResaleListings();
+                    showToast('Resale pass purchased! Redirecting to your wallet…', 'success');
+                    // Redirect to wallet so buyer can see and download their ticket
+                    setTimeout(() => {
+                        window.location.href = `wallet.html?email=${encodeURIComponent(email)}`;
+                    }, 1800);
                 } catch (err) {
                     showToast('Purchase failed: ' + err.message, 'danger');
                 }

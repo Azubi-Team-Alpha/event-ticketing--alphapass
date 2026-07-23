@@ -219,6 +219,11 @@ class EventCreate(BaseModel):
     policies: Optional[str] = None
     category_id: Optional[str] = None
 
+    # Image / Banner
+    banner_image_url: Optional[str] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+
     # Location
     venue_name: Optional[str] = None
     address: Optional[str] = None
@@ -252,6 +257,9 @@ class EventUpdate(BaseModel):
     description: Optional[str] = None
     policies: Optional[str] = None
     category_id: Optional[str] = None
+    banner_image_url: Optional[str] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     venue_name: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
@@ -531,12 +539,15 @@ class ResaleListingCreate(BaseModel):
 class ResaleListingResponse(BaseModel):
     id: str
     ticket_id: str
+    ticket_code: Optional[str] = None
+    event_title: Optional[str] = None
     seller_name: str
+    seller_email: Optional[str] = None
     asking_price: Decimal
     face_value: Decimal
     status: str
     listed_at: datetime
-    sold_at: Optional[datetime]
+    sold_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

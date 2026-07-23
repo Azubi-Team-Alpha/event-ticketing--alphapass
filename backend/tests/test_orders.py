@@ -75,9 +75,20 @@ def test_order_purchase_limit_rejected(client: TestClient, sample_event):
 
 def test_order_cancel(client: TestClient, sample_event):
     create_resp = _make_order(client, sample_event)
+    assert create_resp.status_code == 201
     order_id = create_resp.json()["id"]
-    resp = client.put(f"/orders/{order_id}/cancel")
+    # Must supply matching guest_email for ownership verification
+    resp = client.put(f"/orders/{order_id}/cancel", json={"guest_email": "alice@test.com"})
     assert resp.status_code == 200
+
+
+def test_order_cancel_wrong_email(client: TestClient, sample_event):
+    """Cancellation must be rejected if email doesn't match."""
+    create_resp = _make_order(client, sample_event)
+    assert create_resp.status_code == 201
+    order_id = create_resp.json()["id"]
+    resp = client.put(f"/orders/{order_id}/cancel", json={"guest_email": "hacker@evil.com"})
+    assert resp.status_code == 403
 
 
 def test_bulk_order_mixed_types(client: TestClient, sample_event):

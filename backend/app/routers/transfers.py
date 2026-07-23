@@ -6,22 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import TransferRequest, TransferResponse
+from app.core.utils import format_dt as _format_dt
 
 router = APIRouter()
-
-
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 @router.post("/{ticket_code}/transfer", response_model=TransferResponse, status_code=201)

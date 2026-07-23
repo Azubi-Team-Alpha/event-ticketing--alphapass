@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +35,9 @@ class Settings(BaseSettings):
 
     # SNS
     CONFIRMATION_TOPIC: str = ""
+
+    # Admin invite gate (required when a second admin account is created)
+    ADMIN_INVITE_CODE: Optional[str] = None
 
     # Platform settings
     PLATFORM_COMMISSION_PERCENT: float = 5.0

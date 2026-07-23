@@ -325,7 +325,7 @@
                     price: parseFloat(selectedTicketType.price),
                     quantity: qty
                 });
-                window.location.href = 'checkout.html';
+                window.location.href = `checkout.html?event_id=${encodeURIComponent(currentEvent.id)}&type_id=${encodeURIComponent(selectedTicketType.id)}&qty=${qty}`;
             });
         });
     </script>
