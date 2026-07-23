@@ -19,9 +19,25 @@ router = APIRouter()
 
 def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
     l_id = listing.get("ListingID") or listing.get("id", "")
+    ticket_id = listing.get("ticket_id", "")
+    ticket = dynamodb_helper.get_ticket(ticket_id) if ticket_id else None
+    
+    t_code = ticket.get("ticket_code") if ticket else listing.get("ticket_code")
+    e_title = None
+    if ticket:
+        order_id = ticket.get("order_id")
+        if order_id:
+            order = dynamodb_helper.get_order(order_id)
+            if order:
+                event = dynamodb_helper.get_event(order.get("event_id", ""))
+                if event:
+                    e_title = event.get("title")
+
     return ResaleListingResponse(
         id=l_id,
-        ticket_id=listing.get("ticket_id", ""),
+        ticket_id=ticket_id,
+        ticket_code=t_code,
+        event_title=e_title,
         seller_name=listing.get("seller_name", ""),
         seller_email=listing.get("seller_email", ""),
         asking_price=Decimal(str(listing.get("asking_price", 0))),
@@ -29,9 +45,6 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
         status=listing.get("status", "active"),
         listed_at=_format_dt(listing.get("listed_at")) or datetime.now(timezone.utc),
         sold_at=_format_dt(listing.get("sold_at")),
-        buyer_name=listing.get("buyer_name"),
-        buyer_email=listing.get("buyer_email"),
-        buyer_ticket_id=listing.get("buyer_ticket_id"),
     )
 
 

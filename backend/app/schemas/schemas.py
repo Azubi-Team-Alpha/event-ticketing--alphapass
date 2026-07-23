@@ -531,12 +531,15 @@ class ResaleListingCreate(BaseModel):
 class ResaleListingResponse(BaseModel):
     id: str
     ticket_id: str
+    ticket_code: Optional[str] = None
+    event_title: Optional[str] = None
     seller_name: str
+    seller_email: Optional[str] = None
     asking_price: Decimal
     face_value: Decimal
     status: str
     listed_at: datetime
-    sold_at: Optional[datetime]
+    sold_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
