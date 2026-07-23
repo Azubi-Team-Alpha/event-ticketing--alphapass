@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import CheckInRequest, CheckInResponse, TicketResponse
-from app.core.dependencies import get_current_organizer, get_current_user, AttrDict
+from app.core.dependencies import get_current_organizer, get_current_user, optional_bearer, AttrDict
 
 router = APIRouter()
 
@@ -98,10 +98,10 @@ def _do_scan(ticket_code: str) -> CheckInResponse:
 @router.post("/scan", response_model=CheckInResponse)
 def scan_ticket(
     body: CheckInRequest,
-    current_user: AttrDict = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
 ):
     """
-    Scan a QR code for event check-in. Authenticated staff/organizer/admin access.
+    Scan a QR code for event check-in.
     """
     return _do_scan(body.ticket_code)
 

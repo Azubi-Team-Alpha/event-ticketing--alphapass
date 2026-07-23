@@ -238,19 +238,30 @@
 
         async function initPage() {
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id') || 'evt-cloud-2026';
+            let id = urlParams.get('id');
 
             try {
+                if (!id) {
+                    const allEvts = await apiFetch('/events');
+                    const list = Array.isArray(allEvts) ? allEvts : (allEvts.items || []);
+                    if (list.length > 0) {
+                        id = list[0].id || list[0].EventID;
+                    } else {
+                        id = 'evt-cloud-2026';
+                    }
+                }
+
                 currentEvent = await apiFetch(`/events/${id}`);
                 if (!currentEvent) throw new Error('Event not found');
 
-                document.getElementById('evtCategory').textContent = currentEvent.category_name || 'Event';
+                currentEvent.eventId = currentEvent.id || currentEvent.EventID || id;
+                document.getElementById('evtCategory').textContent = currentEvent.category_name || (currentEvent.category ? currentEvent.category.name : 'Event');
                 document.getElementById('evtTitle').textContent = currentEvent.title;
                 document.getElementById('evtImg').src = currentEvent.image_url || 'img/header-img.jpg';
-                document.getElementById('evtDesc').textContent = currentEvent.description;
-                document.getElementById('evtDate').textContent = new Date(currentEvent.starts_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                document.getElementById('evtTime').textContent = new Date(currentEvent.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('evtVenue').textContent = `${currentEvent.venue_name}, ${currentEvent.city}`;
+                document.getElementById('evtDesc').textContent = currentEvent.description || 'Join us for this premier event.';
+                document.getElementById('evtDate').textContent = currentEvent.starts_at ? new Date(currentEvent.starts_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+                document.getElementById('evtTime').textContent = currentEvent.starts_at ? new Date(currentEvent.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD';
+                document.getElementById('evtVenue').textContent = `${currentEvent.venue_name || 'Venue'}, ${currentEvent.city || 'Accra'}`;
                 document.getElementById('evtPolicies').textContent = currentEvent.policies || 'Standard entry policy applies.';
                 document.getElementById('evtOrganizer').textContent = currentEvent.organizer_name || 'Official Organizer';
 
@@ -303,8 +314,10 @@
             document.getElementById('addToCartBtn').addEventListener('click', () => {
                 if (!currentEvent || !selectedTicketType) return;
                 const qty = parseInt(document.getElementById('ticketQty').value);
+                const eId = currentEvent.eventId || currentEvent.id || currentEvent.EventID;
                 CartManager.addItem({
-                    event_id: currentEvent.id,
+                    event_id: eId,
+                    eventId: eId,
                     event_title: currentEvent.title,
                     ticket_type_id: selectedTicketType.id,
                     ticket_type_name: selectedTicketType.name,
@@ -317,15 +330,17 @@
             document.getElementById('buyNowBtn').addEventListener('click', () => {
                 if (!currentEvent || !selectedTicketType) return;
                 const qty = parseInt(document.getElementById('ticketQty').value);
+                const eId = currentEvent.eventId || currentEvent.id || currentEvent.EventID;
                 CartManager.addItem({
-                    event_id: currentEvent.id,
+                    event_id: eId,
+                    eventId: eId,
                     event_title: currentEvent.title,
                     ticket_type_id: selectedTicketType.id,
                     ticket_type_name: selectedTicketType.name,
                     price: parseFloat(selectedTicketType.price),
                     quantity: qty
                 });
-                window.location.href = `checkout.html?event_id=${encodeURIComponent(currentEvent.id)}&type_id=${encodeURIComponent(selectedTicketType.id)}&qty=${qty}`;
+                window.location.href = `checkout.html?event_id=${encodeURIComponent(eId)}&type_id=${encodeURIComponent(selectedTicketType.id)}&qty=${qty}`;
             });
         });
     </script>
