@@ -162,13 +162,17 @@
                 const email = document.getElementById('buyerEmail').value.trim();
 
                 try {
-                    await apiFetch(`/resale/listings/${selectedListing.id}/buy`, {
+                    // Correct endpoint: POST /resale/{listing_id}/purchase
+                    await apiFetch(`/resale/${selectedListing.id}/purchase`, {
                         method: 'POST',
                         body: JSON.stringify({ buyer_name: name, buyer_email: email })
                     });
                     bootstrap.Modal.getInstance(document.getElementById('buyResaleModal')).hide();
-                    showToast(`Resale pass purchased! Added to wallet for ${email}`, 'success');
-                    loadResaleListings();
+                    showToast('Resale pass purchased! Redirecting to your wallet…', 'success');
+                    // Redirect to wallet so buyer can see and download their ticket
+                    setTimeout(() => {
+                        window.location.href = `wallet.html?email=${encodeURIComponent(email)}`;
+                    }, 1800);
                 } catch (err) {
                     showToast('Purchase failed: ' + err.message, 'danger');
                 }

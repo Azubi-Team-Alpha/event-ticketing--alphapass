@@ -123,6 +123,18 @@ const CartManager = {
     }
 };
 
+// ── HTML Sanitizer (prevent XSS in dynamic text injection) ───────────────────
+/**
+ * Escapes user-controlled strings before injecting into innerHTML.
+ * @param {string} str
+ * @returns {string} HTML-entity-escaped string
+ */
+function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
 // ── UI Alert Toast ───────────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
     let container = document.getElementById('alphapass-toast-container');
@@ -137,11 +149,13 @@ function showToast(message, type = 'info') {
     const bgClass = type === 'success' ? 'bg-success' : type === 'danger' ? 'bg-danger' : type === 'warning' ? 'bg-warning text-dark' : 'bg-primary';
     toast.className = `toast align-items-center text-white ${bgClass} border-0 show`;
     toast.role = 'alert';
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    // Use sanitizeHTML to prevent XSS from API error messages
     toast.innerHTML = `
         <div class="d-flex">
             <div class="toast-body fw-bold py-2 px-3">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle'} me-2"></i>
-                ${message}
+                <i class="fas ${icon} me-2"></i>
+                ${sanitizeHTML(message)}
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
         </div>
