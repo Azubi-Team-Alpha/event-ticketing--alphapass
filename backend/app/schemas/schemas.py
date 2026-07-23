@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Optional
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -130,7 +130,7 @@ class EmailVerification(BaseModel):
 
 class EventCategoryCreate(BaseModel):
     name: str
-    slug: str
+    slug: Optional[str] = None
     icon: Optional[str] = None
     color: Optional[str] = None
 
@@ -574,7 +574,16 @@ class PlatformStats(BaseModel):
 
 
 class CommissionUpdate(BaseModel):
-    commission_percent: float
+    commission_percent: float = 5.0
+
+    @model_validator(mode="before")
+    @classmethod
+    def extract_commission(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            val = data.get("commission_percent") if data.get("commission_percent") is not None else (data.get("commission_rate") if data.get("commission_rate") is not None else data.get("rate"))
+            if val is not None:
+                return {**data, "commission_percent": float(val)}
+        return data
 
     @field_validator("commission_percent")
     def commission_valid(cls, v):
@@ -617,13 +626,13 @@ class PayoutResponse(BaseModel):
     id: str
     organizer_id: str
     amount: Decimal
-    currency: str
+    currency: str = "GHS"
     status: str
-    period_start: Optional[datetime]
-    period_end: Optional[datetime]
-    processed_at: Optional[datetime]
-    notes: Optional[str]
-    created_at: datetime
+    period_start: Optional[datetime] = None
+    period_end: Optional[datetime] = None
+    processed_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

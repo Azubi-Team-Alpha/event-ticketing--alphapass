@@ -155,11 +155,28 @@ def list_all_events(
     events = dynamodb_helper.list_events()
     if status:
         events = [e for e in events if e.get("status") == status]
-    events.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    events.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
 
-    total = len(events)
+    formatted_events = []
+    for e in events:
+        evt_id = e.get("EventID") or e.get("id", "")
+        org_id = e.get("organizer_id") or e.get("OrganizerID", "")
+        org_name = e.get("organizer_name")
+        if not org_name and org_id:
+            org = dynamodb_helper.get_organizer(org_id)
+            if org:
+                org_name = org.get("business_name") or org.get("full_name") or "Organizer"
+        
+        formatted_events.append({
+            **e,
+            "id": evt_id,
+            "EventID": evt_id,
+            "organizer_name": org_name or "Official Organizer",
+        })
+
+    total = len(formatted_events)
     start_idx = (page - 1) * limit
-    page_events = events[start_idx : start_idx + limit]
+    page_events = formatted_events[start_idx : start_idx + limit]
 
     return {"items": page_events, "total": total, "page": page, "limit": limit}
 
@@ -172,7 +189,7 @@ def approve_event(
 ):
     event = dynamodb_helper.get_event(event_id)
     if not event:
-        raise HTTPException(404, "Event not found")
+        raise HTTPException(404, f"Event '{event_id}' not found")
 
     admin_id = admin.get("AdminID") or admin.get("id")
     if body.approved:
@@ -241,18 +258,28 @@ def create_category(
     body: EventCategoryCreate,
     admin: AttrDict = Depends(get_current_admin),
 ):
+    import re
     cat_id = str(uuid.uuid4())
-    existing = dynamodb_helper.get_category_by_slug(body.slug)
-    if existing:
-        raise HTTPException(400, "Category slug already exists")
+    slug = body.slug
+    if not slug:
+        slug = re.sub(r'[^a-z0-9]+', '-', body.name.lower()).strip('-')
+    if not slug:
+        slug = f"cat-{cat_id[:8]}"
 
-    data = dynamodb_helper.create_category(cat_id, body.model_dump())
+    existing = dynamodb_helper.get_category_by_slug(slug)
+    if existing:
+        slug = f"{slug}-{cat_id[:4]}"
+
+    data_to_save = body.model_dump()
+    data_to_save["slug"] = slug
+
+    data = dynamodb_helper.create_category(cat_id, data_to_save)
     return EventCategoryResponse(
         id=cat_id,
         name=data.get("name", ""),
         slug=data.get("slug", ""),
         icon=data.get("icon"),
-        sort_order=int(data.get("sort_order", 0)),
+        color=data.get("color"),
     )
 
 
@@ -327,9 +354,10 @@ def create_payout(
         id=payout_id,
         organizer_id=body.organizer_id,
         amount=body.amount,
+        currency="GHS",
         status="pending",
         notes=body.notes,
-        requested_at=datetime.now(timezone.utc),
+        created_at=datetime.now(timezone.utc),
         processed_at=None,
     )
 
@@ -356,8 +384,20 @@ def process_payout(
 def get_commission(
     admin: AttrDict = Depends(get_current_admin),
 ):
-    val = dynamodb_helper.get_platform_setting("commission_percent") or "5.0"
-    return {"commission_percent": float(val)}
+    setting = dynamodb_helper.get_platform_setting("commission_percent")
+    val = 5.0
+    if setting and isinstance(setting, dict):
+        raw_val = setting.get("value") or setting.get("val") or "5.0"
+        try:
+            val = float(str(raw_val))
+        except (ValueError, TypeError):
+            val = 5.0
+    elif isinstance(setting, (int, float, str)):
+        try:
+            val = float(str(setting))
+        except (ValueError, TypeError):
+            val = 5.0
+    return {"commission_percent": val}
 
 
 @router.put("/config/commission")
