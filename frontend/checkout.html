@@ -254,39 +254,40 @@
 
             document.getElementById('coSubtotal').textContent = `₵${subtotal.toFixed(2)}`;
             document.getElementById('coTotal').textContent = `₵${total.toFixed(2)}`;
-
-            if (discPercent > 0) {
-                document.getElementById('coDiscountRow').style.display = 'flex';
-                document.getElementById('coDiscount').textContent = `-₵${discAmt.toFixed(2)}`;
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            loadCheckoutData();
+            renderCheckoutSummary();
 
             document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitBtn = document.getElementById('submitOrderBtn');
+
+                const submitBtn = document.getElementById('placeOrderBtn');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i> Processing Order...';
 
                 const name = document.getElementById('guestName').value.trim();
                 const email = document.getElementById('guestEmail').value.trim();
                 const phone = document.getElementById('guestPhone').value.trim();
-                const payMethod = document.querySelector('input[name="payMethod"]:checked').value;
+                const payMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+                const cartItems = CartManager.getItems();
+                if (cartItems.length === 0) {
+                    showToast('Cart is empty', 'warning');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
+                    return;
+                }
+
+                const items = cartItems.map(ci => ({
+                    ticket_type_id: ci.id,
+                    quantity: ci.quantity
+                }));
 
                 const payload = {
-                    event_id: cartItems[0]?.event_id || "evt-cloud-2026",
+                    event_id: cartItems[0].eventId,
                     guest_name: name,
                     guest_email: email,
                     guest_phone: phone,
-                    items: cartItems.map(item => ({
-                        ticket_type_id: item.ticket_type_id,
-                        quantity: item.quantity,
-                        attendee_name: name,
-                        attendee_email: email
-                    })),
-                    promo_code: promoInfo?.code || null,
+                    items: items,
                     payment_method: payMethod
                 };
 
@@ -302,13 +303,20 @@
                     document.getElementById('modalOrderId').textContent = orderId;
                     document.getElementById('modalGuestName').textContent = name;
                     
-                    const qrUrl = result.tickets && result.tickets[0] ? result.tickets[0].qr_code : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${orderId}`;
+                    const ticketList = result.tickets || (result.items ? result.items : []);
+                    const firstTicket = ticketList.length > 0 ? ticketList[0] : null;
+                    const tCode = firstTicket ? (firstTicket.ticket_code || firstTicket.code) : null;
+
+                    const qrUrl = tCode ? `${API_BASE_URL}/tickets/${tCode}/qr` : (firstTicket && firstTicket.qr_image_url ? firstTicket.qr_image_url : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${orderId}`);
                     document.getElementById('modalQrCode').src = qrUrl;
 
-                    // Update wallet link in modal
-                    const walletBtn = document.querySelector('#orderSuccessModal a[href="wallet.html"]');
-                    if (walletBtn) {
-                        walletBtn.href = `wallet.html?email=${encodeURIComponent(email)}&order_id=${encodeURIComponent(orderId)}`;
+                    const downloadBtn = document.getElementById('downloadPdfBtn');
+                    if (downloadBtn) {
+                        if (tCode) {
+                            downloadBtn.href = `${API_BASE_URL}/tickets/${tCode}/pdf`;
+                        } else {
+                            downloadBtn.href = `${API_BASE_URL}/orders/${orderId}/summary`;
+                        }
                     }
 
                     const modal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
