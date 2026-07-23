@@ -5,10 +5,18 @@
 
 const API_BASE_URL = window.ALPHAPASS_API_URL || '';
 
+// Warn loudly in console if API URL is not configured
+if (!API_BASE_URL) {
+    console.error(
+        '[AlphaPass] ALPHAPASS_API_URL is not set! ' +
+        'All API calls will fail. Set window.ALPHAPASS_API_URL in your config or index.html.'
+    );
+}
+
 // ── Generic API Fetch Handler ────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('access_token') || localStorage.getItem('organizer_token') || localStorage.getItem('admin_token');
-    
+
     // Transform request payload if needed
     let fetchOptions = { ...options };
     if (fetchOptions.body && typeof fetchOptions.body === 'string') {
@@ -37,6 +45,16 @@ async function apiFetch(path, options = {}) {
 
     try {
         const response = await fetch(`${API_BASE_URL}${path}`, { ...fetchOptions, headers });
+
+        // ── 401 handling: token expired or invalid ─────────────────────────
+        if (response.status === 401) {
+            const isAuthEndpoint = path.includes('/auth/');
+            if (!isAuthEndpoint) {
+                _handleTokenExpiry();
+                throw new Error('Session expired. Please log in again.');
+            }
+        }
+
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
             let errMsg = errData.detail || `Server error (${response.status})`;
@@ -53,18 +71,54 @@ async function apiFetch(path, options = {}) {
     }
 }
 
+/**
+ * Handle expired or invalid tokens: clear storage and prompt re-login.
+ */
+function _handleTokenExpiry() {
+    const wasLoggedIn = !!(
+        localStorage.getItem('access_token') ||
+        localStorage.getItem('organizer_token') ||
+        localStorage.getItem('admin_token')
+    );
+
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('organizer_token');
+    localStorage.removeItem('admin_token');
+
+    if (wasLoggedIn) {
+        showToast('Your session has expired. Please log in again.', 'warning');
+        // Redirect to login after a short delay so the toast is visible
+        setTimeout(() => {
+            const currentPage = window.location.pathname.split('/').pop() || '';
+            // Only redirect if we are not already on a login page
+            if (!currentPage.includes('login') && !currentPage.includes('index') && currentPage !== '') {
+                const isOrganizer = !!localStorage.getItem('organizer_role');
+                window.location.href = isOrganizer ? 'organizer-login.html' : 'login.html';
+            }
+        }, 2000);
+    }
+}
+
 // ── Normalize API Responses for Uniform Frontend Usage ──────────────────────
 function normalizeResponse(path, data) {
     const cleanPath = path.split('?')[0];
 
     // /events endpoint returns { items: [...], total, page, limit }
+    // Preserve pagination metadata; expose items directly on the returned object
     if ((cleanPath === '/events' || cleanPath === '/events/search') && data && data.items) {
-        return data.items.map(e => ({
+        const normalized = data.items.map(e => ({
             ...e,
             category_name: e.category_name || (e.category ? e.category.name : 'Event'),
             image_url: e.banner_image_url || e.thumbnail_url || e.image_url || 'img/header-img.jpg',
             min_price: e.min_price !== undefined ? parseFloat(e.min_price) : 0.00
         }));
+        // Attach pagination metadata as non-enumerable properties so list
+        // iteration still yields plain event objects while callers can access
+        // data.total / data.page / data.limit if they need it.
+        normalized._total = data.total;
+        normalized._page = data.page;
+        normalized._limit = data.limit;
+        return normalized;
     }
 
     // Single event /events/{id}
@@ -152,7 +206,7 @@ function showToast(message, type = 'info') {
     const bgClass = type === 'success' ? 'bg-success' : type === 'danger' ? 'bg-danger' : type === 'warning' ? 'bg-warning text-dark' : 'bg-primary';
     toast.className = `toast align-items-center text-white ${bgClass} border-0 show`;
     toast.role = 'alert';
-    const icon = type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
     // Use sanitizeHTML to prevent XSS from API error messages
     toast.innerHTML = `
         <div class="d-flex">

@@ -479,7 +479,7 @@ class OrganizerPayout(Base):
     organizer_id: Any = Column(GUID, ForeignKey("organizers.id"), nullable=False) # type: ignore
 
     amount: Any = Column(Numeric(10, 2), nullable=False) # type: ignore
-    currency: Any = Column(String(10), default="USD", nullable=False) # type: ignore
+    currency: Any = Column(String(10), default="GHS", nullable=False) # type: ignore
     status: Any = Column(SAEnum(PayoutStatus), default=PayoutStatus.pending, nullable=False) # type: ignore
     period_start: Any = Column(DateTime, nullable=True) # type: ignore
     period_end: Any = Column(DateTime, nullable=True) # type: ignore

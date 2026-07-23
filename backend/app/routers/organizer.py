@@ -12,23 +12,13 @@ from app.schemas.schemas import (
     OrganizerDashboard, EventAnalytics, OrderResponse, PayoutResponse,
 )
 from app.core.dependencies import get_current_organizer, AttrDict
+from app.core.utils import format_dt as _format_dt
 from app.routers.orders import _format_order_response
 
 router = APIRouter()
 
 
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
+
 
 
 @router.get("/dashboard", response_model=OrganizerDashboard)
@@ -56,6 +46,22 @@ def organizer_dashboard(org: AttrDict = Depends(get_current_organizer)):
     processed_payouts = sum(Decimal(str(p.get("amount", 0))) for p in payouts if p.get("status") == "processed")
     pending_payout = max(Decimal("0.00"), net_earnings - processed_payouts)
 
+    # Wire real transfer and resale counts across all organizer events
+    total_transfers = 0
+    total_resale_listings = 0
+    for eid in event_ids:
+        if eid:
+            try:
+                transfers = dynamodb_helper.list_transfers_by_event(eid) if hasattr(dynamodb_helper, "list_transfers_by_event") else []
+                total_transfers += len(transfers)
+            except Exception:
+                pass
+            try:
+                listings = dynamodb_helper.list_resale_listings_by_event(eid) if hasattr(dynamodb_helper, "list_resale_listings_by_event") else []
+                total_resale_listings += len(listings)
+            except Exception:
+                pass
+
     return {
         "total_events": total_events,
         "published_events": published_events,
@@ -65,8 +71,8 @@ def organizer_dashboard(org: AttrDict = Depends(get_current_organizer)):
         "platform_fees": platform_fees,
         "net_earnings": net_earnings,
         "pending_payout": pending_payout,
-        "total_transfers": 0,
-        "total_resale_listings": 0,
+        "total_transfers": total_transfers,
+        "total_resale_listings": total_resale_listings,
     }
 
 
@@ -91,7 +97,7 @@ def event_analytics(
     total_cap = sum(int(tt.get("quantity", 0)) for tt in ticket_types)
     total_sold = sum(int(tt.get("quantity_sold", 0)) for tt in ticket_types)
     
-    attendance_rate = 0.0
+    attendance_rate = round((total_sold / total_cap * 100), 2) if total_cap > 0 else 0.0
 
     breakdown = []
     for tt in ticket_types:
@@ -111,7 +117,7 @@ def event_analytics(
         "event_title": event.get("title", ""),
         "total_capacity": total_cap,
         "total_sold": total_sold,
-        "attendance_rate": round(attendance_rate, 2),
+        "attendance_rate": attendance_rate,
         "gross_revenue": gross,
         "refund_count": refund_count,
         "transfer_count": 0,

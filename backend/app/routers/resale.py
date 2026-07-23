@@ -1,4 +1,5 @@
 """Resale marketplace router using DynamoDB."""
+import html
 import uuid
 import secrets
 from decimal import Decimal
@@ -104,7 +105,7 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
     max_price = face_value * (Decimal("1") + max_markup / Decimal("100"))
 
     if body.asking_price > max_price and max_price > Decimal("0.00"):
-        raise HTTPException(400, f"Asking price exceeds maximum allowed resale price (${max_price:.2f})")
+        raise HTTPException(400, f"Asking price exceeds maximum allowed resale price (₵{max_price:.2f})")
 
     req_setting = dynamodb_helper.get_platform_setting("require_resale_approval")
     require_approval = str(req_setting.get("value", "")).lower() == "true" if req_setting else False
@@ -219,14 +220,19 @@ def purchase_resale_ticket(
 
 
 def _send_resale_emails(seller_email, seller_name, buyer_email, buyer_name, event_title, ticket_code, price):
+    safe_seller = html.escape(str(seller_name))
+    safe_buyer = html.escape(str(buyer_name))
+    safe_event = html.escape(str(event_title))
+    safe_code = html.escape(str(ticket_code))
+    safe_price = html.escape(str(price))
     try:
         send_email(
             seller_email, f"Your ticket has been sold – {event_title}",
-            f"<p>Hi {seller_name}, your resale ticket for <strong>{event_title}</strong> sold for ${price}. Funds will be processed shortly.</p>",
+            f"<p>Hi {safe_seller}, your resale ticket for <strong>{safe_event}</strong> sold for ₵{safe_price}. Funds will be processed shortly.</p>",
         )
         send_email(
             buyer_email, f"Your resale ticket – {event_title}",
-            f"<p>Hi {buyer_name}, you purchased a resale ticket for <strong>{event_title}</strong>. Code: <code>{ticket_code}</code></p>",
+            f"<p>Hi {safe_buyer}, you purchased a resale ticket for <strong>{safe_event}</strong>. Code: <code>{safe_code}</code></p>",
         )
     except Exception as e:
         print(f"[EMAIL] Resale notification: {e}")
