@@ -33,7 +33,7 @@ def _format_dt(val: Any) -> Optional[datetime]:
 
 @router.get("/dashboard", response_model=OrganizerDashboard)
 def organizer_dashboard(org: AttrDict = Depends(get_current_organizer)):
-    org_id = org.get("OrganizerID") or org.get("id")
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     events = dynamodb_helper.list_events_by_organizer(org_id)
     
     total_events = len(events)

@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import CheckInRequest, CheckInResponse, TicketResponse
@@ -72,7 +73,7 @@ def _do_scan(ticket_code: str) -> CheckInResponse:
         event = dynamodb_helper.get_event(event_id)
 
     # Mark as used
-    t_id = ticket.get("TicketID") or ticket.get("id")
+    t_id = str(ticket.get("TicketID") or ticket.get("id") or "")
     used_now = datetime.now(timezone.utc).isoformat()
     
     dynamodb_helper.update_ticket(t_id, {
