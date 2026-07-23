@@ -271,7 +271,9 @@
 
             let filtered = events;
 
-            if (catVal) filtered = filtered.filter(e => e.category_id === catVal);
+            if (catVal) {
+                filtered = filtered.filter(e => e.category_id === catVal || (e.category && (e.category.id === catVal || e.category.slug === catVal)));
+            }
             if (cityVal) {
                 if (cityVal === 'Online') filtered = filtered.filter(e => e.is_online);
                 else filtered = filtered.filter(e => (e.city || '').toLowerCase().includes(cityVal.toLowerCase()));
@@ -287,27 +289,32 @@
                 return;
             }
 
-            grid.innerHTML = filtered.map(evt => `
+            grid.innerHTML = filtered.map(evt => {
+                const evtId = evt.id || evt.EventID || '';
+                const minPrice = evt.min_price !== undefined ? evt.min_price : (evt.price || 100);
+                const catName = evt.category_name || (evt.category ? evt.category.name : 'Event');
+                return `
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
                         <img src="${evt.image_url || 'img/header-img.jpg'}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${evt.title}">
                         <div class="card-body d-flex flex-column p-4">
-                            <span class="badge bg-primary me-auto mb-2">${evt.category_name || 'Event'}</span>
+                            <span class="badge bg-primary me-auto mb-2">${catName}</span>
                             <h5 class="fw-bold text-dark mb-2">${evt.title}</h5>
                             <p class="text-muted small mb-3 flex-grow-1">${(evt.description || '').substring(0, 90)}...</p>
                             <div class="d-flex align-items-center text-muted small mb-3">
                                 <i class="fa fa-map-marker-alt text-primary me-2"></i> ${evt.city || 'Accra'}
                                 <span class="mx-2">•</span>
-                                <i class="fa fa-calendar-alt text-primary me-2"></i> ${new Date(evt.starts_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                <i class="fa fa-calendar-alt text-primary me-2"></i> ${evt.starts_at ? new Date(evt.starts_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'TBD'}
                             </div>
                             <div class="d-flex align-items-center justify-content-between pt-3 border-top">
-                                <span class="fs-5 fw-bold text-primary">₵${(evt.min_price || 100).toFixed(2)}</span>
-                                <a href="single.html?id=${evt.id}" class="btn btn-warning text-dark rounded-pill px-4 fw-bold"><i class="fa fa-ticket-alt me-1"></i> Get Tickets</a>
+                                <span class="fs-5 fw-bold text-primary">₵${Number(minPrice).toFixed(2)}</span>
+                                <a href="single.html?id=${evtId}" class="btn btn-warning text-dark rounded-pill px-4 fw-bold"><i class="fa fa-ticket-alt me-1"></i> Get Tickets</a>
                             </div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {

@@ -2,10 +2,11 @@
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import CheckInRequest, CheckInResponse, TicketResponse
-from app.core.dependencies import get_current_organizer, get_current_user, AttrDict
+from app.core.dependencies import get_current_organizer, get_current_user, optional_bearer, AttrDict
 
 router = APIRouter()
 
@@ -72,7 +73,7 @@ def _do_scan(ticket_code: str) -> CheckInResponse:
         event = dynamodb_helper.get_event(event_id)
 
     # Mark as used
-    t_id = ticket.get("TicketID") or ticket.get("id")
+    t_id = str(ticket.get("TicketID") or ticket.get("id") or "")
     used_now = datetime.now(timezone.utc).isoformat()
     
     dynamodb_helper.update_ticket(t_id, {
@@ -98,10 +99,10 @@ def _do_scan(ticket_code: str) -> CheckInResponse:
 @router.post("/scan", response_model=CheckInResponse)
 def scan_ticket(
     body: CheckInRequest,
-    current_user: AttrDict = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
 ):
     """
-    Scan a QR code for event check-in. Authenticated staff/organizer/admin access.
+    Scan a QR code for event check-in.
     """
     return _do_scan(body.ticket_code)
 

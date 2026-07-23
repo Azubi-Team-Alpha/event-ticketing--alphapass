@@ -4,7 +4,7 @@ import csv
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 
 from app.db.dynamodb import dynamodb_helper
@@ -33,7 +33,7 @@ def _format_dt(val: Any) -> Optional[datetime]:
 
 @router.get("/dashboard", response_model=OrganizerDashboard)
 def organizer_dashboard(org: AttrDict = Depends(get_current_organizer)):
-    org_id = org.get("OrganizerID") or org.get("id")
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     events = dynamodb_helper.list_events_by_organizer(org_id)
     
     total_events = len(events)
@@ -141,33 +141,56 @@ def event_orders(
 @router.get("/events/{event_id}/attendees")
 def export_attendees(
     event_id: str,
+    request: Request,
     format: str = Query("json"),
-    org: AttrDict = Depends(get_current_organizer),
+    export: str | None = Query(None),
+    token: str | None = Query(None),
 ):
-    org_id = org.get("OrganizerID") or org.get("id")
+    from app.core.security import decode_access_token
+    auth_header = request.headers.get("Authorization") if request else None
+    jwt_token = token
+    if not jwt_token and auth_header and auth_header.startswith("Bearer "):
+        jwt_token = auth_header.split(" ")[1]
+
+    if not jwt_token:
+        raise HTTPException(401, "Authentication token required")
+
+    try:
+        payload = decode_access_token(jwt_token)
+        org_id = payload.get("sub")
+    except Exception:
+        raise HTTPException(401, "Invalid or expired authentication token")
+
     event = dynamodb_helper.get_event(event_id)
-    if not event or event.get("organizer_id") != org_id:
+    if not event or (event.get("organizer_id") != org_id and event.get("OrganizerID") != org_id):
         raise HTTPException(404, "Event not found")
 
     orders = dynamodb_helper.list_orders_by_event(event_id)
-    confirmed_orders = [o for o in orders if o.get("status") == "confirmed"]
+    confirmed_orders = [o for o in orders if o.get("status") in ("confirmed", "paid", "completed")]
 
     tickets = []
     for o in confirmed_orders:
-        tickets.extend(o.get("tickets", []))
+        o_tickets = o.get("tickets") or []
+        for t in o_tickets:
+            tickets.append({
+                **t,
+                "guest_name": o.get("guest_name"),
+                "guest_email": o.get("guest_email")
+            })
 
-    if format.lower() == "csv":
+    is_csv = (export and export.lower() == "csv") or (format and format.lower() == "csv")
+    if is_csv:
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["Ticket Code", "Attendee Name", "Attendee Email", "Ticket Type", "Status", "Checked In", "Checked In At"])
         for t in tickets:
             writer.writerow([
                 t.get("ticket_code"),
-                t.get("attendee_name"),
-                t.get("attendee_email"),
-                t.get("ticket_type_name", ""),
+                t.get("attendee_name") or t.get("guest_name") or "Guest",
+                t.get("attendee_email") or t.get("guest_email") or "",
+                t.get("ticket_type_name", "Pass"),
                 t.get("status", "active"),
-                "Yes" if t.get("is_used") else "No",
+                "Yes" if (t.get("is_used") or t.get("checked_in")) else "No",
                 t.get("used_at", "")
             ])
         output.seek(0)
@@ -180,11 +203,12 @@ def export_attendees(
     return [
         {
             "ticket_code": t.get("ticket_code"),
-            "attendee_name": t.get("attendee_name"),
-            "attendee_email": t.get("attendee_email"),
-            "ticket_type": t.get("ticket_type_name"),
+            "attendee_name": t.get("attendee_name") or t.get("guest_name") or "Guest",
+            "attendee_email": t.get("attendee_email") or t.get("guest_email") or "",
+            "ticket_type": t.get("ticket_type_name", "Pass"),
             "status": t.get("status", "active"),
-            "checked_in": t.get("is_used", False),
+            "is_used": t.get("is_used", False) or t.get("checked_in", False),
+            "checked_in": t.get("is_used", False) or t.get("checked_in", False),
             "checked_in_at": t.get("used_at"),
         }
         for t in tickets
@@ -193,7 +217,7 @@ def export_attendees(
 
 @router.get("/payouts", response_model=list[PayoutResponse])
 def my_payouts(org: AttrDict = Depends(get_current_organizer)):
-    org_id = org.get("OrganizerID") or org.get("id")
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     payouts = dynamodb_helper.list_payouts_by_organizer(org_id)
     return [
         PayoutResponse(
@@ -216,7 +240,7 @@ def request_payout(
     org: AttrDict = Depends(get_current_organizer),
 ):
     import uuid
-    org_id = org.get("OrganizerID") or org.get("id")
+    org_id = str(org.get("OrganizerID") or org.get("id") or "")
     amount = float(body.get("amount", 0))
     if amount <= 0:
         raise HTTPException(400, "Payout amount must be greater than 0")
