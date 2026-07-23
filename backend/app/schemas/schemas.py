@@ -2,7 +2,7 @@
 Ticket Hub – Pydantic schemas, organized by domain.
 """
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
