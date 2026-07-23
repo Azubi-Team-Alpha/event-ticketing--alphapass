@@ -4,7 +4,7 @@ Ticket Hub – Pydantic schemas, organized by domain.
 from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 
@@ -607,7 +607,7 @@ class OrganizerAdminResponse(BaseModel):
 
 
 class OrganizerStatusUpdate(BaseModel):
-    status: str          # "active" | "suspended" | "verified"
+    status: Literal["active", "suspended", "verified"]
     reason: Optional[str] = None
 
 

@@ -273,7 +273,7 @@
                 const name = document.getElementById('guestName').value.trim();
                 const email = document.getElementById('guestEmail').value.trim();
                 const phone = document.getElementById('guestPhone').value.trim();
-                const payMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const payMethod = (document.querySelector('input[name="payMethod"]:checked') || {}).value || 'Mobile Money';
 
                 if (!cartItems || cartItems.length === 0) {
                     cartItems = CartManager.getCart();

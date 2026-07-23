@@ -349,22 +349,11 @@ def publish_event(
     if not e or e.get("organizer_id") != org_id:
         raise HTTPException(404, "Event not found")
     if not e.get("ticket_types"):
-        tt_id = str(uuid.uuid4())
-        default_tt = [{
-            "id": tt_id,
-            "name": "General Admission",
-            "description": "Standard entry pass",
-            "benefits": ["Standard Entry"],
-            "price": "100.00",
-            "quantity": 100,
-            "quantity_sold": 0,
-            "purchase_limit": 5,
-            "min_purchase": 1,
-            "is_active": True,
-            "sort_order": 0
-        }]
-        e["ticket_types"] = default_tt
-        dynamodb_helper.update_event(event_id, {"ticket_types": default_tt})
+        raise HTTPException(
+            400,
+            "Cannot publish an event with no ticket types. "
+            "Please add at least one ticket type before publishing."
+        )
 
     target = "pending" if settings.REQUIRE_EVENT_APPROVAL else "published"
     updated = dynamodb_helper.update_event(event_id, {"status": target}) or e

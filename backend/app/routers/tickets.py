@@ -6,22 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import TicketResponse
 from app.core.dependencies import get_current_user, AttrDict
+from app.core.utils import format_dt as _format_dt
 
 router = APIRouter()
 
 
-def _format_dt(val: Any) -> Optional[datetime]:
-    if not val:
-        return None
-    if isinstance(val, datetime):
-        return val
-    try:
-        dt = datetime.fromisoformat(str(val))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
+
 
 
 def _format_ticket_response(ticket: Dict[str, Any]) -> TicketResponse:

@@ -1,4 +1,5 @@
 """Guest checkout – single ticket and bulk/group order purchases using DynamoDB."""
+import html
 import uuid
 import secrets
 from decimal import Decimal
@@ -13,7 +14,7 @@ from app.schemas.schemas import (
 )
 from app.core.config import settings
 from app.core.qr import upload_qr_to_s3
-from app.core.email import send_email
+from app.core.email import send_email, send_ticket_confirmation
 from app.core.utils import format_dt as _format_dt
 from app.core.dependencies import get_current_user, AttrDict
 
@@ -29,22 +30,45 @@ def _apply_promo(promo: Dict[str, Any], subtotal: Decimal) -> Decimal:
         return min(disc_val, subtotal)
 
 
-def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
+def _format_order_response(
+    order: Dict[str, Any],
+    event_cache: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
+    """
+    Format a raw DynamoDB order dict into the API response shape.
+
+    ``event_cache`` is an optional dict keyed by event_id.  Pass the same
+    dict across multiple calls (e.g. in a list endpoint) to avoid repeated
+    DynamoDB reads (N+1 fix).
+    """
     order_id = order.get("OrderID") or order.get("id")
     event_id = order.get("event_id", "")
-    event = dynamodb_helper.get_event(event_id) or {}
-    
+
+    # --- N+1 fix: cache event lookups within the caller's request scope ---
+    if event_cache is None:
+        event_cache = {}
+    if event_id not in event_cache:
+        event_cache[event_id] = dynamodb_helper.get_event(event_id) or {}
+    event = event_cache[event_id]
+
     items = order.get("items", [])
     tickets = order.get("tickets", [])
+
+    # Build a ticket-type map from the event for real quantity_remaining
+    tt_map: Dict[str, Dict[str, Any]] = {}
+    for tt in event.get("ticket_types", []):
+        tt_id = tt.get("id", "")
+        if tt_id:
+            tt_map[tt_id] = tt
 
     formatted_items = []
     for item in items:
         oi_id = item.get("id") or str(uuid.uuid4())
         tt_id = item.get("ticket_type_id", "")
         tt_name = item.get("ticket_type_name", "Standard")
-        
+
         item_tickets = [t for t in tickets if t.get("order_item_id") == oi_id or t.get("ticket_type_id") == tt_id]
-        
+
         formatted_tix = []
         for t in item_tickets:
             formatted_tix.append({
@@ -60,6 +84,13 @@ def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
                 "issued_at": _format_dt(t.get("issued_at")) or datetime.now(timezone.utc),
             })
 
+        # --- quantity_remaining: use real data from event ticket_type ---
+        live_tt = tt_map.get(tt_id, {})
+        raw_qty = live_tt.get("quantity") if live_tt.get("quantity") is not None else item.get("quantity", 1)
+        qty_total = int(raw_qty) if raw_qty is not None else 1
+        qty_sold = int(live_tt.get("quantity_sold", 0))
+        qty_remaining = max(0, qty_total - qty_sold)
+
         formatted_items.append({
             "id": oi_id,
             "order_id": order_id,
@@ -72,13 +103,13 @@ def _format_order_response(order: Dict[str, Any]) -> Dict[str, Any]:
                 "event_id": event_id,
                 "name": tt_name,
                 "price": Decimal(str(item.get("unit_price", 0))),
-                "quantity": int(item.get("quantity", 1)),
-                "quantity_sold": 0,
-                "purchase_limit": 10,
-                "min_purchase": 1,
-                "is_active": True,
-                "sort_order": 0,
-                "quantity_remaining": 0,
+                "quantity": qty_total,
+                "quantity_sold": qty_sold,
+                "purchase_limit": int(live_tt.get("purchase_limit", 10)),
+                "min_purchase": int(live_tt.get("min_purchase", 1)),
+                "is_active": live_tt.get("is_active", True),
+                "sort_order": int(live_tt.get("sort_order", 0)),
+                "quantity_remaining": qty_remaining,
                 "created_at": datetime.now(timezone.utc),
             },
             "tickets": formatted_tix,
@@ -118,7 +149,7 @@ def validate_promo(body: ApplyPromoCode):
     promo = dynamodb_helper.get_promo_code(code_str)
     if not promo or promo.get("event_id") != body.event_id or not promo.get("is_active", True):
         return PromoCodeValidation(valid=False, message="Invalid or expired promo code")
-    
+
     expires_at = promo.get("expires_at")
     if expires_at:
         exp_dt = _format_dt(expires_at)
@@ -137,6 +168,34 @@ def validate_promo(body: ApplyPromoCode):
     )
 
 
+# ── Organizer: view orders for an event ──────────────────────────────────────
+# NOTE: This route MUST stay above /{order_id} to prevent FastAPI routing
+# /orders/event/... to the /{order_id} handler.
+
+@router.get("/event/{event_id}", response_model=list[OrderResponse])
+def event_orders(
+    event_id: str,
+    is_bulk: bool | None = Query(None),
+    current_user: AttrDict = Depends(get_current_user),
+):
+    """List all orders for an event. Requires organizer or admin authentication."""
+    # Organizers can only see orders for their own events
+    if "OrganizerID" in current_user:
+        event = dynamodb_helper.get_event(event_id)
+        org_id = current_user.get("OrganizerID") or current_user.get("id")
+        if not event or event.get("organizer_id") != org_id:
+            raise HTTPException(403, "Access denied: not your event")
+    orders = dynamodb_helper.list_orders_by_event(event_id)
+    if is_bulk is not None:
+        if is_bulk:
+            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) >= 5]
+        else:
+            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) < 5]
+    # Share a single event cache across all order responses (N+1 fix)
+    event_cache: Dict[str, Dict[str, Any]] = {}
+    return [_format_order_response(o, event_cache) for o in orders]
+
+
 # ── Create Order (Guest Checkout) ─────────────────────────────────────────────
 
 @router.post("", response_model=OrderResponse, status_code=201)
@@ -148,7 +207,7 @@ def create_order(
     event = dynamodb_helper.get_event(body.event_id)
     if not event or event.get("status") != "published":
         raise HTTPException(404, "Event not found or not available")
-    
+
     starts_at = _format_dt(event.get("starts_at"))
     if starts_at and starts_at < datetime.now(timezone.utc):
         raise HTTPException(400, "Event has already started")
@@ -167,7 +226,7 @@ def create_order(
         avail = int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))
         if item.quantity > avail:
             raise HTTPException(400, f"Not enough tickets available for '{tt.get('name')}' ({avail} left)")
-        
+
         limit = int(tt.get("purchase_limit", 10))
         min_p = int(tt.get("min_purchase", 1))
         if item.quantity > limit:
@@ -189,7 +248,7 @@ def create_order(
             "line_total": str(line),
         })
 
-        # Update sold count on event ticket_type
+        # Update sold count on event ticket_type (in-memory; written back below)
         tt["quantity_sold"] = int(tt.get("quantity_sold", 0)) + item.quantity
 
         for _ in range(item.quantity):
@@ -275,8 +334,8 @@ def create_order(
     # Update event ticket_types in DynamoDB
     dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
 
-    # Generate QR codes inline/sync for reliability in Lambda
-    _generate_qr_and_notify(all_tickets, order_id, body.guest_email, body.guest_name, event.get("title", ""), total)
+    # Generate QR codes and send confirmation email
+    _generate_qr_and_notify(all_tickets, order_id, body.guest_email, body.guest_name, event, total)
 
     return _format_order_response(order_data)
 
@@ -310,11 +369,12 @@ def lookup_order(body: OrderLookup):
             raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
 
         latest = sorted(matching, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
-        formatted_latest = _format_order_response(latest)
+        event_cache: Dict[str, Dict[str, Any]] = {}
+        formatted_latest = _format_order_response(latest, event_cache)
 
         all_tix = []
         for m in matching:
-            fmt_m = _format_order_response(m)
+            fmt_m = _format_order_response(m, event_cache)
             all_tix.extend(fmt_m.get("tickets", []))
 
         formatted_latest["tickets"] = all_tix
@@ -347,6 +407,22 @@ def cancel_order(
         if t_id:
             dynamodb_helper.update_ticket(t_id, {"status": "cancelled"})
 
+    # Send cancellation confirmation email
+    try:
+        event = dynamodb_helper.get_event(order.get("event_id", "")) or {}
+        event_title = html.escape(str(event.get("title", "your event")))
+        safe_name = html.escape(str(order.get("guest_name", "Guest")))
+        safe_order_id = html.escape(order_id)
+        cancel_html = (
+            f"<h2>Order Cancelled</h2>"
+            f"<p>Hi {safe_name}, your order <code>{safe_order_id}</code> for "
+            f"<strong>{event_title}</strong> has been cancelled.</p>"
+            f"<p>If you did not request this cancellation, please contact us immediately.</p>"
+        )
+        send_email(order.get("guest_email", ""), f"Order Cancelled – {event.get('title', 'AlphaPass')}", cancel_html)
+    except Exception as e:
+        print(f"[EMAIL] Cancellation email failed: {e}")
+
     return {"message": "Order cancelled"}
 
 
@@ -357,7 +433,7 @@ def update_attendee(order_id: str, ticket_id: str, body: AttendeeUpdate):
     order = dynamodb_helper.get_order(order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    
+
     tickets = order.get("tickets", [])
     found_t = None
     for t in tickets:
@@ -379,30 +455,6 @@ def update_attendee(order_id: str, ticket_id: str, body: AttendeeUpdate):
     })
 
     return {"message": "Attendee info updated"}
-
-
-# ── Organizer: view orders for an event ──────────────────────────────────────
-
-@router.get("/event/{event_id}", response_model=list[OrderResponse])
-def event_orders(
-    event_id: str,
-    is_bulk: bool | None = Query(None),
-    current_user: AttrDict = Depends(get_current_user),
-):
-    """List all orders for an event. Requires organizer or admin authentication."""
-    # Organizers can only see orders for their own events
-    if "OrganizerID" in current_user:
-        event = dynamodb_helper.get_event(event_id)
-        org_id = current_user.get("OrganizerID") or current_user.get("id")
-        if not event or event.get("organizer_id") != org_id:
-            raise HTTPException(403, "Access denied: not your event")
-    orders = dynamodb_helper.list_orders_by_event(event_id)
-    if is_bulk is not None:
-        if is_bulk:
-            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) >= 5]
-        else:
-            orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) < 5]
-    return [_format_order_response(o) for o in orders]
 
 
 @router.post("/{order_id}/refund-request")
@@ -433,7 +485,15 @@ def request_order_refund(order_id: str, body: RefundRequest):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _generate_qr_and_notify(tickets: List[Dict[str, Any]], order_id: str, email: str, name: str, event_title: str, total: Decimal):
+def _generate_qr_and_notify(
+    tickets: List[Dict[str, Any]],
+    order_id: str,
+    email: str,
+    name: str,
+    event: Dict[str, Any],
+    total: Decimal,
+):
+    """Generate QR codes for all tickets and send a confirmation email."""
     for t in tickets:
         code = t.get("ticket_code")
         t_id = t.get("TicketID") or t.get("id")
@@ -445,14 +505,24 @@ def _generate_qr_and_notify(tickets: List[Dict[str, Any]], order_id: str, email:
             except Exception as e:
                 print(f"[QR] Failed for ticket {t_id}: {e}")
 
+    # Use the rich ticket confirmation helper (HTML-escaped internally)
     try:
-        html = (
-            f"<h2>Order Confirmed! 🎉</h2>"
-            f"<p>Hi {name}, your order for <strong>{event_title}</strong> is confirmed.</p>"
-            f"<p>Order ID: <code>{order_id}</code></p>"
-            f"<p>Tickets: {len(tickets)} | Total: ${total}</p>"
-            f"<p>Your QR-code tickets are available in your AlphaPass portal.</p>"
-        )
-        send_email(email, f"Order Confirmed – {event_title}", html)
+        send_ticket_confirmation(email, name, event, {"OrderID": order_id, "total_amount": str(total)}, tickets)
     except Exception as e:
-        print(f"[EMAIL] Order confirmation failed: {e}")
+        print(f"[EMAIL] Order confirmation failed for {email}: {e}")
+        # Fallback: plain summary email with HTML-escaped values
+        try:
+            safe_name = html.escape(name)
+            safe_title = html.escape(str(event.get("title", "your event")))
+            safe_order_id = html.escape(order_id)
+            safe_total = html.escape(str(total))
+            fallback_html = (
+                f"<h2>Order Confirmed! 🎉</h2>"
+                f"<p>Hi {safe_name}, your order for <strong>{safe_title}</strong> is confirmed.</p>"
+                f"<p>Order ID: <code>{safe_order_id}</code></p>"
+                f"<p>Tickets: {len(tickets)} | Total: ₵{safe_total}</p>"
+                f"<p>Your QR-code tickets are available in your AlphaPass portal.</p>"
+            )
+            send_email(email, f"Order Confirmed – {event.get('title', 'AlphaPass')}", fallback_html)
+        except Exception as e2:
+            print(f"[EMAIL] Fallback email also failed: {e2}")
