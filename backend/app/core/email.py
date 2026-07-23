@@ -1,6 +1,7 @@
 """Email service using AWS SES with HTML-safe templating."""
 import html
 import logging
+from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
