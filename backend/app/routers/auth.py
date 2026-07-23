@@ -133,7 +133,7 @@ def organizer_signup(body: OrganizerRegister, background_tasks: BackgroundTasks)
         "business_name": body.business_name,
         "phone": body.phone,
         "verification_token": token,
-        "status": "pending",
+        "status": "active",
         "email_verified": True,
     })
     
