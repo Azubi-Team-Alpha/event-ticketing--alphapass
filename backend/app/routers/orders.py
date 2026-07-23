@@ -86,7 +86,8 @@ def _format_order_response(
 
         # --- quantity_remaining: use real data from event ticket_type ---
         live_tt = tt_map.get(tt_id, {})
-        qty_total = int(live_tt.get("quantity", item.get("quantity", 1)))
+        raw_qty = live_tt.get("quantity") if live_tt.get("quantity") is not None else item.get("quantity", 1)
+        qty_total = int(raw_qty) if raw_qty is not None else 1
         qty_sold = int(live_tt.get("quantity_sold", 0))
         qty_remaining = max(0, qty_total - qty_sold)
 
@@ -411,7 +412,7 @@ def cancel_order(
         event = dynamodb_helper.get_event(order.get("event_id", "")) or {}
         event_title = html.escape(str(event.get("title", "your event")))
         safe_name = html.escape(str(order.get("guest_name", "Guest")))
-        safe_order_id = html.escape(str(order_id))
+        safe_order_id = html.escape(order_id)
         cancel_html = (
             f"<h2>Order Cancelled</h2>"
             f"<p>Hi {safe_name}, your order <code>{safe_order_id}</code> for "
@@ -511,9 +512,9 @@ def _generate_qr_and_notify(
         print(f"[EMAIL] Order confirmation failed for {email}: {e}")
         # Fallback: plain summary email with HTML-escaped values
         try:
-            safe_name = html.escape(str(name))
+            safe_name = html.escape(name)
             safe_title = html.escape(str(event.get("title", "your event")))
-            safe_order_id = html.escape(str(order_id))
+            safe_order_id = html.escape(order_id)
             safe_total = html.escape(str(total))
             fallback_html = (
                 f"<h2>Order Confirmed! 🎉</h2>"

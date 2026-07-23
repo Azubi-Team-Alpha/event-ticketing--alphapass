@@ -94,13 +94,13 @@ def send_ticket_confirmation(guest_email: str, guest_name: str, event: dict, ord
     return send_email(guest_email, f"Your tickets for {event.get('title', 'AlphaPass')} 🎟", html_body)
 
 
-def _h(value: str) -> str:
-    """HTML-escape a string to prevent injection in email templates."""
-    return html.escape(str(value))
+def _h(value: Any) -> str:
+    """HTML-escape a value to prevent injection in email templates."""
+    return html.escape(str(value)) if value is not None else ""
 
 
 def _wrap_html(body: str) -> str:
-    sender = html.escape(str(settings.SES_SENDER_EMAIL))
+    sender = html.escape(settings.SES_SENDER_EMAIL)
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <style>body{{font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px;color:#1a1a1a;}}</style>
