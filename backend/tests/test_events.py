@@ -71,6 +71,19 @@ def test_organizer_publish_event(client: TestClient, organizer_headers, sample_e
     assert resp.json()["status"] == "published"
 
 
+def test_organizer_publish_event_no_ticket_types_rejected(client: TestClient, organizer_headers, category):
+    # Create empty draft event
+    payload = {**FUTURE_EVENT, "category_id": category["id"]}
+    create_resp = client.post("/events/organizer", json=payload, headers=organizer_headers)
+    assert create_resp.status_code == 201
+    event_id = create_resp.json()["id"]
+
+    # Attempting to publish without adding ticket types must return 400
+    resp = client.post(f"/events/organizer/{event_id}/publish", headers=organizer_headers)
+    assert resp.status_code == 400
+    assert "ticket types" in resp.json()["detail"].lower()
+
+
 def test_list_categories(client: TestClient, category):
     resp = client.get("/events/categories")
     assert resp.status_code == 200
