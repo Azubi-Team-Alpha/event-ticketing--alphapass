@@ -273,6 +273,14 @@
                 loginSec.style.display = 'none';
                 dashSec.style.display = 'block';
                 loadPendingEvents();
+
+                // Fetch current commission rate
+                apiFetch('/admin/config/commission').then(cRes => {
+                    if (cRes && cRes.commission_percent !== undefined) {
+                        document.getElementById('commissionRate').value = cRes.commission_percent;
+                    }
+                }).catch(() => {});
+
             } catch (err) {
                 console.warn('Admin session validation failed:', err.message);
                 localStorage.removeItem('admin_token');

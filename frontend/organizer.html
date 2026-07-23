@@ -199,9 +199,7 @@
                             <button class="btn btn-warning text-dark rounded-pill fw-bold px-4 py-2"
                                 data-bs-toggle="modal" data-bs-target="#createEventModal"><i
                                     class="fa fa-plus-circle me-1"></i> Create New Event</button>
-                            <button class="btn btn-dark rounded-pill fw-bold px-4 py-2" data-bs-toggle="modal"
-                                data-bs-target="#scannerModal"><i class="fa fa-qrcode me-1"></i> Gate Scanner
-                                Console</button>
+                            <a href="checkin.html" class="btn btn-dark rounded-pill fw-bold px-4 py-2" target="_blank"><i class="fa fa-qrcode me-1"></i> Gate Scanner Console</a>
                             <button class="btn btn-outline-danger rounded-pill fw-bold px-3 py-2" id="logoutBtn"><i
                                     class="fa fa-sign-out-alt"></i> Logout</button>
                         </div>
@@ -398,6 +396,37 @@
                 </div>
             </div>
         </div>
+    <!-- Attendees Roster Modal -->
+    <div class="modal fade" id="attendeesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-users me-2 text-warning"></i> Event Attendee Roster — <span id="rosterEventTitle">Event</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Live registered attendee list</span>
+                        <a id="exportCsvBtn" href="#" target="_blank" class="btn btn-sm btn-outline-success rounded-pill fw-bold"><i class="fa fa-file-csv me-1"></i> Export Roster CSV</a>
+                    </div>
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Ticket Pass</th>
+                                    <th>Attendee Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendeesTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -478,14 +507,48 @@
                         <td class="text-muted small">${new Date(e.starts_at).toLocaleDateString()}</td>
                         <td><span class="badge bg-success">${(e.status || 'PUBLISHED').toUpperCase()}</span></td>
                         <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-3 fw-bold me-1" onclick="openAttendeesModal('${e.id}', '${e.title.replace(/'/g, "\\'")}')"><i class="fa fa-users me-1"></i> Roster</button>
                             <a class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" href="single.html?id=${e.id}" target="_blank"><i class="fa fa-eye me-1"></i> View</a>
-                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${e.id}')"><i class="fa fa-plus me-1"></i> + Ticket Pass</button>
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${e.id}')"><i class="fa fa-plus me-1"></i> + Pass</button>
                         </td>
                     </tr>
                 `).join('');
             } catch (err) {
                 console.error('Failed to load organizer events:', err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load events.</td></tr>`;
+            }
+        }
+
+        async function openAttendeesModal(eventId, title) {
+            document.getElementById('rosterEventTitle').textContent = title;
+            const exportBtn = document.getElementById('exportCsvBtn');
+            const token = localStorage.getItem('organizer_token') || '';
+            exportBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=csv&token=${encodeURIComponent(token)}`;
+
+            const tbody = document.getElementById('attendeesTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading attendees...</td></tr>';
+
+            const modal = new bootstrap.Modal(document.getElementById('attendeesModal'));
+            modal.show();
+
+            try {
+                const attendees = await apiFetch(`/organizer/events/${eventId}/attendees`);
+                const list = Array.isArray(attendees) ? attendees : (attendees.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No attendees registered for this event yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(a => `
+                    <tr>
+                        <td><code>${a.ticket_code || a.ticket_id || 'PASS'}</code></td>
+                        <td class="fw-bold">${a.attendee_name || a.guest_name || 'Guest'}</td>
+                        <td class="text-muted small">${a.attendee_email || a.guest_email || ''}</td>
+                        <td><span class="badge ${a.is_used ? 'bg-secondary' : 'bg-success'}">${a.is_used ? 'CHECKED IN' : 'ACTIVE'}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-danger">Failed to load roster: ${err.message}</td></tr>`;
             }
         }
 
@@ -608,8 +671,19 @@
             document.getElementById('payoutForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const amount = parseFloat(document.getElementById('payoutAmount').value);
-                showToast(`Payout request for ₵${amount.toFixed(2)} submitted!`, 'success');
-                document.getElementById('payoutForm').reset();
+                const bank = document.getElementById('payoutBank').value.trim();
+                const acc = document.getElementById('payoutAcc').value.trim();
+
+                try {
+                    await apiFetch('/organizer/payouts', {
+                        method: 'POST',
+                        body: JSON.stringify({ amount, bank, account_number: acc })
+                    });
+                    showToast(`Payout request for ₵${amount.toFixed(2)} submitted successfully!`, 'success');
+                    document.getElementById('payoutForm').reset();
+                } catch (err) {
+                    showToast('Payout request failed: ' + err.message, 'danger');
+                }
             });
 
             document.getElementById('scanForm').addEventListener('submit', async (e) => {

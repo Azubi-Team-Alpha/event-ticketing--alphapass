@@ -181,7 +181,10 @@
                                         <div class="d-grid gap-2">
                                             <a href="${API_BASE_URL}/tickets/${tkt.ticket_code}/pdf" target="_blank" class="btn btn-outline-primary rounded-pill btn-sm fw-bold"><i class="fa fa-download me-1"></i> Download PDF Ticket</a>
                                             <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
-                                            <button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}')"><i class="fa fa-store me-1"></i> List for Resale</button>
+                                            ${(tkt.status === 'resale_pending' || tkt.status === 'resale_listed')
+                                                ? `<button class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="cancelResaleListing('${tkt.ticket_code}')"><i class="fa fa-ban me-1"></i> Cancel Resale Listing</button>`
+                                                : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -277,6 +280,21 @@
                 }
             });
         });
+
+        async function cancelResaleListing(code) {
+            const email = document.getElementById('lookupEmail').value.trim();
+            if (!confirm(`Are you sure you want to remove ticket ${code} from the resale market?`)) return;
+
+            try {
+                await apiFetch(`/resale/tickets/${code}/remove?guest_email=${encodeURIComponent(email)}`, {
+                    method: 'POST'
+                });
+                showToast(`Ticket ${code} unlisted from resale market!`, 'success');
+                fetchWallet(email);
+            } catch (err) {
+                showToast('Failed to cancel resale listing: ' + err.message, 'danger');
+            }
+        }
     </script>
 </body>
 

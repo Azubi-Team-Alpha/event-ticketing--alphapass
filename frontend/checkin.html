@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Gatekeeper Entry Scanner - AlphaPass</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    
+    <style>
+        .scanner-card {
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .scan-result-badge {
+            font-size: 1.25rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <!-- Topbar Navigation -->
+    <div class="container-fluid px-4 bg-dark text-white py-3 border-bottom border-secondary">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="index.html" class="navbar-brand p-0 m-0">
+                <h3 class="text-warning m-0"><i class="fas fa-qrcode me-2"></i>AlphaPass Gate Scanner</h3>
+            </a>
+            <div>
+                <a href="organizer.html" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="fa fa-briefcase me-1"></i> Organizer Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4" style="max-width: 720px;">
+        <!-- Header Info Card -->
+        <div class="card border-0 bg-dark text-white rounded-3 p-4 mb-4 shadow-sm">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold text-white mb-1"><i class="fa fa-shield-alt text-warning me-2"></i> Gate Entry Validation Console</h4>
+                    <p class="text-white-50 small mb-0">Scan ticket QR codes or type pass codes manually to authorize entrance.</p>
+                </div>
+                <span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-wifi me-1"></i> Live Gateway</span>
+            </div>
+        </div>
+
+        <!-- Manual Code & Scanner Input Card -->
+        <div class="card border-0 scanner-card bg-white p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-search text-primary me-2"></i> Scan Pass or Enter Code</h5>
+            
+            <form id="gateScanForm" class="mb-3">
+                <div class="input-group input-group-lg">
+                    <input type="text" id="gateCodeInput" class="form-control fw-bold text-uppercase py-3" placeholder="e.g. TKT-123456" required autofocus>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4" id="gateScanBtn">
+                        <i class="fa fa-bolt me-1"></i> Scan & Verify
+                    </button>
+                </div>
+            </form>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill w-100 fw-bold py-2" id="clearScanBtn">
+                    <i class="fa fa-eraser me-1"></i> Clear Input
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Display Card -->
+        <div id="resultCardContainer" style="display: none;">
+            <!-- Dynamically populated scan response -->
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="card border-0 bg-white shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold text-dark mb-3"><i class="fa fa-history text-primary me-2"></i> Recent Gate Scans Log</h6>
+            <div class="list-group list-group-flush" id="scanLogList">
+                <div class="text-center py-3 text-muted small">No scans registered in this session yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="container-fluid bg-dark text-white-50 footer py-3 mt-5 text-center">
+        <small>&copy; AlphaPass Gatekeeper Entry Console.</small>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app-api.js"></script>
+
+    <script>
+        const scanLog = [];
+
+        async function verifyTicketCode(code) {
+            const container = document.getElementById('resultCardContainer');
+            const btn = document.getElementById('gateScanBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Verifying...';
+
+            try {
+                const res = await apiFetch('/checkin/scan', {
+                    method: 'POST',
+                    body: JSON.stringify({ ticket_code: code })
+                });
+
+                const isValid = res.valid || res.success;
+                const badgeClass = isValid ? 'bg-success text-white' : 'bg-danger text-white';
+                const iconClass = isValid ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                const statusTitle = isValid ? 'ADMIT ENTRY — VALID PASS' : 'DENY ENTRY — INVALID PASS';
+
+                container.style.display = 'block';
+                container.innerHTML = `
+                    <div class="card border-0 shadow-lg rounded-3 p-4 mb-4 ${isValid ? 'border-start border-success border-5' : 'border-start border-danger border-5'} bg-white">
+                        <div class="scan-result-badge ${badgeClass} text-center fw-bold mb-3">
+                            <i class="fa ${iconClass} me-2 fs-3 align-middle"></i> ${statusTitle}
+                        </div>
+                        <div class="row g-3 text-center">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Ticket Pass Code</small>
+                                <code class="fs-5 text-dark fw-bold">${code}</code>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Attendee</small>
+                                <strong class="fs-6 text-dark">${res.attendee_name || res.guest_name || 'Verified Guest'}</strong>
+                            </div>
+                        </div>
+                        <div class="alert alert-light border text-center mt-3 mb-0 small">
+                            ${res.message || 'Pass verified for gate entrance.'}
+                        </div>
+                    </div>
+                `;
+
+                // Log entry
+                addScanLog(code, isValid, res.attendee_name || 'Guest', res.message);
+            } catch (err) {
+                container.style.display = 'block';
+                container.innerHTML = `
+                    <div class="card border-0 shadow-lg rounded-3 p-4 mb-4 bg-white border-start border-danger border-5">
+                        <div class="scan-result-badge bg-danger text-white text-center fw-bold mb-3">
+                            <i class="fa fa-times-circle me-2 fs-3 align-middle"></i> DENY ENTRY
+                        </div>
+                        <div class="text-center">
+                            <code class="fs-5 text-dark fw-bold mb-2 d-block">${code}</code>
+                            <div class="text-danger fw-bold">${err.message || 'Ticket verification failed'}</div>
+                        </div>
+                    </div>
+                `;
+                addScanLog(code, false, 'Unknown', err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-bolt me-1"></i> Scan & Verify';
+            }
+        }
+
+        function addScanLog(code, isValid, name, msg) {
+            const time = new Date().toLocaleTimeString();
+            scanLog.unshift({ code, isValid, name, time, msg });
+            if (scanLog.length > 10) scanLog.pop();
+
+            const list = document.getElementById('scanLogList');
+            list.innerHTML = scanLog.map(item => `
+                <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 border-bottom">
+                    <div>
+                        <span class="badge ${item.isValid ? 'bg-success' : 'bg-danger'} me-2">${item.isValid ? 'VALID' : 'REJECTED'}</span>
+                        <code>${item.code}</code> — <small class="text-dark fw-bold">${item.name}</small>
+                    </div>
+                    <small class="text-muted">${item.time}</small>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('gateScanForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const code = document.getElementById('gateCodeInput').value.trim().toUpperCase();
+                if (code) verifyTicketCode(code);
+            });
+
+            document.getElementById('clearScanBtn').addEventListener('click', () => {
+                document.getElementById('gateCodeInput').value = '';
+                document.getElementById('resultCardContainer').style.display = 'none';
+                document.getElementById('gateCodeInput').focus();
+            });
+        });
+    </script>
+</body>
+
+</html>
