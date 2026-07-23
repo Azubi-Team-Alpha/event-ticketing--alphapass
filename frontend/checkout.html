@@ -318,7 +318,10 @@
                     const firstTicket = ticketList.length > 0 ? ticketList[0] : null;
                     const tCode = firstTicket ? (firstTicket.ticket_code || firstTicket.code) : null;
 
-                    const qrUrl = tCode ? `${API_BASE_URL}/tickets/${tCode}/qr` : (firstTicket && firstTicket.qr_image_url ? firstTicket.qr_image_url : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${orderId}`);
+                    const rawQrUrl = firstTicket ? firstTicket.qr_image_url : null;
+                    const qrUrl = (rawQrUrl && rawQrUrl.startsWith('http')) 
+                        ? rawQrUrl 
+                        : (rawQrUrl ? `${API_BASE_URL}${rawQrUrl}` : (tCode ? `${API_BASE_URL}/tickets/${tCode}/qr` : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${orderId}`));
                     document.getElementById('modalQrCode').src = qrUrl;
 
                     const downloadBtn = document.getElementById('downloadPdfBtn');

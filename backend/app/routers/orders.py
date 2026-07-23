@@ -503,7 +503,10 @@ def _generate_qr_and_notify(
                 t["qr_image_url"] = qr_url
                 dynamodb_helper.update_ticket(t_id, {"qr_image_url": qr_url})
             except Exception as e:
-                print(f"[QR] Failed for ticket {t_id}: {e}")
+                print(f"[QR] S3 upload failed for ticket {t_id}: {e}")
+                fallback_url = f"/tickets/{code}/qr"
+                t["qr_image_url"] = fallback_url
+                dynamodb_helper.update_ticket(t_id, {"qr_image_url": fallback_url})
 
     # Use the rich ticket confirmation helper (HTML-escaped internally)
     try:

@@ -203,12 +203,12 @@ def purchase_resale_ticket(
         "buyer_ticket_id": new_ticket_id,
     })
 
-    # Generate QR & send notification
     try:
         qr_url = upload_qr_to_s3(new_code)
         dynamodb_helper.update_ticket(new_ticket_id, {"qr_image_url": qr_url})
     except Exception as e:
         print(f"[QR] resale ticket: {e}")
+        dynamodb_helper.update_ticket(new_ticket_id, {"qr_image_url": f"/tickets/{new_code}/qr"})
 
     _send_resale_emails(
         listing.get("seller_email"), listing.get("seller_name"),
