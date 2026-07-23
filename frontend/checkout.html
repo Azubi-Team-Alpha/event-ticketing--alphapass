@@ -188,7 +188,7 @@
         let cartItems = [];
         let promoInfo = null;
 
-        async function loadCheckoutData() {
+        async function renderCheckoutSummary() {
             cartItems = CartManager.getCart();
             
             // Fallback: check URL parameters if cart is empty
@@ -202,8 +202,10 @@
                     const event = await apiFetch(`/events/${paramEventId}`);
                     const ttList = event.ticket_types || [];
                     const tt = ttList.find(t => t.id === paramTypeId) || ttList[0] || { id: paramTypeId || 'tt-gen', name: 'General Admission', price: event.min_price || 100 };
+                    const eId = event.id || event.EventID || paramEventId;
                     cartItems = [{
-                        event_id: event.id,
+                        event_id: eId,
+                        eventId: eId,
                         event_title: event.title,
                         ticket_type_id: tt.id,
                         ticket_type_name: tt.name,
@@ -227,7 +229,7 @@
                 `;
                 document.getElementById('coSubtotal').textContent = '₵0.00';
                 document.getElementById('coTotal').textContent = '₵0.00';
-                const submitBtn = document.getElementById('submitOrderBtn');
+                const submitBtn = document.getElementById('placeOrderBtn');
                 if (submitBtn) submitBtn.disabled = true;
                 return;
             }
@@ -271,8 +273,11 @@
                 const phone = document.getElementById('guestPhone').value.trim();
                 const payMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
-                const cartItems = CartManager.getItems();
-                if (cartItems.length === 0) {
+                if (!cartItems || cartItems.length === 0) {
+                    cartItems = CartManager.getCart();
+                }
+
+                if (!cartItems || cartItems.length === 0) {
                     showToast('Cart is empty', 'warning');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fa fa-check-circle me-2"></i> Pay & Confirm Order';
@@ -280,12 +285,12 @@
                 }
 
                 const items = cartItems.map(ci => ({
-                    ticket_type_id: ci.id,
+                    ticket_type_id: ci.ticket_type_id || ci.id,
                     quantity: ci.quantity
                 }));
 
                 const payload = {
-                    event_id: cartItems[0].eventId,
+                    event_id: cartItems[0].event_id || cartItems[0].eventId,
                     guest_name: name,
                     guest_email: email,
                     guest_phone: phone,
