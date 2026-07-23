@@ -10,7 +10,9 @@
         {
             "root": "backend",
             "extraPaths": [
+                ".",
                 "backend",
+                ".venv/lib/python3.14/site-packages",
                 "backend/.venv/lib/python3.14/site-packages"
             ]
         }
