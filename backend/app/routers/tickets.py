@@ -71,6 +71,8 @@ def download_ticket_pdf(ticket_code: str):
 
     ticket = dynamodb_helper.get_ticket_by_code(ticket_code)
     if not ticket:
+        ticket = dynamodb_helper.get_ticket(ticket_code)
+    if not ticket:
         raise HTTPException(404, "Ticket not found")
 
     event = None
@@ -86,11 +88,11 @@ def download_ticket_pdf(ticket_code: str):
     class DummyTicket:
         def __init__(self, d, evt):
             self.id = d.get("TicketID") or d.get("id")
-            self.ticket_code = d.get("ticket_code")
+            self.ticket_code = d.get("ticket_code") or ticket_code
             self.attendee_name = d.get("attendee_name") or "Guest Attendee"
             self.attendee_email = d.get("attendee_email")
             self.ticket_type_name = d.get("ticket_type_name") or "General Pass"
-            self.event = evt
+            self.event = evt or {}
 
     t_obj = DummyTicket(ticket, event)
     try:
@@ -99,7 +101,7 @@ def download_ticket_pdf(ticket_code: str):
         raise HTTPException(500, f"Failed to generate PDF ticket: {str(e)}")
 
     headers = {
-        "Content-Disposition": f"attachment; filename=ticket-{ticket_code[:8].lower()}.pdf"
+        "Content-Disposition": f"inline; filename=ticket-{ticket_code[:8].lower()}.pdf"
     }
     return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
 

@@ -281,6 +281,8 @@ def create_order(
                 "ticket_type_id": item.ticket_type_id,
                 "ticket_type_name": tt.get("name", "Standard"),
                 "ticket_code": code,
+                "unit_price": str(price),
+                "price": str(price),
                 "attendee_name": item.attendee_name or body.guest_name,
                 "attendee_email": att_email,
                 "status": "active",

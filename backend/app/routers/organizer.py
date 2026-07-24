@@ -225,7 +225,7 @@ def export_attendees(
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=attendees_event_{event_id}.pdf"}
+            headers={"Content-Disposition": f"inline; filename=attendees_event_{event_id}.pdf"}
         )
 
     is_csv = (export and export.lower() == "csv") or (format and format.lower() == "csv")

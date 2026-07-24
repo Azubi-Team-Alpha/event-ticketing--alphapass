@@ -285,7 +285,16 @@ class DynamoDBHelper:
         return self._convert_decimals(item) if item else None
 
     def get_ticket_by_code(self, ticket_code: str) -> Optional[Dict[str, Any]]:
-        items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", ticket_code)
+        if not ticket_code:
+            return None
+        code_clean = ticket_code.strip()
+        items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", code_clean)
+        if not items and code_clean != code_clean.upper():
+            items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", code_clean.upper())
+        if not items:
+            item = self.get_ticket(code_clean)
+            if item:
+                return item
         return items[0] if items else None
 
     def list_tickets_by_order(self, order_id: str) -> List[Dict[str, Any]]:

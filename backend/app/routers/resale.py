@@ -21,17 +21,42 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
     l_id = listing.get("ListingID") or listing.get("id", "")
     ticket_id = listing.get("ticket_id", "")
     ticket = dynamodb_helper.get_ticket(ticket_id) if ticket_id else None
-    
+
     t_code = ticket.get("ticket_code") if ticket else listing.get("ticket_code")
     e_title = None
+    face_val = Decimal(str(listing.get("face_value", 0)))
+
     if ticket:
+        if face_val <= Decimal("0.00"):
+            if ticket.get("unit_price"):
+                face_val = Decimal(str(ticket.get("unit_price")))
+            elif ticket.get("price"):
+                face_val = Decimal(str(ticket.get("price")))
+
         order_id = ticket.get("order_id")
         if order_id:
             order = dynamodb_helper.get_order(order_id)
             if order:
-                event = dynamodb_helper.get_event(order.get("event_id", ""))
+                event_id = order.get("event_id", "")
+                event = dynamodb_helper.get_event(event_id)
                 if event:
                     e_title = event.get("title")
+                    if face_val <= Decimal("0.00"):
+                        for oi in order.get("items", []):
+                            if oi.get("id") == ticket.get("order_item_id") or oi.get("ticket_type_id") == ticket.get("ticket_type_id"):
+                                if oi.get("unit_price"):
+                                    face_val = Decimal(str(oi.get("unit_price")))
+                                    break
+                        if face_val <= Decimal("0.00") and event.get("ticket_types"):
+                            for tt in event.get("ticket_types", []):
+                                if tt.get("id") == ticket.get("ticket_type_id"):
+                                    face_val = Decimal(str(tt.get("price", 0)))
+                                    break
+                        if face_val <= Decimal("0.00") and event.get("min_price"):
+                            face_val = Decimal(str(event.get("min_price")))
+
+    if face_val <= Decimal("0.00") and listing.get("asking_price"):
+        face_val = Decimal(str(listing.get("asking_price")))
 
     return ResaleListingResponse(
         id=l_id,
@@ -41,7 +66,7 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
         seller_name=listing.get("seller_name", ""),
         seller_email=listing.get("seller_email", ""),
         asking_price=Decimal(str(listing.get("asking_price", 0))),
-        face_value=Decimal(str(listing.get("face_value", 0))),
+        face_value=face_val,
         status=listing.get("status", "active"),
         listed_at=_format_dt(listing.get("listed_at")) or datetime.now(timezone.utc),
         sold_at=_format_dt(listing.get("sold_at")),
@@ -52,7 +77,7 @@ def _format_resale_response(listing: Dict[str, Any]) -> ResaleListingResponse:
 @router.get("", response_model=list[ResaleListingResponse])
 def browse_resale(event_id: str | None = Query(None)):
     listings = dynamodb_helper.list_resale_listings_by_status("active")
-    
+
     if event_id:
         filtered = []
         for l in listings:
@@ -99,7 +124,22 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
         if e.get("status") in ("active", "pending"):
             raise HTTPException(400, "Ticket is already listed or pending resale approval")
 
-    face_value = Decimal(str(ticket.get("unit_price", "0.00")))
+    face_value = Decimal(str(ticket.get("unit_price") or ticket.get("price") or 0))
+    if face_value <= Decimal("0.00"):
+        for oi in order.get("items", []):
+            if oi.get("id") == ticket.get("order_item_id") or oi.get("ticket_type_id") == ticket.get("ticket_type_id"):
+                if oi.get("unit_price"):
+                    face_value = Decimal(str(oi.get("unit_price")))
+                    break
+    if face_value <= Decimal("0.00") and event.get("ticket_types"):
+        for tt in event.get("ticket_types", []):
+            if tt.get("id") == ticket.get("ticket_type_id"):
+                face_value = Decimal(str(tt.get("price", 0)))
+                break
+    if face_value <= Decimal("0.00") and event.get("min_price"):
+        face_value = Decimal(str(event.get("min_price")))
+    if face_value <= Decimal("0.00"):
+        face_value = body.asking_price
     max_markup = Decimal(str(event.get("max_resale_markup_percent", "10.00")))
     max_price = face_value * (Decimal("1") + max_markup / Decimal("100"))
 
