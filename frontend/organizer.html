@@ -292,13 +292,25 @@
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Event Category</label>
+                                <select id="newEventCategory" class="form-select">
+                                    <option value="">Select Category...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold text-dark">Venue Name *</label>
                                 <input type="text" id="newEventVenue" class="form-control"
                                     placeholder="Accra Digital Centre" required>
                             </div>
+                        </div>
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-dark">City *</label>
                                 <input type="text" id="newEventCity" class="form-control" placeholder="Accra" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Country</label>
+                                <input type="text" id="newEventCountry" class="form-control" value="Ghana">
                             </div>
                         </div>
                         <div class="mb-3">
@@ -316,6 +328,54 @@
                                 <input type="datetime-local" id="newEventEnd" class="form-control" required>
                             </div>
                         </div>
+
+                        <!-- Ticket Resale & Policy Settings -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa fa-sliders-h text-warning me-2"></i> Ticket Resale & Policy Settings</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="newEventAllowResale" checked>
+                                        <label class="form-check-label fw-bold text-dark" for="newEventAllowResale">Allow Ticket Resale</label>
+                                        <div class="small text-muted">Attendees can list passes on secondary market.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="newEventAllowRefunds" checked>
+                                        <label class="form-check-label fw-bold text-dark" for="newEventAllowRefunds">Allow Refunds</label>
+                                        <div class="small text-muted">Attendees can submit refund requests.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="newEventAllowTransfers" checked>
+                                        <label class="form-check-label fw-bold text-dark" for="newEventAllowTransfers">Allow Transfers</label>
+                                        <div class="small text-muted">Attendees can transfer passes directly.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Group Discount Settings -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa fa-users text-primary me-2"></i> Group Purchase Discounts</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small">Min Passes for Discount</label>
+                                    <input type="number" id="newEventGroupThreshold" class="form-control form-control-sm" placeholder="e.g. 5">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small">Discount Percentage (%)</label>
+                                    <input type="number" step="0.01" id="newEventGroupPercent" class="form-control form-control-sm" placeholder="e.g. 10.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Cancellation & Refund Terms</label>
+                            <textarea id="newEventPolicies" class="form-control" rows="2" placeholder="State cancellation terms, age limits, dress code..."></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-outline-secondary rounded-pill"
@@ -323,6 +383,154 @@
                         <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create Event</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Event Settings Modal -->
+    <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i
+                            class="fa fa-edit me-2 text-warning"></i> Edit Event Settings & Ticket Resale</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editEventForm">
+                    <input type="hidden" id="editEventId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Event Title *</label>
+                            <input type="text" id="editEventTitle" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Description *</label>
+                            <textarea id="editEventDesc" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Event Category</label>
+                                <select id="editEventCategory" class="form-select">
+                                    <option value="">Select Category...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Venue Name *</label>
+                                <input type="text" id="editEventVenue" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">City *</label>
+                                <input type="text" id="editEventCity" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Country</label>
+                                <input type="text" id="editEventCountry" class="form-control" value="Ghana">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Event Cover Banner Image URL</label>
+                            <input type="url" id="editEventBanner" class="form-control">
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">Start Date & Time *</label>
+                                <input type="datetime-local" id="editEventStart" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">End Date & Time *</label>
+                                <input type="datetime-local" id="editEventEnd" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <!-- Ticket Resale & Policy Settings -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa fa-sliders-h text-warning me-2"></i> Ticket Resale & Policy Settings</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="editEventAllowResale">
+                                        <label class="form-check-label fw-bold text-dark" for="editEventAllowResale">Allow Ticket Resale</label>
+                                        <div class="small text-muted">Attendees can list passes on secondary market.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="editEventAllowRefunds">
+                                        <label class="form-check-label fw-bold text-dark" for="editEventAllowRefunds">Allow Refunds</label>
+                                        <div class="small text-muted">Attendees can submit refund requests.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="editEventAllowTransfers">
+                                        <label class="form-check-label fw-bold text-dark" for="editEventAllowTransfers">Allow Transfers</label>
+                                        <div class="small text-muted">Attendees can transfer passes directly.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Group Discount Settings -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa fa-users text-primary me-2"></i> Group Purchase Discounts</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small">Min Passes for Discount</label>
+                                    <input type="number" id="editEventGroupThreshold" class="form-control form-control-sm" placeholder="e.g. 5">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small">Discount Percentage (%)</label>
+                                    <input type="number" step="0.01" id="editEventGroupPercent" class="form-control form-control-sm" placeholder="e.g. 10.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Cancellation & Refund Terms</label>
+                            <textarea id="editEventPolicies" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Ticket Resale Activity Modal -->
+    <div class="modal fade" id="eventResaleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-tags me-2 text-warning"></i> Resale Marketplace Activity — <span id="resaleEventTitle">Event</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="fa fa-info-circle me-1"></i> Secondary ticket resale listings posted by pass holders for this event.
+                    </div>
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Pass Code</th>
+                                    <th>Seller Email</th>
+                                    <th>Face Value</th>
+                                    <th>Asking Price</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resaleTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -513,6 +721,18 @@
             }
         }
 
+        async function loadCategoriesIntoDropdowns() {
+            try {
+                const cats = await apiFetch('/events/categories');
+                const list = Array.isArray(cats) ? cats : [];
+                const opts = '<option value="">Select Category...</option>' + list.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                const newCat = document.getElementById('newEventCategory');
+                const editCat = document.getElementById('editEventCategory');
+                if (newCat) newCat.innerHTML = opts;
+                if (editCat) editCat.innerHTML = opts;
+            } catch (err) {}
+        }
+
         async function loadOrganizerEvents() {
             const tbody = document.getElementById('orgEventsTable');
             try {
@@ -528,13 +748,26 @@
                     const eventId = e.id || e.EventID || '';
                     const titleEsc = (e.title || '').replace(/'/g, "\\'");
                     const dateStr = e.starts_at ? new Date(e.starts_at).toLocaleDateString() : 'TBD';
+                    const resaleOn = e.allow_resale !== false;
+                    const refundsOn = e.allow_refunds !== false;
+                    const groupDisc = e.group_discount_percent ? `${parseFloat(e.group_discount_percent)}%` : null;
+
                     return `
                     <tr>
-                        <td class="fw-bold text-dark ps-3">${e.title}</td>
+                        <td class="fw-bold text-dark ps-3">
+                            <div>${e.title}</div>
+                            <div class="mt-1">
+                                <span class="badge ${resaleOn ? 'bg-success' : 'bg-secondary'} me-1" style="font-size: 0.68rem;"><i class="fa fa-tags me-1"></i>Resale ${resaleOn ? 'Enabled' : 'Disabled'}</span>
+                                <span class="badge ${refundsOn ? 'bg-info text-dark' : 'bg-secondary'} me-1" style="font-size: 0.68rem;"><i class="fa fa-undo me-1"></i>Refunds ${refundsOn ? 'Enabled' : 'Disabled'}</span>
+                                ${groupDisc ? `<span class="badge bg-warning text-dark me-1" style="font-size: 0.68rem;"><i class="fa fa-percent me-1"></i>Group ${groupDisc} Off</span>` : ''}
+                            </div>
+                        </td>
                         <td class="text-muted small">${e.venue_name || ''}, ${e.city || ''}</td>
                         <td class="text-muted small">${dateStr}</td>
-                        <td><span class="badge bg-success">${(e.status || 'PUBLISHED').toUpperCase()}</span></td>
+                        <td><span class="badge ${e.status === 'published' ? 'bg-success' : 'bg-warning text-dark'}">${(e.status || 'DRAFT').toUpperCase()}</span></td>
                         <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 me-1" onclick="openEditEventModal('${eventId}')" title="Edit Event & Resale Settings"><i class="fa fa-edit"></i> Edit</button>
+                            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 me-1" onclick="openResaleModal('${eventId}', '${titleEsc}')" title="Resale Listings"><i class="fa fa-tags"></i> Resale</button>
                             <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 me-1" onclick="openAnalyticsModal('${eventId}', '${titleEsc}')" title="Event Analytics"><i class="fa fa-chart-bar"></i> Analytics</button>
                             <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-2 py-1 me-1" onclick="openAttendeesModal('${eventId}', '${titleEsc}')" title="Roster"><i class="fa fa-users"></i> Roster</button>
                             <button class="btn btn-sm btn-warning text-dark rounded-pill px-2 py-1 me-1" onclick="openAddTicketModal('${eventId}')">+ Pass</button>
@@ -545,6 +778,72 @@
             } catch (err) {
                 console.error('Failed to load organizer events:', err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load events.</td></tr>`;
+            }
+        }
+
+        async function openEditEventModal(eventId) {
+            try {
+                const ev = await apiFetch(`/events/organizer/${eventId}`);
+                document.getElementById('editEventId').value = eventId;
+                document.getElementById('editEventTitle').value = ev.title || '';
+                document.getElementById('editEventDesc').value = ev.description || '';
+                document.getElementById('editEventVenue').value = ev.venue_name || '';
+                document.getElementById('editEventCity').value = ev.city || '';
+                document.getElementById('editEventCountry').value = ev.country || 'Ghana';
+                document.getElementById('editEventBanner').value = ev.banner_image_url || ev.image_url || '';
+                
+                if (ev.starts_at) {
+                    document.getElementById('editEventStart').value = new Date(ev.starts_at).toISOString().slice(0, 16);
+                }
+                if (ev.ends_at) {
+                    document.getElementById('editEventEnd').value = new Date(ev.ends_at).toISOString().slice(0, 16);
+                }
+
+                document.getElementById('editEventAllowResale').checked = ev.allow_resale !== false;
+                document.getElementById('editEventAllowRefunds').checked = ev.allow_refunds !== false;
+                document.getElementById('editEventAllowTransfers').checked = ev.allow_transfers !== false;
+                document.getElementById('editEventGroupThreshold').value = ev.group_discount_threshold || '';
+                document.getElementById('editEventGroupPercent').value = ev.group_discount_percent || '';
+                document.getElementById('editEventPolicies').value = ev.policies || '';
+
+                if (ev.category && ev.category.id) {
+                    document.getElementById('editEventCategory').value = ev.category.id;
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('editEventModal'));
+                modal.show();
+            } catch (err) {
+                showToast('Failed to load event details: ' + err.message, 'danger');
+            }
+        }
+
+        async function openResaleModal(eventId, title) {
+            document.getElementById('resaleEventTitle').textContent = title;
+            const tbody = document.getElementById('resaleTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading resale listings...</td></tr>';
+            
+            const modal = new bootstrap.Modal(document.getElementById('eventResaleModal'));
+            modal.show();
+
+            try {
+                const res = await apiFetch(`/resale/listings?event_id=${eventId}`);
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No secondary resale listings for this event yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(l => `
+                    <tr>
+                        <td class="ps-3"><code class="fw-bold">${l.ticket_code || 'PASS'}</code></td>
+                        <td class="small text-muted">${l.seller_email || l.seller_name || 'Pass Holder'}</td>
+                        <td class="text-muted">₵${parseFloat(l.face_value || 0).toFixed(2)}</td>
+                        <td class="fw-bold text-success">₵${parseFloat(l.asking_price || 0).toFixed(2)}</td>
+                        <td><span class="badge ${l.status === 'sold' ? 'bg-secondary' : 'bg-success'}">${(l.status || 'ACTIVE').toUpperCase()}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-danger">Failed to load resale activity: ${err.message}</td></tr>`;
             }
         }
 
@@ -648,6 +947,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
+            loadCategoriesIntoDropdowns();
 
             document.getElementById('orgLoginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -702,11 +1002,19 @@
                 e.preventDefault();
                 const title = document.getElementById('newEventTitle').value.trim();
                 const desc = document.getElementById('newEventDesc').value.trim();
+                const category_id = document.getElementById('newEventCategory').value || undefined;
                 const venue = document.getElementById('newEventVenue').value.trim();
                 const city = document.getElementById('newEventCity').value.trim();
+                const country = document.getElementById('newEventCountry').value.trim() || 'Ghana';
                 const banner = document.getElementById('newEventBanner').value.trim();
                 let start = document.getElementById('newEventStart').value;
                 let end = document.getElementById('newEventEnd').value;
+                const allow_resale = document.getElementById('newEventAllowResale').checked;
+                const allow_refunds = document.getElementById('newEventAllowRefunds').checked;
+                const allow_transfers = document.getElementById('newEventAllowTransfers').checked;
+                const group_discount_threshold = parseInt(document.getElementById('newEventGroupThreshold').value) || undefined;
+                const group_discount_percent = parseFloat(document.getElementById('newEventGroupPercent').value) || undefined;
+                const policies = document.getElementById('newEventPolicies').value.trim() || undefined;
 
                 if (!start) start = new Date().toISOString().slice(0, 16);
                 if (!end || new Date(end) <= new Date(start)) {
@@ -721,12 +1029,20 @@
                         body: JSON.stringify({
                             title,
                             description: desc,
+                            category_id,
                             venue_name: venue,
                             city,
+                            country,
                             banner_image_url: banner || undefined,
                             image_url: banner || undefined,
                             starts_at: start,
-                            ends_at: end
+                            ends_at: end,
+                            allow_resale,
+                            allow_refunds,
+                            allow_transfers,
+                            group_discount_threshold,
+                            group_discount_percent,
+                            policies
                         })
                     });
                     
@@ -742,6 +1058,57 @@
                     await checkAuth();
                 } catch (err) {
                     showToast('Event creation failed: ' + err.message, 'danger');
+                }
+            });
+
+            document.getElementById('editEventForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const eventId = document.getElementById('editEventId').value;
+                const title = document.getElementById('editEventTitle').value.trim();
+                const desc = document.getElementById('editEventDesc').value.trim();
+                const category_id = document.getElementById('editEventCategory').value || undefined;
+                const venue = document.getElementById('editEventVenue').value.trim();
+                const city = document.getElementById('editEventCity').value.trim();
+                const country = document.getElementById('editEventCountry').value.trim() || 'Ghana';
+                const banner = document.getElementById('editEventBanner').value.trim();
+                const start = document.getElementById('editEventStart').value;
+                const end = document.getElementById('editEventEnd').value;
+                const allow_resale = document.getElementById('editEventAllowResale').checked;
+                const allow_refunds = document.getElementById('editEventAllowRefunds').checked;
+                const allow_transfers = document.getElementById('editEventAllowTransfers').checked;
+                const group_discount_threshold = parseInt(document.getElementById('editEventGroupThreshold').value) || undefined;
+                const group_discount_percent = parseFloat(document.getElementById('editEventGroupPercent').value) || undefined;
+                const policies = document.getElementById('editEventPolicies').value.trim() || undefined;
+
+                try {
+                    await apiFetch(`/events/organizer/${eventId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            title,
+                            description: desc,
+                            category_id,
+                            venue_name: venue,
+                            city,
+                            country,
+                            banner_image_url: banner || undefined,
+                            starts_at: start,
+                            ends_at: end,
+                            allow_resale,
+                            allow_refunds,
+                            allow_transfers,
+                            group_discount_threshold,
+                            group_discount_percent,
+                            policies
+                        })
+                    });
+
+                    const modalEl = document.getElementById('editEventModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    showToast('Event settings & ticket policies updated successfully!', 'success');
+                    await loadOrganizerEvents();
+                } catch (err) {
+                    showToast('Failed to update event: ' + err.message, 'danger');
                 }
             });
 

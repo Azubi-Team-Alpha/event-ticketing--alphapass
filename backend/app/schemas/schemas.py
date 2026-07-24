@@ -239,7 +239,7 @@ class EventCreate(BaseModel):
     allow_transfers: bool = True
     transfer_deadline_hours: int = 24
     max_transfers_per_ticket: int = 1
-    allow_resale: bool = False
+    allow_resale: bool = True
     max_resale_markup_percent: Decimal = Decimal("10.00")
     group_discount_threshold: Optional[int] = None
     group_discount_percent: Optional[Decimal] = None
