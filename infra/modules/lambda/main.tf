@@ -145,6 +145,7 @@ resource "aws_lambda_function" "api_backend" {
       AUDIT_LOGS_TABLE             = var.audit_logs_table_name
       EVENT_CATEGORIES_TABLE       = var.event_categories_table_name
       CONFIRMATION_TOPIC           = var.sns_topic_arn
+      SNS_TOPIC_ARN                = var.sns_topic_arn
     }
   }
 

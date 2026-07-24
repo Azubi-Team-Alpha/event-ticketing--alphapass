@@ -35,6 +35,11 @@ class Settings(BaseSettings):
 
     # SNS
     CONFIRMATION_TOPIC: str = ""
+    SNS_TOPIC_ARN: str = ""
+
+    @property
+    def sns_arn(self) -> str:
+        return self.CONFIRMATION_TOPIC or self.SNS_TOPIC_ARN or ""
 
     # Admin invite gate (required when a second admin account is created)
     ADMIN_INVITE_CODE: Optional[str] = None
