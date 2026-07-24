@@ -623,6 +623,8 @@ class PayoutRequest(BaseModel):
 class PayoutResponse(BaseModel):
     id: str
     organizer_id: str
+    organizer_name: Optional[str] = None
+    organizer_business_name: Optional[str] = None
     amount: Decimal
     currency: str = "GHS"
     status: str

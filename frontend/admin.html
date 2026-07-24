@@ -236,7 +236,7 @@
                                         <table class="table align-middle table-hover">
                                             <thead class="bg-dark text-white">
                                                 <tr>
-                                                    <th class="py-3 ps-3">Organizer ID</th>
+                                                    <th class="py-3 ps-3">Organizer / Business Name</th>
                                                     <th class="py-3">Amount</th>
                                                     <th class="py-3">Bank / Account Details</th>
                                                     <th class="py-3">Status</th>
@@ -731,9 +731,15 @@
                 tbody.innerHTML = list.map(p => {
                     const pId = p.id || p.PayoutID || '';
                     const isProcessed = p.status === 'processed';
+                    const orgName = p.organizer_name || p.organizer_business_name || 'Organizer';
+                    const orgId = p.organizer_id || '';
+                    const subIdText = orgId ? `<div class="text-muted small font-monospace" style="font-size:0.75rem;">ID: ${orgId}</div>` : '';
                     return `
                     <tr>
-                        <td class="ps-3"><code class="small text-dark">${p.organizer_id || 'ORG'}</code></td>
+                        <td class="ps-3">
+                            <div class="fw-bold text-dark">${orgName}</div>
+                            ${subIdText}
+                        </td>
                         <td class="fw-bold text-success">₵${parseFloat(p.amount || 0).toFixed(2)}</td>
                         <td class="small text-muted">${p.notes || 'MoMo / Bank Transfer'}</td>
                         <td><span class="badge ${isProcessed ? 'bg-success' : 'bg-warning text-dark'}">${(p.status || 'PENDING').toUpperCase()}</span></td>

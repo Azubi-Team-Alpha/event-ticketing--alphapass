@@ -256,11 +256,17 @@ def export_attendees(
 @router.get("/payouts", response_model=list[PayoutResponse])
 def my_payouts(org: AttrDict = Depends(get_current_organizer)):
     org_id = str(org.get("OrganizerID") or org.get("id") or "")
+    org_obj = dynamodb_helper.get_organizer(org_id) or {}
+    b_name = org_obj.get("business_name") or org.get("business_name")
+    f_name = org_obj.get("full_name") or org.get("full_name") or org.get("organizer_name")
+    display_name = b_name or f_name or "Organizer"
     payouts = dynamodb_helper.list_payouts_by_organizer(org_id)
     return [
         PayoutResponse(
             id=p.get("PayoutID") or p.get("id", ""),
             organizer_id=org_id,
+            organizer_name=display_name,
+            organizer_business_name=b_name or f_name,
             amount=Decimal(str(p.get("amount", 0))),
             currency="GHS",
             status=p.get("status", "pending"),
@@ -279,6 +285,11 @@ def request_payout(
 ):
     import uuid
     org_id = str(org.get("OrganizerID") or org.get("id") or "")
+    org_obj = dynamodb_helper.get_organizer(org_id) or {}
+    b_name = org_obj.get("business_name") or org.get("business_name")
+    f_name = org_obj.get("full_name") or org.get("full_name") or org.get("organizer_name")
+    display_name = b_name or f_name or "Organizer"
+
     amount = float(body.get("amount", 0))
     if amount <= 0:
         raise HTTPException(400, "Payout amount must be greater than 0")
@@ -295,6 +306,8 @@ def request_payout(
     return PayoutResponse(
         id=payout_id,
         organizer_id=org_id,
+        organizer_name=display_name,
+        organizer_business_name=b_name or f_name,
         amount=Decimal(str(amount)),
         currency="GHS",
         status="pending",

@@ -374,19 +374,32 @@ def list_all_payouts(
     payouts.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
     start_idx = (page - 1) * limit
     page_p = payouts[start_idx : start_idx + limit]
-    return [
-        PayoutResponse(
-            id=p.get("PayoutID") or p.get("id", ""),
-            organizer_id=p.get("organizer_id", ""),
-            amount=Decimal(str(p.get("amount", 0))),
-            currency="GHS",
-            status=p.get("status", "pending"),
-            notes=p.get("notes"),
-            created_at=_format_dt(p.get("created_at")) or datetime.now(timezone.utc),
-            processed_at=_format_dt(p.get("processed_at")),
+
+    org_cache: dict = {}
+    result = []
+    for p in page_p:
+        org_id = p.get("organizer_id", "")
+        if org_id and org_id not in org_cache:
+            org_cache[org_id] = dynamodb_helper.get_organizer(org_id) or {}
+        org = org_cache.get(org_id, {})
+        b_name = org.get("business_name")
+        f_name = org.get("full_name") or org.get("organizer_name")
+        display_name = b_name or f_name or (f"Organizer ({org_id[:8]})" if org_id else "Organizer")
+        result.append(
+            PayoutResponse(
+                id=p.get("PayoutID") or p.get("id", ""),
+                organizer_id=org_id,
+                organizer_name=display_name,
+                organizer_business_name=b_name or f_name,
+                amount=Decimal(str(p.get("amount", 0))),
+                currency="GHS",
+                status=p.get("status", "pending"),
+                notes=p.get("notes"),
+                created_at=_format_dt(p.get("created_at")) or datetime.now(timezone.utc),
+                processed_at=_format_dt(p.get("processed_at")),
+            )
         )
-        for p in page_p
-    ]
+    return result
 
 
 @router.put("/payouts/{payout_id}/process")
