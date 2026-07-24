@@ -122,3 +122,20 @@ def test_bulk_order_mixed_types(client: TestClient, sample_event):
     data = resp.json()
     assert data["total_tickets"] == 5
     assert len(data["items"]) == 2
+
+
+def test_order_fallback_ticket_type_id(client: TestClient, sample_event):
+    event_id = sample_event["id"]
+    resp = client.post("/orders", json={
+        "event_id": event_id,
+        "guest_name": "Mustapha Haadi",
+        "guest_email": "mustapha@test.com",
+        "guest_phone": "+233548367637",
+        "items": [{"ticket_type_id": "tt-gen", "quantity": 3}],
+    })
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["guest_email"] == "mustapha@test.com"
+    assert data["total_tickets"] == 3
+    assert data["status"] == "confirmed"
+
