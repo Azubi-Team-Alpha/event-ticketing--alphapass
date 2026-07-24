@@ -9,9 +9,7 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -53,8 +51,7 @@
                         class="fa fa-chart-line"></i></div>
                 <div>
                     <h2 class="text-white fw-bold m-0">Organizer Dashboard</h2>
-                    <p class="mb-0 text-white-50 small">Manage event listings, ticket tier pricing, revenue payouts, and
-                        entry gate check-in scans.</p>
+                    <p class="mb-0 text-white-50 small">Manage event listings, ticket tier pricing, revenue payouts, and entry gate check-in scans.</p>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2" id="authStatusBadge">
@@ -135,7 +132,7 @@
 
             <!-- Organizer Dashboard View (If logged in) -->
             <div id="dashboardSection" style="display: none;">
-                <!-- Reference Image Style Metric Header Cards -->
+                <!-- Metric Header Cards -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
@@ -143,9 +140,8 @@
                                 <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
                                         class="fa fa-dollar-sign"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total
-                                        Revenue</small>
-                                    <h3 class="fw-bold mb-0 text-white" id="statRevenue">₵14,250.00</h3>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total Gross</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statRevenue">₵0.00</h3>
                                 </div>
                             </div>
                         </div>
@@ -156,9 +152,8 @@
                                 <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
                                         class="fa fa-ticket-alt"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Tickets
-                                        Sold</small>
-                                    <h3 class="fw-bold mb-0 text-white" id="statTickets">142</h3>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Tickets Sold</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statTickets">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -169,9 +164,8 @@
                                 <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
                                         class="fa fa-calendar-check"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Active
-                                        Events</small>
-                                    <h3 class="fw-bold mb-0 text-white" id="statEvents">3</h3>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Active Events</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statEvents">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -180,10 +174,10 @@
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
                                 <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
-                                        class="fa fa-qrcode"></i></div>
+                                        class="fa fa-wallet"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Gate Scans</small>
-                                    <h3 class="fw-bold mb-0 text-white" id="statCheckins">98</h3>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Pending Payout</small>
+                                    <h3 class="fw-bold mb-0 text-white" id="statPendingPayout">₵0.00</h3>
                                 </div>
                             </div>
                         </div>
@@ -193,8 +187,7 @@
                 <!-- Action Toolbar -->
                 <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <h4 class="fw-bold text-dark m-0"><i class="fa fa-th-list text-primary me-2"></i> Event
-                            Management Panel</h4>
+                        <h4 class="fw-bold text-dark m-0"><i class="fa fa-th-list text-primary me-2"></i> Event Management Panel</h4>
                         <div class="d-flex gap-2">
                             <button class="btn btn-warning text-dark rounded-pill fw-bold px-4 py-2"
                                 data-bs-toggle="modal" data-bs-target="#createEventModal"><i
@@ -208,7 +201,7 @@
 
                 <!-- Events & Analytics Grid -->
                 <div class="row g-4 mb-4">
-                    <!-- Events Table (Reference Image Data Table Style) -->
+                    <!-- Events Table -->
                     <div class="col-lg-8">
                         <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -234,13 +227,12 @@
                         </div>
                     </div>
 
-                    <!-- Payout & Quick Action Panel -->
+                    <!-- Payout & History Panel -->
                     <div class="col-lg-4">
-                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
-                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-wallet text-primary me-2"></i> Revenue
-                                Payout Request</h5>
-                            <p class="text-muted small mb-4">Transfer event ticket earnings directly to your registered
-                                bank account or Mobile Money merchant wallet.</p>
+                        <!-- Request Payout Card -->
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-paper-plane text-primary me-2"></i> Request Revenue Payout</h5>
+                            <p class="text-muted small mb-3">Withdraw net ticket earnings to your Bank or Mobile Money merchant wallet.</p>
 
                             <form id="payoutForm">
                                 <div class="mb-3">
@@ -249,8 +241,7 @@
                                         placeholder="5000.00" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold small text-dark">Bank / Mobile Money Provider
-                                        *</label>
+                                    <label class="form-label fw-bold small text-dark">Bank / Mobile Money Provider *</label>
                                     <input type="text" id="payoutBank" class="form-control py-2"
                                         placeholder="MTN Mobile Money Merchant" required>
                                 </div>
@@ -261,8 +252,16 @@
                                 </div>
                                 <button type="submit"
                                     class="btn btn-warning text-dark w-100 rounded-pill py-2 fw-bold"><i
-                                        class="fa fa-paper-plane me-1"></i> Request Payout</button>
+                                        class="fa fa-paper-plane me-1"></i> Submit Payout Request</button>
                             </form>
+                        </div>
+
+                        <!-- Payout History Card -->
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-history text-success me-2"></i> Payout History</h5>
+                            <div id="payoutHistoryContainer" style="max-height: 220px; overflow-y: auto;">
+                                <div class="text-center text-muted py-2 small">Loading payout history...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,7 +302,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark">Event Cover / Banner Image URL (S3 bucket asset)</label>
+                            <label class="form-label fw-bold text-dark">Event Cover Banner Image URL</label>
                             <input type="url" id="newEventBanner" class="form-control"
                                 placeholder="https://alphapass-assets-dev.s3.amazonaws.com/events/banners/cover.jpg">
                         </div>
@@ -321,8 +320,7 @@
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-outline-secondary rounded-pill"
                             data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create
-                            Event</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create Event</button>
                     </div>
                 </form>
             </div>
@@ -368,34 +366,56 @@
         </div>
     </div>
 
-    <!-- Scanner Console Modal -->
-    <div class="modal fade" id="scannerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- Event Performance Analytics Modal -->
+    <div class="modal fade" id="analyticsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-3">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-qrcode me-2 text-warning"></i>
-                        Gate Entry Scanner Console</h5>
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-chart-bar me-2 text-primary"></i> Event Analytics — <span id="analyticsEventTitle">Event</span></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4 text-center">
-                    <p class="text-muted small">Scan QR code or enter ticket pass code manually to verify gate entrance.
-                    </p>
-
-                    <form id="scanForm" class="mb-4">
-                        <div class="input-group">
-                            <input type="text" id="scanCodeInput" class="form-control text-center fs-5 fw-bold"
-                                placeholder="Enter Ticket Code (e.g. TKT-123456)" required>
-                            <button type="submit" class="btn btn-warning text-dark fw-bold px-4"><i
-                                    class="fa fa-search me-1"></i> Scan Pass</button>
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light p-3 rounded-3 text-center">
+                                <small class="text-muted fw-bold">Gross Revenue</small>
+                                <h4 class="fw-bold text-success mb-0" id="anaGross">₵0.00</h4>
+                            </div>
                         </div>
-                    </form>
-
-                    <div id="scanResultAlert" class="alert py-3 rounded-3" style="display: none;">
-                        <!-- Status text -->
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light p-3 rounded-3 text-center">
+                                <small class="text-muted fw-bold">Tickets Sold / Cap</small>
+                                <h4 class="fw-bold text-dark mb-0" id="anaSoldCap">0 / 0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light p-3 rounded-3 text-center">
+                                <small class="text-muted fw-bold">Attendance Rate</small>
+                                <h4 class="fw-bold text-primary mb-0" id="anaRate">0%</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Ticket Tier Performance Breakdown</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Pass Tier Name</th>
+                                    <th>Price</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Subtotal Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsBreakdownBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
     <!-- Attendees Roster Modal -->
     <div class="modal fade" id="attendeesModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -466,19 +486,21 @@
             }
 
             try {
-                // Live Dashboard API stats fetch & Auth Guardrail
+                // Live Dashboard API stats fetch
                 const stats = await apiFetch('/organizer/dashboard');
                 
                 const revenueVal = parseFloat(stats.gross_revenue || stats.total_revenue || 0);
                 document.getElementById('statRevenue').textContent = '₵' + revenueVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 document.getElementById('statTickets').textContent = stats.total_tickets_sold || 0;
                 document.getElementById('statEvents').textContent = stats.total_events || 0;
-                document.getElementById('statCheckins').textContent = stats.total_checkins || 0;
+                document.getElementById('statPendingPayout').textContent = '₵' + parseFloat(stats.pending_payout || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
                 badge.innerHTML = '<span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-check-circle me-1"></i> Authenticated Organizer</span>';
                 authSec.style.display = 'none';
                 dashSec.style.display = 'block';
+
                 loadOrganizerEvents();
+                loadPayoutHistory();
             } catch (err) {
                 console.warn('Organizer session validation failed:', err.message);
                 localStorage.removeItem('organizer_token');
@@ -511,9 +533,9 @@
                         <td class="text-muted small">${dateStr}</td>
                         <td><span class="badge bg-success">${(e.status || 'PUBLISHED').toUpperCase()}</span></td>
                         <td class="text-end pe-3">
-                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-3 fw-bold me-1" onclick="openAttendeesModal('${eventId}', '${titleEsc}')"><i class="fa fa-users me-1"></i> Roster</button>
-                            <a class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" href="single.html?id=${eventId}" target="_blank"><i class="fa fa-eye me-1"></i> View Details</a>
-                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold" onclick="openAddTicketModal('${eventId}')"><i class="fa fa-plus me-1"></i> + Pass</button>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 me-1" onclick="openAnalyticsModal('${eventId}', '${titleEsc}')" title="Event Analytics"><i class="fa fa-chart-bar"></i> Analytics</button>
+                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-2 py-1 me-1" onclick="openAttendeesModal('${eventId}', '${titleEsc}')" title="Roster"><i class="fa fa-users"></i> Roster</button>
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill px-2 py-1 me-1" onclick="openAddTicketModal('${eventId}')">+ Pass</button>
                         </td>
                     </tr>
                 `;
@@ -521,6 +543,39 @@
             } catch (err) {
                 console.error('Failed to load organizer events:', err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load events.</td></tr>`;
+            }
+        }
+
+        async function openAnalyticsModal(eventId, title) {
+            document.getElementById('analyticsEventTitle').textContent = title;
+            const tbody = document.getElementById('analyticsBreakdownBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading analytics...</td></tr>';
+            
+            const modal = new bootstrap.Modal(document.getElementById('analyticsModal'));
+            modal.show();
+
+            try {
+                const ana = await apiFetch(`/organizer/events/${eventId}/analytics`);
+                document.getElementById('anaGross').textContent = '₵' + parseFloat(ana.gross_revenue || 0).toFixed(2);
+                document.getElementById('anaSoldCap').textContent = `${ana.total_sold || 0} / ${ana.total_capacity || 0}`;
+                document.getElementById('anaRate').textContent = `${ana.attendance_rate || 0}%`;
+
+                const breakdown = ana.ticket_type_breakdown || [];
+                if (breakdown.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No ticket tier sales recorded yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = breakdown.map(b => `
+                    <tr>
+                        <td class="fw-bold text-dark">${b.name}</td>
+                        <td class="text-muted">₵${parseFloat(b.price || 0).toFixed(2)}</td>
+                        <td>${b.sold} / ${b.quantity}</td>
+                        <td class="fw-bold text-success">₵${parseFloat(b.revenue || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-danger">Failed to load analytics: ${err.message}</td></tr>`;
             }
         }
 
@@ -560,6 +615,33 @@
             }
         }
 
+        async function loadPayoutHistory() {
+            const container = document.getElementById('payoutHistoryContainer');
+            try {
+                const payouts = await apiFetch('/organizer/payouts');
+                const list = Array.isArray(payouts) ? payouts : (payouts.items || []);
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted py-2 small">No previous payout requests.</div>';
+                    return;
+                }
+
+                container.innerHTML = list.map(p => {
+                    const isProcessed = p.status === 'processed';
+                    return `
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong class="text-dark small">₵${parseFloat(p.amount || 0).toFixed(2)}</strong>
+                            <div class="small text-muted">${p.notes || ''}</div>
+                        </div>
+                        <span class="badge ${isProcessed ? 'bg-success' : 'bg-warning text-dark'}">${(p.status || 'PENDING').toUpperCase()}</span>
+                    </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="text-center text-muted py-2 small">Payout history unavailable.</div>';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
 
@@ -595,7 +677,6 @@
                     });
                     showToast('Organizer account created successfully! Signing in...', 'success');
                     
-                    // Auto login after signup
                     const loginRes = await apiFetch('/auth/organizer/login', {
                         method: 'POST',
                         body: JSON.stringify({ email, password })
@@ -696,34 +777,10 @@
                     });
                     showToast(`Payout request for ₵${amount.toFixed(2)} submitted successfully!`, 'success');
                     document.getElementById('payoutForm').reset();
+                    loadPayoutHistory();
+                    checkAuth();
                 } catch (err) {
                     showToast('Payout request failed: ' + err.message, 'danger');
-                }
-            });
-
-            document.getElementById('scanForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const code = document.getElementById('scanCodeInput').value.trim();
-                const alertBox = document.getElementById('scanResultAlert');
-
-                try {
-                    const res = await apiFetch('/checkin/scan', {
-                        method: 'POST',
-                        body: JSON.stringify({ ticket_code: code })
-                    });
-
-                    alertBox.style.display = 'block';
-                    if (res.valid || res.success) {
-                        alertBox.className = 'alert alert-success py-3 rounded-3 fw-bold';
-                        alertBox.innerHTML = `<i class="fa fa-check-circle fa-2x d-block mb-2"></i> ${res.message}`;
-                    } else {
-                        alertBox.className = 'alert alert-danger py-3 rounded-3 fw-bold';
-                        alertBox.innerHTML = `<i class="fa fa-exclamation-triangle fa-2x d-block mb-2"></i> ${res.message}`;
-                    }
-                } catch (err) {
-                    alertBox.style.display = 'block';
-                    alertBox.className = 'alert alert-danger py-3 rounded-3 fw-bold';
-                    alertBox.innerHTML = `<i class="fa fa-times-circle fa-2x d-block mb-2"></i> ${err.message}`;
                 }
             });
         });

@@ -9,9 +9,7 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -53,8 +51,7 @@
                         class="fa fa-user-shield"></i></div>
                 <div>
                     <h2 class="text-white fw-bold m-0">Admin Moderation Console</h2>
-                    <p class="mb-0 text-white-50 small">Approve pending organizer events, manage platform categories,
-                        process payouts, and inspect security audit logs.</p>
+                    <p class="mb-0 text-white-50 small">Approve events, process organizer payouts, moderate refunds/resale, and inspect security audit logs.</p>
                 </div>
             </div>
             <div id="adminAuthBadge">
@@ -70,21 +67,17 @@
             <div id="adminLoginFormSec" class="row justify-content-center py-4">
                 <div class="col-md-5">
                     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                        <h4 class="fw-bold mb-3 text-center text-dark"><i class="fa fa-lock text-primary me-2"></i>
-                            Admin Sign In</h4>
+                        <h4 class="fw-bold mb-3 text-center text-dark"><i class="fa fa-lock text-primary me-2"></i> Admin Sign In</h4>
                         <form id="adminLoginForm">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-dark">Admin Email *</label>
-                                <input type="email" id="adminEmail" class="form-control py-2" placeholder="admin@alphapass.com"
-                                    required>
+                                <input type="email" id="adminEmail" class="form-control py-2" placeholder="admin@alphapass.alphateam.live" required>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-dark">Password *</label>
-                                <input type="password" id="adminPassword" class="form-control py-2"
-                                    placeholder="Enter your password" required>
+                                <input type="password" id="adminPassword" class="form-control py-2" placeholder="Enter your password" required>
                             </div>
-                            <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i
-                                    class="fa fa-key me-1"></i> Authenticate Admin</button>
+                            <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-3 fw-bold"><i class="fa fa-key me-1"></i> Authenticate Admin</button>
                         </form>
                     </div>
                 </div>
@@ -92,16 +85,14 @@
 
             <!-- Admin Console Dashboard (If logged in) -->
             <div id="adminDashSec" style="display: none;">
-                <!-- Reference Image Style Metric Header Cards -->
+                <!-- Metric Header Cards -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
-                                        class="fa fa-calendar-alt text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-calendar-alt text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total
-                                        Events</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Total Events</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatEvents">0</h3>
                                 </div>
                             </div>
@@ -110,11 +101,9 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
-                                        class="fa fa-clock text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-clock text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Pending
-                                        Approval</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Pending Approval</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatPending">0</h3>
                                 </div>
                             </div>
@@ -123,11 +112,9 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
-                                        class="fa fa-hand-holding-usd text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-hand-holding-usd text-dark"></i></div>
                                 <div>
-                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Platform
-                                        Fees</small>
+                                    <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Platform Fees</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatCommission">₵0.00</h3>
                                 </div>
                             </div>
@@ -136,8 +123,7 @@
                     <div class="col-md-3">
                         <div class="card border-0 shadow-sm p-4 rounded-3 bg-dark text-white h-100">
                             <div class="d-flex align-items-center">
-                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i
-                                        class="fa fa-users text-dark"></i></div>
+                                <div class="btn-md-square rounded-circle bg-warning text-dark me-3 fs-5 fw-bold"><i class="fa fa-users text-dark"></i></div>
                                 <div>
                                     <small class="text-white-50 fw-bold text-uppercase d-block mb-1">Organizers</small>
                                     <h3 class="fw-bold mb-0 text-white" id="admStatOrganizers">0</h3>
@@ -147,67 +133,237 @@
                     </div>
                 </div>
 
-                <!-- Action Bar -->
+                <!-- Admin Action Toolbar & Tabs -->
                 <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <h4 class="fw-bold text-dark m-0"><i class="fa fa-tasks text-primary me-2"></i> Platform Governance Queue</h4>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-warning text-dark rounded-pill fw-bold px-3 py-2"
-                                data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa fa-folder-plus me-1"></i>
-                                Manage Categories</button>
-                            <button class="btn btn-outline-danger rounded-pill fw-bold px-3 py-2" id="adminLogoutBtn"><i
-                                    class="fa fa-sign-out-alt"></i> Logout Admin</button>
+                            <button class="btn btn-warning text-dark rounded-pill fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa fa-folder-plus me-1"></i> Add Category</button>
+                            <button class="btn btn-outline-primary rounded-pill fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#createAdminModal"><i class="fa fa-user-plus me-1"></i> New Sub-Admin</button>
+                            <button class="btn btn-outline-danger rounded-pill fw-bold px-3 py-2" id="adminLogoutBtn"><i class="fa fa-sign-out-alt"></i> Logout Admin</button>
                         </div>
                     </div>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-pills nav-fill flex-column flex-sm-row gap-1" id="adminTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-bold py-2" id="tab-events-btn" data-bs-toggle="tab" data-bs-target="#tab-events" type="button"><i class="fa fa-calendar-check me-1"></i> Event Moderation</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-organizers-btn" data-bs-toggle="tab" data-bs-target="#tab-organizers" type="button"><i class="fa fa-users-cog me-1"></i> Organizers</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-payouts-btn" data-bs-toggle="tab" data-bs-target="#tab-payouts" type="button"><i class="fa fa-money-check-alt me-1"></i> Organizer Payouts</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-refunds-btn" data-bs-toggle="tab" data-bs-target="#tab-refunds" type="button"><i class="fa fa-undo me-1"></i> Refund Requests</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-resale-btn" data-bs-toggle="tab" data-bs-target="#tab-resale" type="button"><i class="fa fa-store me-1"></i> Resale Listings</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-admins-btn" data-bs-toggle="tab" data-bs-target="#tab-admins" type="button"><i class="fa fa-user-shield me-1"></i> Admin Users</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-2" id="tab-orders-btn" data-bs-toggle="tab" data-bs-target="#tab-orders" type="button"><i class="fa fa-receipt me-1"></i> All Orders</button>
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="row g-4 mb-4">
-                    <!-- Event Approvals Table -->
+                    <!-- Tab Content Area -->
                     <div class="col-lg-8">
-                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
-                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-clipboard-check text-warning me-2"></i> Pending Event Submissions</h5>
-                            <div class="table-responsive">
-                                <table class="table align-middle table-hover">
-                                    <thead class="bg-dark text-white">
-                                        <tr>
-                                            <th class="py-3 ps-3">Event Title</th>
-                                            <th class="py-3">Organizer</th>
-                                            <th class="py-3">City</th>
-                                            <th class="py-3">Status</th>
-                                            <th class="py-3 text-end pe-3">Moderation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pendingEventsTable">
-                                        <!-- Loaded dynamically -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <div class="tab-content" id="adminTabContent">
 
-                        <!-- Organizers Table -->
-                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                            <h5 class="fw-bold text-dark mb-3"><i class="fa fa-users-cog text-primary me-2"></i> Registered Event Organizers</h5>
-                            <div class="table-responsive">
-                                <table class="table align-middle table-hover">
-                                    <thead class="bg-dark text-white">
-                                        <tr>
-                                            <th class="py-3 ps-3">Organizer / Business</th>
-                                            <th class="py-3">Email</th>
-                                            <th class="py-3">Events</th>
-                                            <th class="py-3">Status</th>
-                                            <th class="py-3 text-end pe-3">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="organizersTable">
-                                        <!-- Loaded dynamically -->
-                                    </tbody>
-                                </table>
+                            <!-- TAB 1: EVENT MODERATION -->
+                            <div class="tab-pane fade show active" id="tab-events" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-dark m-0"><i class="fa fa-clipboard-check text-warning me-2"></i> Event Moderation Portfolio</h5>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-dark active" onclick="loadAdminEvents('pending')">Pending Only</button>
+                                            <button class="btn btn-outline-dark" onclick="loadAdminEvents('all')">All Events</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Event Title</th>
+                                                    <th class="py-3">Organizer</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3">Featured</th>
+                                                    <th class="py-3 text-end pe-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eventsTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- TAB 2: ORGANIZER MANAGEMENT -->
+                            <div class="tab-pane fade" id="tab-organizers" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="fa fa-users-cog text-primary me-2"></i> Registered Event Organizers</h5>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Organizer / Business</th>
+                                                    <th class="py-3">Email</th>
+                                                    <th class="py-3">Events</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3 text-end pe-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="organizersTable">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 3: ORGANIZER PAYOUTS -->
+                            <div class="tab-pane fade" id="tab-payouts" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="fa fa-money-check-alt text-success me-2"></i> Organizer Revenue Payout Requests</h5>
+                                    <p class="text-muted small mb-3">Inspect organizer payout requests and process transfers to Mobile Money/Bank accounts.</p>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Organizer ID</th>
+                                                    <th class="py-3">Amount</th>
+                                                    <th class="py-3">Bank / Account Details</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3 text-end pe-3">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="payoutsTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 4: REFUND REQUESTS -->
+                            <div class="tab-pane fade" id="tab-refunds" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="fa fa-undo text-danger me-2"></i> Order Refund Moderation</h5>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Order ID</th>
+                                                    <th class="py-3">Guest Name & Email</th>
+                                                    <th class="py-3">Amount</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3 text-end pe-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="refundsTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 5: RESALE MARKETPLACE MODERATION -->
+                            <div class="tab-pane fade" id="tab-resale" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="fa fa-store text-warning me-2"></i> Secondary Market Resale Moderation</h5>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Ticket Pass / Event</th>
+                                                    <th class="py-3">Seller</th>
+                                                    <th class="py-3">Face Value</th>
+                                                    <th class="py-3">Asking Price</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3 text-end pe-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="resaleTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 6: ADMIN USERS -->
+                            <div class="tab-pane fade" id="tab-admins" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-dark m-0"><i class="fa fa-user-shield text-info me-2"></i> Platform Sub-Admin Accounts</h5>
+                                        <button class="btn btn-sm btn-primary rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#createAdminModal"><i class="fa fa-plus me-1"></i> Add Admin</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Full Name</th>
+                                                    <th class="py-3">Email</th>
+                                                    <th class="py-3">Role</th>
+                                                    <th class="py-3">Status</th>
+                                                    <th class="py-3 text-end pe-3">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="adminsTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 7: ALL ORDERS -->
+                            <div class="tab-pane fade" id="tab-orders" role="tabpanel">
+                                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="fa fa-receipt text-primary me-2"></i> Platform Orders Ledger</h5>
+                                    <div class="table-responsive">
+                                        <table class="table align-middle table-hover">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <th class="py-3 ps-3">Order ID</th>
+                                                    <th class="py-3">Guest Name & Email</th>
+                                                    <th class="py-3">Total Amount</th>
+                                                    <th class="py-3">Platform Fee</th>
+                                                    <th class="py-3">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ordersTableBody">
+                                                <!-- Loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <!-- Side Panels: Fee Config & Audit Logs -->
+                    <!-- Side Panels: Categories, Fee Config & Audit Logs -->
                     <div class="col-lg-4">
+                        <!-- Event Categories Card -->
+                        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-dark m-0"><i class="fa fa-tags text-warning me-2"></i> Categories</h5>
+                                <button class="btn btn-sm btn-warning text-dark rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa fa-plus me-1"></i> Add</button>
+                            </div>
+                            <div id="categoriesContainer" style="max-height: 220px; overflow-y: auto;">
+                                <div class="text-center text-muted py-2 small">Loading categories...</div>
+                            </div>
+                        </div>
+
+                        <!-- Commission Form -->
                         <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
                             <h5 class="fw-bold text-dark mb-3"><i class="fa fa-percentage text-primary me-2"></i> Commission Rate</h5>
                             <form id="commissionForm">
@@ -219,6 +375,7 @@
                             </form>
                         </div>
 
+                        <!-- Audit Logs -->
                         <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
                             <h5 class="fw-bold text-dark mb-3"><i class="fa fa-history text-danger me-2"></i> Audit Logs</h5>
                             <div id="auditLogsContainer" style="max-height: 380px; overflow-y: auto;">
@@ -251,12 +408,79 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill"
-                            data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create
-                            Category</button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill fw-bold px-4">Create Category</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Admin Modal -->
+    <div class="modal fade" id="createAdminModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-user-plus me-2 text-info"></i> Create Sub-Admin Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createAdminForm">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Full Name *</label>
+                            <input type="text" id="newAdminName" class="form-control" placeholder="Sarah Connor" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email Address *</label>
+                            <input type="email" id="newAdminEmail" class="form-control" placeholder="sarah@alphapass.io" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Password *</label>
+                            <input type="password" id="newAdminPassword" class="form-control" placeholder="Min 8 characters" required>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="newAdminSuper">
+                            <label class="form-check-label fw-bold text-dark" for="newAdminSuper">Grant Super Admin Privileges</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4">Create Admin Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendees Roster Modal -->
+    <div class="modal fade" id="adminAttendeesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-users me-2 text-warning"></i> Event Attendee Roster — <span id="adminRosterEventTitle">Event</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Live registered attendee list across platform</span>
+                        <a id="adminExportCsvBtn" href="#" target="_blank" class="btn btn-sm btn-outline-success rounded-pill fw-bold"><i class="fa fa-file-csv me-1"></i> Export Roster CSV</a>
+                    </div>
+                    <div class="table-responsive" style="max-height: 380px;">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Ticket Pass</th>
+                                    <th>Attendee Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAttendeesTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -289,7 +513,7 @@
             }
 
             try {
-                // Live Admin Dashboard API fetch & Auth Guardrail
+                // Fetch stats
                 const stats = await apiFetch('/admin/dashboard');
 
                 document.getElementById('admStatEvents').textContent = stats.total_events || 0;
@@ -300,9 +524,16 @@
                 badge.innerHTML = '<span class="badge bg-success px-3 py-2 fs-6"><i class="fa fa-user-shield me-1"></i> Authenticated Admin</span>';
                 loginSec.style.display = 'none';
                 dashSec.style.display = 'block';
-                loadPendingEvents();
+
+                loadAdminEvents('pending');
                 loadOrganizers();
+                loadPayouts();
+                loadRefundRequests();
+                loadResaleListings();
+                loadCategories();
                 loadAuditLogs();
+                loadAdmins();
+                loadOrders();
 
                 // Fetch current commission rate
                 apiFetch('/admin/config/commission').then(cRes => {
@@ -318,6 +549,120 @@
                 loginSec.style.display = 'flex';
                 dashSec.style.display = 'none';
                 showToast('Admin access restricted. Please sign in.', 'danger');
+            }
+        }
+
+        async function loadAdminEvents(filter = 'pending') {
+            const tbody = document.getElementById('eventsTableBody');
+            try {
+                const res = await apiFetch('/admin/events');
+                let eventsList = Array.isArray(res) ? res : (res.items || []);
+                if (filter === 'pending') {
+                    eventsList = eventsList.filter(e => e.status === 'draft' || e.status === 'pending');
+                }
+                
+                if (eventsList.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fa fa-check-circle text-success me-2"></i> No events match criteria.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = eventsList.map(e => {
+                    const eventId = e.id || e.EventID || '';
+                    const titleEsc = (e.title || '').replace(/'/g, "\\'");
+                    const isFeatured = e.is_featured;
+                    const isPublished = e.status === 'published';
+                    return `
+                    <tr>
+                        <td class="fw-bold text-dark ps-3">${e.title}</td>
+                        <td class="text-muted small">${e.organizer_name || 'Organizer'}</td>
+                        <td><span class="badge ${isPublished ? 'bg-success' : 'bg-warning text-dark'}">${(e.status || 'PENDING').toUpperCase()}</span></td>
+                        <td>
+                            <button class="btn btn-sm ${isFeatured ? 'btn-warning text-dark' : 'btn-outline-secondary'} rounded-pill px-2 py-0 fw-bold" onclick="toggleFeatureEvent('${eventId}', ${!isFeatured})">
+                                <i class="fa fa-star me-1"></i> ${isFeatured ? 'Featured' : 'Feature'}
+                            </button>
+                        </td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-2 py-1 me-1" onclick="openAdminAttendeesModal('${eventId}', '${titleEsc}')"><i class="fa fa-users me-1"></i> Roster</button>
+                            ${!isPublished ? `<button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${eventId}', true)"><i class="fa fa-check me-1"></i> Approve</button>` : ''}
+                            ${isPublished ? `<button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${eventId}', false)"><i class="fa fa-ban me-1"></i> Unpublish</button>` : ''}
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" onclick="removeEvent('${eventId}')" title="Delete Event"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load events:', err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to fetch events.</td></tr>`;
+            }
+        }
+
+        async function openAdminAttendeesModal(eventId, title) {
+            document.getElementById('adminRosterEventTitle').textContent = title;
+            const exportBtn = document.getElementById('adminExportCsvBtn');
+            const token = localStorage.getItem('admin_token') || '';
+            exportBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=csv&token=${encodeURIComponent(token)}`;
+
+            const tbody = document.getElementById('adminAttendeesTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading attendees...</td></tr>';
+
+            const modal = new bootstrap.Modal(document.getElementById('adminAttendeesModal'));
+            modal.show();
+
+            try {
+                const attendees = await apiFetch(`/organizer/events/${eventId}/attendees`);
+                const list = Array.isArray(attendees) ? attendees : (attendees.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No attendees registered for this event yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(a => {
+                    const isCheckedIn = a.checked_in || a.is_used;
+                    return `
+                    <tr>
+                        <td><code>${a.ticket_code || a.ticket_id || 'PASS'}</code></td>
+                        <td class="fw-bold text-dark">${a.attendee_name || a.guest_name || 'Guest'}</td>
+                        <td class="text-muted small">${a.attendee_email || a.guest_email || ''}</td>
+                        <td><span class="badge ${isCheckedIn ? 'bg-secondary' : 'bg-success'}">${isCheckedIn ? 'CHECKED IN' : 'ACTIVE'}</span></td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-danger">Failed to load roster: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function approveEvent(id, isApproved) {
+            try {
+                await apiFetch(`/admin/events/${id}/approve`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ approved: isApproved })
+                });
+                showToast(isApproved ? 'Event Approved & Published Live!' : 'Event Unpublished', isApproved ? 'success' : 'warning');
+                await checkAdminAuth();
+            } catch (err) {
+                showToast('Action failed: ' + err.message, 'danger');
+            }
+        }
+
+        async function toggleFeatureEvent(id, feature) {
+            try {
+                await apiFetch(`/admin/events/${id}/feature?featured=${feature}`, { method: 'PUT' });
+                showToast(`Event ${feature ? 'Featured' : 'Unfeatured'} successfully!`, 'success');
+                loadAdminEvents('all');
+            } catch (err) {
+                showToast('Feature toggle failed: ' + err.message, 'danger');
+            }
+        }
+
+        async function removeEvent(id) {
+            if (!confirm('Are you sure you want to delete this event from the platform?')) return;
+            try {
+                await apiFetch(`/admin/events/${id}`, { method: 'DELETE' });
+                showToast('Event removed from platform', 'warning');
+                loadAdminEvents('all');
+            } catch (err) {
+                showToast('Event removal failed: ' + err.message, 'danger');
             }
         }
 
@@ -368,6 +713,246 @@
             }
         }
 
+        // ── Admin Organizer Payouts Moderation ──
+        async function loadPayouts() {
+            const tbody = document.getElementById('payoutsTableBody');
+            try {
+                const res = await apiFetch('/organizer/payouts');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No payout requests in queue.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(p => {
+                    const pId = p.id || p.PayoutID || '';
+                    const isProcessed = p.status === 'processed';
+                    return `
+                    <tr>
+                        <td class="ps-3"><code class="small text-dark">${p.organizer_id || 'ORG'}</code></td>
+                        <td class="fw-bold text-success">₵${parseFloat(p.amount || 0).toFixed(2)}</td>
+                        <td class="small text-muted">${p.notes || 'MoMo / Bank Transfer'}</td>
+                        <td><span class="badge ${isProcessed ? 'bg-success' : 'bg-warning text-dark'}">${(p.status || 'PENDING').toUpperCase()}</span></td>
+                        <td class="text-end pe-3">
+                            ${!isProcessed ? `<button class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="processPayout('${pId}')"><i class="fa fa-paper-plane me-1"></i> Process Payout</button>` : `<span class="badge bg-light text-muted">Processed</span>`}
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load payouts.</td></tr>`;
+            }
+        }
+
+        async function processPayout(payoutId) {
+            try {
+                await apiFetch(`/admin/payouts/${payoutId}/process`, { method: 'PUT' });
+                showToast('Payout marked as Processed successfully!', 'success');
+                await loadPayouts();
+            } catch (err) {
+                showToast('Failed to process payout: ' + err.message, 'danger');
+            }
+        }
+
+        // ── Admin Refunds Moderation ──
+        async function loadRefundRequests() {
+            const tbody = document.getElementById('refundsTableBody');
+            try {
+                const res = await apiFetch('/admin/refunds');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No pending refund requests.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(r => {
+                    const oId = r.id || r.OrderID || '';
+                    return `
+                    <tr>
+                        <td class="ps-3"><code>${oId}</code></td>
+                        <td><div class="fw-bold text-dark">${r.guest_name}</div><div class="small text-muted">${r.guest_email}</div></td>
+                        <td class="fw-bold">₵${parseFloat(r.total_amount || 0).toFixed(2)}</td>
+                        <td><span class="badge bg-warning text-dark">REFUND PENDING</span></td>
+                        <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="moderateRefund('${oId}', true)"><i class="fa fa-check me-1"></i> Approve</button>
+                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="moderateRefund('${oId}', false)"><i class="fa fa-times me-1"></i> Reject</button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">No pending refund requests.</td></tr>`;
+            }
+        }
+
+        async function moderateRefund(orderId, isApproved) {
+            const reason = isApproved ? null : prompt('Enter rejection reason:');
+            try {
+                await apiFetch(`/admin/orders/${orderId}/refund`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ approved: isApproved, rejection_reason: reason })
+                });
+                showToast(isApproved ? 'Refund Approved & Processed!' : 'Refund Request Rejected', isApproved ? 'success' : 'warning');
+                loadRefundRequests();
+            } catch (err) {
+                showToast('Failed to moderate refund: ' + err.message, 'danger');
+            }
+        }
+
+        // ── Admin Resale Moderation ──
+        async function loadResaleListings() {
+            const tbody = document.getElementById('resaleTableBody');
+            try {
+                const res = await apiFetch('/admin/resale');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No resale listings to moderate.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(l => {
+                    const lId = l.id || l.ListingID || '';
+                    const isPending = l.status === 'pending';
+                    return `
+                    <tr>
+                        <td class="ps-3"><code class="fw-bold">${l.ticket_code || 'TKT'}</code><div class="small text-muted">${l.event_title || ''}</div></td>
+                        <td class="small text-muted">${l.seller_email || l.seller_name || 'Seller'}</td>
+                        <td class="text-muted">₵${parseFloat(l.face_value || 0).toFixed(2)}</td>
+                        <td class="fw-bold text-primary">₵${parseFloat(l.asking_price || 0).toFixed(2)}</td>
+                        <td><span class="badge ${isPending ? 'bg-warning text-dark' : 'bg-success'}">${(l.status || 'ACTIVE').toUpperCase()}</span></td>
+                        <td class="text-end pe-3">
+                            ${isPending ? `
+                                <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="moderateResale('${lId}', true)"><i class="fa fa-check me-1"></i> Approve</button>
+                                <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="moderateResale('${lId}', false)"><i class="fa fa-times me-1"></i> Reject</button>
+                            ` : `<span class="badge bg-light text-muted">Active</span>`}
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-muted">No resale listings found.</td></tr>`;
+            }
+        }
+
+        async function moderateResale(listingId, isApproved) {
+            try {
+                await apiFetch(`/admin/resale/${listingId}/approve`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ approved: isApproved })
+                });
+                showToast(isApproved ? 'Resale Listing Approved!' : 'Resale Listing Rejected', isApproved ? 'success' : 'warning');
+                loadResaleListings();
+            } catch (err) {
+                showToast('Failed to moderate resale listing: ' + err.message, 'danger');
+            }
+        }
+
+        // ── Admin Accounts ──
+        async function loadAdmins() {
+            const tbody = document.getElementById('adminsTableBody');
+            try {
+                const res = await apiFetch('/admin/admins');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No admin accounts found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(a => {
+                    const aId = a.id || a.AdminID || '';
+                    const isActive = a.is_active !== false;
+                    return `
+                    <tr>
+                        <td class="fw-bold text-dark ps-3">${a.full_name}</td>
+                        <td class="small text-muted">${a.email}</td>
+                        <td><span class="badge ${a.is_super ? 'bg-primary' : 'bg-secondary'}">${a.is_super ? 'Super Admin' : 'Admin'}</span></td>
+                        <td><span class="badge ${isActive ? 'bg-success' : 'bg-danger'}">${isActive ? 'ACTIVE' : 'DEACTIVATED'}</span></td>
+                        <td class="text-end pe-3">
+                            ${isActive ? `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="deactivateAdmin('${aId}')"><i class="fa fa-user-slash me-1"></i> Deactivate</button>` : `<span class="badge bg-light text-muted">Deactivated</span>`}
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Super Admin authentication required to list admin accounts.</td></tr>`;
+            }
+        }
+
+        async function deactivateAdmin(adminId) {
+            if (!confirm('Are you sure you want to deactivate this admin account?')) return;
+            try {
+                await apiFetch(`/admin/admins/${adminId}/deactivate`, { method: 'PUT' });
+                showToast('Admin account deactivated', 'warning');
+                loadAdmins();
+            } catch (err) {
+                showToast('Failed to deactivate admin: ' + err.message, 'danger');
+            }
+        }
+
+        // ── Platform Categories ──
+        async function loadCategories() {
+            const container = document.getElementById('categoriesContainer');
+            try {
+                const cats = await apiFetch('/events/categories');
+                const list = Array.isArray(cats) ? cats : [];
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted py-2 small">No categories created yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = list.map(c => `
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong class="text-dark small">${c.name}</strong>
+                            <div class="small text-muted">${c.slug}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger rounded-circle p-1" onclick="deleteCategory('${c.id}')" title="Delete Category"><i class="fa fa-times small"></i></button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="text-center text-muted py-2 small">Categories unavailable.</div>';
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this event category?')) return;
+            try {
+                await apiFetch(`/admin/categories/${id}`, { method: 'DELETE' });
+                showToast('Category deleted', 'success');
+                loadCategories();
+            } catch (err) {
+                showToast('Failed to delete category: ' + err.message, 'danger');
+            }
+        }
+
+        // ── All Orders Ledger ──
+        async function loadOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            try {
+                const res = await apiFetch('/admin/orders');
+                const list = Array.isArray(res) ? res : (res.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No orders found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(o => {
+                    const oId = o.id || o.OrderID || '';
+                    return `
+                    <tr>
+                        <td class="ps-3"><code>${oId}</code></td>
+                        <td><div class="fw-bold text-dark">${o.guest_name || 'Guest'}</div><div class="small text-muted">${o.guest_email || ''}</div></td>
+                        <td class="fw-bold text-primary">₵${parseFloat(o.total_amount || 0).toFixed(2)}</td>
+                        <td class="text-muted small">₵${parseFloat(o.platform_fee || 0).toFixed(2)}</td>
+                        <td><span class="badge bg-success">${(o.status || 'CONFIRMED').toUpperCase()}</span></td>
+                    </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to load orders.</td></tr>`;
+            }
+        }
+
         async function loadAuditLogs() {
             const container = document.getElementById('auditLogsContainer');
             try {
@@ -382,59 +967,13 @@
                     <div class="border-bottom py-2">
                         <div class="d-flex justify-content-between text-muted small">
                             <strong class="text-dark">${l.action || 'system.event'}</strong>
-                            <span>${l.timestamp ? new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                            <span>${l.created_at ? new Date(l.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
                         </div>
                         <div class="small text-muted">${l.actor_email || 'admin@alphapass'} • ${l.resource_type || 'res'}:${l.resource_id || ''}</div>
                     </div>
                 `).join('');
             } catch (err) {
                 container.innerHTML = `<div class="text-center text-muted py-3 small">Audit logs unavailable.</div>`;
-            }
-        }
-
-        async function loadPendingEvents() {
-            const tbody = document.getElementById('pendingEventsTable');
-            try {
-                const res = await apiFetch('/admin/events');
-                const eventsList = Array.isArray(res) ? res : (res.items || []);
-                const pending = eventsList.filter(e => e.status === 'draft' || e.status === 'pending');
-                
-                if (pending.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fa fa-check-circle text-success me-2"></i> No pending event submissions in queue. All events reviewed!</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = pending.map(e => {
-                    const eventId = e.id || e.EventID || '';
-                    return `
-                    <tr>
-                        <td class="fw-bold text-dark ps-3">${e.title}</td>
-                        <td class="text-muted small">${e.organizer_name || 'Organizer'}</td>
-                        <td class="text-muted small">${e.city || 'Accra'}</td>
-                        <td><span class="badge bg-warning text-dark">${(e.status || 'PENDING').toUpperCase()}</span></td>
-                        <td class="text-end pe-3">
-                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${eventId}', true)"><i class="fa fa-check me-1"></i> Approve</button>
-                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" onclick="approveEvent('${eventId}', false)"><i class="fa fa-times me-1"></i> Reject</button>
-                        </td>
-                    </tr>
-                `;
-                }).join('');
-            } catch (err) {
-                console.error('Failed to load pending events:', err);
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to fetch pending events.</td></tr>`;
-            }
-        }
-
-        async function approveEvent(id, isApproved) {
-            try {
-                await apiFetch(`/admin/events/${id}/approve`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ approved: isApproved })
-                });
-                showToast(isApproved ? 'Event Approved & Published Live!' : 'Event Rejected', isApproved ? 'success' : 'warning');
-                await checkAdminAuth();
-            } catch (err) {
-                showToast('Action failed: ' + err.message, 'danger');
             }
         }
 
@@ -495,8 +1034,31 @@
                     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modal.hide();
                     showToast(`Category '${name}' created!`, 'success');
+                    loadCategories();
                 } catch (err) {
                     showToast(`Category creation failed: ` + err.message, 'danger');
+                }
+            });
+
+            document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('newAdminName').value.trim();
+                const email = document.getElementById('newAdminEmail').value.trim();
+                const password = document.getElementById('newAdminPassword').value.trim();
+                const isSuper = document.getElementById('newAdminSuper').checked;
+
+                try {
+                    await apiFetch('/admin/create-admin', {
+                        method: 'POST',
+                        body: JSON.stringify({ full_name: name, email, password, is_super: isSuper })
+                    });
+                    const modalEl = document.getElementById('createAdminModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    showToast(`Sub-Admin account '${email}' created!`, 'success');
+                    loadAdmins();
+                } catch (err) {
+                    showToast('Admin creation failed: ' + err.message, 'danger');
                 }
             });
         });
