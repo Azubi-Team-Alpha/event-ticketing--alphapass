@@ -11,18 +11,13 @@ from app.core.utils import format_dt as _format_dt
 router = APIRouter()
 
 
-
-
-
 def _format_ticket_response(ticket: Dict[str, Any]) -> TicketResponse:
     t_id = ticket.get("TicketID") or ticket.get("id", "")
     t_code = ticket.get("ticket_code", "")
-    qr_url = ticket.get("qr_image_url") or f"/tickets/{t_code}/qr"
     return TicketResponse(
         id=t_id,
         order_item_id=ticket.get("order_item_id", ""),
         ticket_code=t_code,
-        qr_image_url=qr_url,
         status=ticket.get("status", "active"),
         is_used=ticket.get("is_used", False),
         used_at=_format_dt(ticket.get("used_at")),
@@ -39,14 +34,6 @@ def get_ticket(ticket_code: str):
     if not ticket:
         raise HTTPException(404, "Ticket not found")
     return _format_ticket_response(ticket)
-
-
-@router.get("/{ticket_code}/qr")
-def get_ticket_qr(ticket_code: str):
-    """Generate and return raw PNG QR code bytes for a ticket code."""
-    from app.core.qr import generate_qr_code
-    qr_bytes = generate_qr_code(ticket_code)
-    return Response(content=qr_bytes, media_type="image/png")
 
 
 @router.get("/{ticket_code}/status")
@@ -74,7 +61,6 @@ def ticket_status(ticket_code: str):
         "ticket_type": ticket.get("ticket_type_name"),
         "event_title": event.get("title") if event else None,
         "event_starts_at": event.get("starts_at") if event else None,
-        "qr_image_url": ticket.get("qr_image_url") or f"/tickets/{ticket_code}/qr",
     }
 
 
@@ -103,7 +89,6 @@ def download_ticket_pdf(ticket_code: str):
             self.ticket_code = d.get("ticket_code")
             self.attendee_name = d.get("attendee_name") or "Guest Attendee"
             self.attendee_email = d.get("attendee_email")
-            self.qr_image_url = d.get("qr_image_url") or f"/tickets/{d.get('ticket_code')}/qr"
             self.ticket_type_name = d.get("ticket_type_name") or "General Pass"
             self.event = evt
 
@@ -144,7 +129,6 @@ def get_my_tickets(current_user: AttrDict = Depends(get_current_user)):
             "id": t.get("TicketID") or t.get("id"),
             "registration_id": t.get("order_id", ""),
             "ticket_code": t.get("ticket_code"),
-            "qr_image_url": t.get("qr_image_url"),
             "is_used": t.get("is_used", False),
             "used_at": t.get("used_at"),
             "issued_at": t.get("issued_at"),

@@ -1,5 +1,5 @@
 """
-Ticket tests – covers basic lookup and check-in via DynamoDB.
+Ticket tests – covers basic lookup, PDF generation, attendee roster PDF export, and check-in via DynamoDB.
 """
 from fastapi.testclient import TestClient
 from decimal import Decimal
@@ -62,13 +62,10 @@ def test_ticket_pdf_download(client: TestClient, sample_event):
     assert resp.content.startswith(b"%PDF-")
 
 
-def test_ticket_qr_generation(client: TestClient):
-    from app.core.qr import generate_qr_code
-    long_code = "TKT-VERY-LONG-PAYLOAD-WITH-JSON-DATA-OR-UUID-1234567890-ABCDEF-HIGKLMNOPQRSTUVWXYZ"
-    qr_bytes = generate_qr_code(long_code)
-    assert qr_bytes.startswith(b"\x89PNG\r\n\x1a\n")
-
-    resp = client.get(f"/tickets/{long_code}/qr")
+def test_attendee_pdf_export(client: TestClient, sample_event, organizer_headers):
+    order = _create_order(client, sample_event)
+    event_id = sample_event["id"]
+    resp = client.get(f"/organizer/events/{event_id}/attendees?export=pdf", headers=organizer_headers)
     assert resp.status_code == 200
-    assert resp.headers["content-type"] == "image/png"
-    assert resp.content.startswith(b"\x89PNG\r\n\x1a\n")
+    assert resp.headers["content-type"] == "application/pdf"
+    assert resp.content.startswith(b"%PDF-")

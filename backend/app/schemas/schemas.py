@@ -422,9 +422,8 @@ class OrderCreate(BaseModel):
 class TicketInOrder(BaseModel):
     id: str
     ticket_code: str
-    qr_image_url: Optional[str]
-    attendee_name: Optional[str]
-    attendee_email: Optional[str]
+    attendee_name: Optional[str] = None
+    attendee_email: Optional[str] = None
     status: str
 
     model_config = {"from_attributes": True}
@@ -475,12 +474,11 @@ class OrderLookup(BaseModel):
 class TicketResponse(BaseModel):
     id: str
     ticket_code: str
-    qr_image_url: Optional[str]
-    attendee_name: Optional[str]
-    attendee_email: Optional[str]
+    attendee_name: Optional[str] = None
+    attendee_email: Optional[str] = None
     status: str
     is_used: bool
-    used_at: Optional[datetime]
+    used_at: Optional[datetime] = None
     issued_at: datetime
 
     model_config = {"from_attributes": True}

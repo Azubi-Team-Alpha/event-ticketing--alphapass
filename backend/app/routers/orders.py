@@ -13,7 +13,6 @@ from app.schemas.schemas import (
     PromoCodeValidation, ApplyPromoCode, RefundRequest,
 )
 from app.core.config import settings
-from app.core.qr import upload_qr_to_s3
 from app.core.email import send_email, send_ticket_confirmation
 from app.core.utils import format_dt as _format_dt
 from app.core.dependencies import get_current_user, AttrDict
@@ -75,7 +74,6 @@ def _format_order_response(
                 "id": t.get("TicketID") or t.get("id", str(uuid.uuid4())),
                 "order_item_id": oi_id,
                 "ticket_code": t.get("ticket_code", ""),
-                "qr_image_url": t.get("qr_image_url"),
                 "status": t.get("status", "active"),
                 "is_used": t.get("is_used", False),
                 "used_at": _format_dt(t.get("used_at")),
@@ -340,8 +338,8 @@ def create_order(
     # Update event ticket_types in DynamoDB
     dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
 
-    # Generate QR codes and send confirmation email
-    _generate_qr_and_notify(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)
+    # Send order confirmation email
+    _send_order_confirmation(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)
 
     return _format_order_response(order_data)
 
@@ -502,7 +500,7 @@ def request_order_refund(order_id: str, body: RefundRequest):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _generate_qr_and_notify(
+def _send_order_confirmation(
     tickets: List[Dict[str, Any]],
     order_id: str,
     email: str,
@@ -510,21 +508,7 @@ def _generate_qr_and_notify(
     event: Dict[str, Any],
     total: Decimal,
 ):
-    """Generate QR codes for all tickets and send a confirmation email."""
-    for t in tickets:
-        code = t.get("ticket_code")
-        t_id = t.get("TicketID") or t.get("id")
-        if code and t_id:
-            try:
-                qr_url = upload_qr_to_s3(code)
-                t["qr_image_url"] = qr_url
-                dynamodb_helper.update_ticket(t_id, {"qr_image_url": qr_url})
-            except Exception as e:
-                print(f"[QR] S3 upload failed for ticket {t_id}: {e}")
-                fallback_url = f"/tickets/{code}/qr"
-                t["qr_image_url"] = fallback_url
-                dynamodb_helper.update_ticket(t_id, {"qr_image_url": fallback_url})
-
+    """Send order confirmation email for tickets."""
     # Use the rich ticket confirmation helper (HTML-escaped internally)
     try:
         send_ticket_confirmation(email, name, event, {"OrderID": order_id, "total_amount": str(total)}, tickets)
@@ -541,7 +525,7 @@ def _generate_qr_and_notify(
                 f"<p>Hi {safe_name}, your order for <strong>{safe_title}</strong> is confirmed.</p>"
                 f"<p>Order ID: <code>{safe_order_id}</code></p>"
                 f"<p>Tickets: {len(tickets)} | Total: ₵{safe_total}</p>"
-                f"<p>Your QR-code tickets are available in your AlphaPass portal.</p>"
+                f"<p>Your digital tickets are available in your AlphaPass portal.</p>"
             )
             send_email(email, f"Order Confirmed – {event.get('title', 'AlphaPass')}", fallback_html)
         except Exception as e2:

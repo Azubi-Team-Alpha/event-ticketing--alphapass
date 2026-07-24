@@ -40,7 +40,7 @@
     <div class="container-fluid bg-primary py-4 mb-4 text-white">
         <div class="container py-2">
             <h1 class="display-5 text-white fw-bold">Guest Order Checkout</h1>
-            <p class="mb-0 text-white-50">Complete your guest order details to generate instant digital QR passes.</p>
+            <p class="mb-0 text-white-50">Complete your guest order details to generate instant digital ticket passes.</p>
         </div>
     </div>
 
@@ -140,7 +140,7 @@
                 <div class="modal-body text-center p-5">
                     <div class="text-success display-1 mb-3"><i class="fa fa-check-circle"></i></div>
                     <h3 class="fw-bold mb-2">Order Confirmed!</h3>
-                    <p class="text-muted mb-4">Your digital QR ticket passes have been generated and sent to your email.</p>
+                    <p class="text-muted mb-4">Your digital ticket passes have been generated and sent to your email.</p>
 
                     <div class="card bg-light border-0 p-3 mb-4 text-start">
                         <div class="d-flex justify-content-between mb-1">
@@ -157,9 +157,10 @@
                         </div>
                     </div>
 
-                    <div class="text-center mb-4">
-                        <img id="modalQrCode" src="" alt="QR Code" class="img-fluid rounded border p-2" style="max-width: 180px;" onerror="if(!this.dataset.failed){this.dataset.failed='true';this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + (this.dataset.code || 'ALPHAPASS');}">
-                        <div class="small text-muted mt-2">Scan QR code at event gate for entry</div>
+                    <div class="text-center mb-4 p-3 bg-light rounded border">
+                        <div class="small text-muted mb-1 fw-bold">TICKET PASS CODE</div>
+                        <div class="h4 text-primary font-monospace fw-bold mb-0" id="modalTicketCode">ALPHAPASS</div>
+                        <div class="small text-muted mt-1">Present code at event gate for entry</div>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -318,22 +319,9 @@
                     const firstTicket = ticketList.length > 0 ? ticketList[0] : null;
                     const tCode = firstTicket ? (firstTicket.ticket_code || firstTicket.code) : null;
 
-                    const rawQrUrl = firstTicket ? firstTicket.qr_image_url : null;
-                    const apiPrefix = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : '';
-                    let qrUrl;
-                    if (rawQrUrl && rawQrUrl.startsWith('http')) {
-                        qrUrl = rawQrUrl;
-                    } else if (rawQrUrl) {
-                        qrUrl = `${apiPrefix}${rawQrUrl}`;
-                    } else if (tCode && apiPrefix) {
-                        qrUrl = `${apiPrefix}/tickets/${tCode}/qr`;
-                    } else {
-                        qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${tCode || orderId}`;
-                    }
-                    const modalImg = document.getElementById('modalQrCode');
-                    if (modalImg) {
-                        modalImg.dataset.code = tCode || orderId;
-                        modalImg.src = qrUrl;
+                    const codeElem = document.getElementById('modalTicketCode');
+                    if (codeElem) {
+                        codeElem.textContent = tCode || orderId;
                     }
 
                     const downloadBtn = document.getElementById('downloadPdfBtn');

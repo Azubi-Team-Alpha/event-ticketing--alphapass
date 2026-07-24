@@ -79,6 +79,11 @@ def mock_dynamodb_tables(aws_credentials):
         create_gsi_table("alphapass-audit-logs-dev", "LogID")
         create_gsi_table("alphapass-event-categories-dev", "CategoryID")
 
+        # Also create mock S3 bucket for file upload tests
+        s3 = boto3.client("s3", region_name="us-east-1")
+        bucket_name = os.environ.get("S3_BUCKET_NAME", "alphapass-assets-dev")
+        s3.create_bucket(Bucket=bucket_name)
+
         yield dynamodb
 
 

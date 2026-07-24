@@ -15,7 +15,7 @@ from app.schemas.schemas import (
 from app.core.dependencies import get_current_organizer, get_active_organizer, get_current_admin, get_current_user, AttrDict
 from app.core.config import settings
 from app.core.utils import format_dt as _format_dt
-from app.core.qr import upload_image_to_s3
+from app.core.s3 import upload_image_to_s3
 
 router = APIRouter()
 
