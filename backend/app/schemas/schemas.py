@@ -525,8 +525,8 @@ class TransferResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class ResaleListingCreate(BaseModel):
-    seller_name: str
-    seller_email: EmailStr
+    seller_name: Optional[str] = None
+    seller_email: Optional[EmailStr] = None
     asking_price: Decimal
 
     @field_validator("asking_price")

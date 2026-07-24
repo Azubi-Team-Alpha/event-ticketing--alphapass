@@ -83,7 +83,7 @@ def _format_order_response(
                 "attendee_email": t.get("attendee_email") or order.get("guest_email"),
                 "issued_at": _format_dt(t.get("issued_at")) or datetime.now(timezone.utc),
                 "event_id": event_id,
-                "event_title": event.get("title") or "Event",
+                "event_title": t.get("event_title") or order.get("event_title") or event.get("title") or "Event Pass",
                 "ticket_type_name": t.get("ticket_type_name") or tt_name,
             })
 
@@ -261,6 +261,8 @@ def create_order(
                 "TicketID": t_id,
                 "id": t_id,
                 "order_item_id": oi_id,
+                "event_id": body.event_id,
+                "event_title": event.get("title", "Event"),
                 "ticket_type_id": item.ticket_type_id,
                 "ticket_type_name": tt.get("name", "Standard"),
                 "ticket_code": code,
@@ -311,6 +313,7 @@ def create_order(
         "OrderID": order_id,
         "id": order_id,
         "event_id": body.event_id,
+        "event_title": event.get("title", "Event"),
         "promo_code_id": body.promo_code.upper() if body.promo_code else None,
         "guest_name": body.guest_name,
         "guest_email": guest_email_norm,
