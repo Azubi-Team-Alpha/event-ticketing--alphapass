@@ -452,6 +452,39 @@
         </div>
     </div>
 
+    <!-- Attendees Roster Modal -->
+    <div class="modal fade" id="adminAttendeesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-header-title text-white fw-bold"><i class="fa fa-users me-2 text-warning"></i> Event Attendee Roster — <span id="adminRosterEventTitle">Event</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Live registered attendee list across platform</span>
+                        <a id="adminExportCsvBtn" href="#" target="_blank" class="btn btn-sm btn-outline-success rounded-pill fw-bold"><i class="fa fa-file-csv me-1"></i> Export Roster CSV</a>
+                    </div>
+                    <div class="table-responsive" style="max-height: 380px;">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Ticket Pass</th>
+                                    <th>Attendee Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAttendeesTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <div class="container-fluid bg-dark text-white-50 footer pt-4 mt-5">
         <div class="container py-3 text-center">
@@ -535,6 +568,7 @@
 
                 tbody.innerHTML = eventsList.map(e => {
                     const eventId = e.id || e.EventID || '';
+                    const titleEsc = (e.title || '').replace(/'/g, "\\'");
                     const isFeatured = e.is_featured;
                     const isPublished = e.status === 'published';
                     return `
@@ -548,6 +582,7 @@
                             </button>
                         </td>
                         <td class="text-end pe-3">
+                            <button class="btn btn-sm btn-outline-info text-dark rounded-pill px-2 py-1 me-1" onclick="openAdminAttendeesModal('${eventId}', '${titleEsc}')"><i class="fa fa-users me-1"></i> Roster</button>
                             ${!isPublished ? `<button class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${eventId}', true)"><i class="fa fa-check me-1"></i> Approve</button>` : ''}
                             ${isPublished ? `<button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold me-1" onclick="approveEvent('${eventId}', false)"><i class="fa fa-ban me-1"></i> Unpublish</button>` : ''}
                             <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" onclick="removeEvent('${eventId}')" title="Delete Event"><i class="fa fa-trash"></i></button>
@@ -558,6 +593,42 @@
             } catch (err) {
                 console.error('Failed to load events:', err);
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">Unable to fetch events.</td></tr>`;
+            }
+        }
+
+        async function openAdminAttendeesModal(eventId, title) {
+            document.getElementById('adminRosterEventTitle').textContent = title;
+            const exportBtn = document.getElementById('adminExportCsvBtn');
+            const token = localStorage.getItem('admin_token') || '';
+            exportBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=csv&token=${encodeURIComponent(token)}`;
+
+            const tbody = document.getElementById('adminAttendeesTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading attendees...</td></tr>';
+
+            const modal = new bootstrap.Modal(document.getElementById('adminAttendeesModal'));
+            modal.show();
+
+            try {
+                const attendees = await apiFetch(`/organizer/events/${eventId}/attendees`);
+                const list = Array.isArray(attendees) ? attendees : (attendees.items || []);
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No attendees registered for this event yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(a => {
+                    const isCheckedIn = a.checked_in || a.is_used;
+                    return `
+                    <tr>
+                        <td><code>${a.ticket_code || a.ticket_id || 'PASS'}</code></td>
+                        <td class="fw-bold text-dark">${a.attendee_name || a.guest_name || 'Guest'}</td>
+                        <td class="text-muted small">${a.attendee_email || a.guest_email || ''}</td>
+                        <td><span class="badge ${isCheckedIn ? 'bg-secondary' : 'bg-success'}">${isCheckedIn ? 'CHECKED IN' : 'ACTIVE'}</span></td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-danger">Failed to load roster: ${err.message}</td></tr>`;
             }
         }
 
