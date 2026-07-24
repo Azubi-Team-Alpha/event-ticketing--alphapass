@@ -1,13 +1,13 @@
-# 🎟️ AlphaPass Comprehensive API Reference Guide
+# AlphaPass Comprehensive API Reference Guide
 
-This document provides a detailed endpoint reference for the **AlphaPass REST API**.
+This document provides a detailed technical API specification for the **AlphaPass REST API**.
 
 **Base Production Endpoint**: `https://{api_id}.execute-api.{region}.amazonaws.com/dev`  
 **Interactive Specs**: Available locally at `http://localhost:8000/docs` (Swagger UI) or `http://localhost:8000/redoc`.
 
 ---
 
-## 🔒 Authentication & Authorization Headers
+## Authentication & Authorization Headers
 
 Protected endpoints require a standard Bearer token in the `Authorization` request header:
 
@@ -56,7 +56,11 @@ List published events with optional filtering and search.
       {
         "id": "evt-cloud-2026",
         "organizer_id": "org-001",
-        "category_name": "Technology",
+        "category": {
+          "id": "cat-tech",
+          "name": "Technology",
+          "slug": "technology"
+        },
         "title": "Accra Tech & AI Carnival 2026",
         "description": "Premier West Africa Tech Conference",
         "banner_image_url": "https://alphapass-assets-dev.s3.amazonaws.com/events/banners/cover.jpg",
@@ -65,7 +69,11 @@ List published events with optional filtering and search.
         "country": "Ghana",
         "starts_at": "2026-08-15T09:00:00Z",
         "ends_at": "2026-08-15T18:00:00Z",
-        "min_price": 100.0,
+        "allow_resale": true,
+        "allow_refunds": true,
+        "allow_transfers": true,
+        "group_discount_threshold": 5,
+        "group_discount_percent": 10.0,
         "status": "published",
         "ticket_types": [
           {
@@ -73,9 +81,7 @@ List published events with optional filtering and search.
             "name": "General Admission",
             "price": "100.00",
             "quantity": 500,
-            "quantity_sold": 45,
-            "quantity_remaining": 455,
-            "is_sold_out": false
+            "quantity_sold": 45
           }
         ]
       }
@@ -130,6 +136,7 @@ Create a guest order for one or more ticket pass tiers.
     "event_id": "evt-cloud-2026",
     "guest_name": "Alice Johnson",
     "guest_email": "alice@example.com",
+    "subtotal": "200.00",
     "total_amount": "180.00",
     "discount_amount": "20.00",
     "status": "confirmed",
@@ -140,7 +147,6 @@ Create a guest order for one or more ticket pass tiers.
         "ticket_code": "TKT-882103-1",
         "attendee_name": "Alice Johnson",
         "attendee_email": "alice@example.com",
-        "qr_code": "https://alphapass-assets-dev.s3.amazonaws.com/tickets/qr/TKT-882103-1.png",
         "status": "active"
       }
     ]
@@ -148,7 +154,7 @@ Create a guest order for one or more ticket pass tiers.
   ```
 
 ### `POST /orders/lookup`
-Retrieve wallet orders matching guest purchaser email.
+Retrieve ticket passes matching purchaser email or order ID.
 - **Auth**: Public
 - **Request Body**: `{ "email": "alice@example.com", "order_id": "ORD-882103" }`
 - **Response `200 OK`**: Array of `OrderResponse`.
@@ -190,7 +196,7 @@ Browse active resale listings.
 - **Response `200 OK`**: Array of `ResaleListingResponse`.
 
 ### `POST /resale/tickets/{ticket_code}`
-List an active ticket pass on the resale exchange.
+List an active ticket pass on the secondary resale exchange.
 - **Auth**: Public (Seller email validation)
 - **Request Body**:
   ```json
@@ -203,7 +209,7 @@ List an active ticket pass on the resale exchange.
 - **Response `201 Created`**: `ResaleListingResponse` object.
 
 ### `POST /resale/{listing_id}/purchase`
-Purchase a resale ticket pass.
+Purchase a secondary resale ticket pass.
 - **Auth**: Public
 - **Request Body**: `{ "buyer_name": "Bob Marley", "buyer_email": "bob@example.com" }`
 - **Response `201 Created`**: Newly issued `TicketResponse` for buyer.
@@ -220,14 +226,14 @@ Transfer a ticket pass to another recipient.
 ## 6. Gate Check-In & Gate Scanner
 
 ### `POST /checkin/scan`
-Scan QR code ticket pass at event gate entrance.
+Scan ticket pass code at event gate entrance.
 - **Auth**: Organizer / Admin (`Bearer <organizer_token>`)
 - **Request Body**: `{ "ticket_code": "TKT-882103-1" }`
 - **Response `200 OK`**:
   ```json
   {
     "valid": true,
-    "message": "✅ Check-in successful! Welcome!",
+    "message": "Check-in successful! Welcome!",
     "attendee_name": "Alice Johnson",
     "ticket_type_name": "General Admission",
     "event_title": "Accra Tech & AI Carnival 2026"
@@ -264,6 +270,16 @@ Get organizer analytics and sales metrics.
   }
   ```
 
+### `POST /events/organizer`
+Create new event listing.
+- **Auth**: Organizer Bearer Token
+- **Request Body**: `EventCreate` schema (title, description, category_id, venue_name, city, starts_at, ends_at, allow_resale, allow_refunds, allow_transfers, group_discount_threshold, group_discount_percent, policies).
+
+### `PUT /events/organizer/{event_id}`
+Update event details and governance settings.
+- **Auth**: Organizer Bearer Token
+- **Request Body**: `EventUpdate` schema.
+
 ### `POST /events/upload-banner`
 Upload cover banner image to AWS S3 bucket.
 - **Auth**: Organizer Bearer Token
@@ -273,8 +289,8 @@ Upload cover banner image to AWS S3 bucket.
 ### `GET /organizer/events/{event_id}/attendees`
 Export event attendee roster.
 - **Auth**: Organizer Bearer Token
-- **Query Parameter**: `format` (`json` or `csv`)
-- **Response `200 OK`**: Array of attendee objects or CSV download stream.
+- **Query Parameter**: `export` (`csv` or `pdf`) or `format` (`json`, `csv`, or `pdf`)
+- **Response `200 OK`**: Array of attendee objects, CSV download stream, or printable PDF stream.
 
 ---
 
@@ -289,15 +305,37 @@ Fetch platform governance overview.
 - **Auth**: Admin Bearer Token
 - **Response `200 OK`**: `{ "total_events": 12, "published_events": 10, "total_organizers": 8, "total_platform_fees": "1425.00" }`
 
-### `GET /admin/events`
-List all events across platform including drafts and pending reviews.
+### `GET /admin/payouts`
+List organizer revenue payout requests.
 - **Auth**: Admin Bearer Token
+- **Response `200 OK`**: Array of `PayoutResponse`.
 
-### `PUT /admin/events/{id}/approve`
-Approve or reject event listing submission.
+### `PUT /admin/payouts/{payout_id}/process`
+Process organizer payout request.
+- **Auth**: Admin Bearer Token
+- **Response `200 OK`**: `{ "message": "Payout processed" }`
+
+### `GET /admin/refunds`
+List pending order refund requests.
+- **Auth**: Admin Bearer Token
+- **Response `200 OK`**: `{ "items": [...], "total": int }`
+
+### `PUT /admin/orders/{order_id}/refund`
+Approve or reject order refund request.
+- **Auth**: Admin Bearer Token
+- **Request Body**: `{ "approved": true, "rejection_reason": null }`
+- **Response `200 OK`**: `{ "message": "Refund approved and processed successfully" }`
+
+### `GET /admin/resale`
+List secondary marketplace resale listings.
+- **Auth**: Admin Bearer Token
+- **Response `200 OK`**: `{ "items": [...], "total": int }`
+
+### `PUT /admin/resale/{listing_id}/approve`
+Approve or reject secondary resale listing.
 - **Auth**: Admin Bearer Token
 - **Request Body**: `{ "approved": true }`
-- **Response `200 OK`**: `{ "message": "Event approved and published live" }`
+- **Response `200 OK`**: `{ "message": "Resale listing approved" }`
 
 ### `PUT /admin/config/commission`
 Set global platform fee percentage.

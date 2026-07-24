@@ -362,6 +362,33 @@ def create_payout(
     )
 
 
+@router.get("/payouts", response_model=list[PayoutResponse])
+def list_all_payouts(
+    page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200),
+    status: str | None = Query(None),
+    admin: AttrDict = Depends(get_current_admin),
+):
+    payouts = dynamodb_helper.list_payouts()
+    if status:
+        payouts = [p for p in payouts if p.get("status") == status]
+    payouts.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
+    start_idx = (page - 1) * limit
+    page_p = payouts[start_idx : start_idx + limit]
+    return [
+        PayoutResponse(
+            id=p.get("PayoutID") or p.get("id", ""),
+            organizer_id=p.get("organizer_id", ""),
+            amount=Decimal(str(p.get("amount", 0))),
+            currency="GHS",
+            status=p.get("status", "pending"),
+            notes=p.get("notes"),
+            created_at=_format_dt(p.get("created_at")) or datetime.now(timezone.utc),
+            processed_at=_format_dt(p.get("processed_at")),
+        )
+        for p in page_p
+    ]
+
+
 @router.put("/payouts/{payout_id}/process")
 def process_payout(
     payout_id: str,
@@ -555,10 +582,13 @@ def list_resale_listings(
     status: str | None = Query(None),
     admin: AttrDict = Depends(get_current_admin),
 ):
+    from app.routers.resale import _format_resale_response
     listings = dynamodb_helper.list_resale_listings_by_status(status) if status else dynamodb_helper._scan_all(dynamodb_helper.resale_listings_table_name)
-    total = len(listings)
+    listings.sort(key=lambda x: str(x.get("listed_at", "")), reverse=True)
+    formatted = [_format_resale_response(l).model_dump() for l in listings]
+    total = len(formatted)
     start_idx = (page - 1) * limit
-    page_l = listings[start_idx : start_idx + limit]
+    page_l = formatted[start_idx : start_idx + limit]
     return {"items": page_l, "total": total}
 
 
@@ -602,9 +632,22 @@ def list_pending_refund_requests(
 ):
     orders = dynamodb_helper.list_orders()
     pending = [o for o in orders if o.get("status") == "refund_pending"]
-    total = len(pending)
+    pending.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
+    formatted = []
+    for o in pending:
+        o_id = o.get("OrderID") or o.get("id", "")
+        formatted.append({
+            "id": o_id,
+            "OrderID": o_id,
+            "guest_name": o.get("guest_name", "Guest"),
+            "guest_email": o.get("guest_email", ""),
+            "total_amount": str(o.get("total_amount", "0.00")),
+            "status": o.get("status", "refund_pending"),
+            "created_at": _format_dt(o.get("created_at")),
+        })
+    total = len(formatted)
     start_idx = (page - 1) * limit
-    page_orders = pending[start_idx : start_idx + limit]
+    page_orders = formatted[start_idx : start_idx + limit]
     return {"items": page_orders, "total": total}
 
 

@@ -1,15 +1,15 @@
-# 🎟️ AlphaPass (Ticket Hub) Frontend Integration Guide
+# AlphaPass (Ticket Hub) Frontend Integration Guide
 **Azubi Cloud & AI Academy — Project 2 — Team Alpha Developer Reference**
 
-This document is the complete guide for the frontend development team. It defines all serverless API endpoints, exact JSON request/response formats, DynamoDB table mappings, and logical frontend pages for building a robust Single Page Application (SPA) in React or Pure HTML/JS.
+This document is the complete guide for the frontend development team. It defines all serverless API endpoints, exact JSON request/response formats, DynamoDB table mappings, and logical frontend pages for building a robust Single Page Application (SPA) in Pure HTML/JS or React.
 
 ---
 
-## 🏛️ Serverless Architecture & DynamoDB Mapping
+## Serverless Architecture & DynamoDB Mapping
 
 The infrastructure relies on Amazon API Gateway, AWS Lambda (FastAPI with Mangum), and 12 dedicated DynamoDB tables:
 
-1. **`alphapass-events-[env]`** (Hash Key: `EventID`): Stores details, settings, and nested ticket types for all events.
+1. **`alphapass-events-[env]`** (Hash Key: `EventID`): Stores details, settings, resale/refund toggles, group discount parameters, and nested ticket types for all events.
 2. **`alphapass-registrations-[env]`** (Hash Key: `RegistrationID`): Stores guest registrations and ticket details.
 3. **`alphapass-organizers-[env]`** (Hash Key: `OrganizerID`): Handles business and auth info for event organizers.
 4. **`alphapass-admins-[env]`** (Hash Key: `AdminID`): Stores administrators credentials and roles.
@@ -24,7 +24,7 @@ The infrastructure relies on Amazon API Gateway, AWS Lambda (FastAPI with Mangum
 
 ---
 
-## 🔒 Authentication & Headers
+## Authentication & Headers
 
 Access to secured endpoints requires a JSON Web Token (JWT) in the Authorization header:
 - Header format: `Authorization: Bearer <access_token>`
@@ -32,7 +32,7 @@ Access to secured endpoints requires a JSON Web Token (JWT) in the Authorization
 
 ---
 
-## 📦 Pydantic Input Schemas (JSON Schemas)
+## Pydantic Input Schemas (JSON Schemas)
 
 Your frontend forms must build payloads matching these exact schemas.
 
@@ -125,74 +125,77 @@ Your frontend forms must build payloads matching these exact schemas.
 
 ---
 
-## 🌐 Page-by-Page Integration Guidelines
+## Page-by-Page Integration Guidelines
 
 ### 1. Guest Views
 
-#### 🏠 Page: Event Explorer (`/`)
+#### Page: Event Explorer (`/`)
 1. Call `GET /events` to retrieve published events. Render as grid cards displaying title, date, venue, city, and min_price.
 2. Call `GET /categories` to populate the Category filter dropdown.
 3. Handle search and city filter inputs by appending `?search={query}&city={city}` parameters dynamically.
 
-#### 📄 Page: Event Details (`/events/:id`)
+#### Page: Event Details (`/events/:id`)
 1. Retrieve details via `GET /events/{id}`.
 2. Display location, description, date ranges, and ticket types.
 3. Manage selection quantity state and redirect to checkout `/checkout?event_id={id}&type_id={type_id}&qty={qty}`.
 
-#### 🛒 Page: Checkout (`/checkout`)
+#### Page: Checkout (`/checkout`)
 1. Build order details form matching `OrderCreate` payload.
-2. Allow promo verification: call `GET /promo/{code}`. If valid, update total price estimation.
+2. Allow promo verification: call `POST /orders/validate-promo`. If valid, update total price estimation.
 3. Send checkout order via `POST /orders`. On success (201 Created), render order summary and ticket codes.
 
-#### 🎫 Page: Ticket Wallet & Actions (`/tickets/:code`)
-1. Lookup ticket details using `GET /tickets/{code}/status`.
-2. Display validation status, attendee details, QR code, and download link to `GET /tickets/{code}/pdf`.
+#### Page: Ticket Wallet & Actions (`/tickets/:code`)
+1. Lookup ticket details using `GET /tickets/{code}`.
+2. Display validation status, attendee details, ticket pass code, and download link to `GET /tickets/{code}/pdf`.
 3. Provide forms to list for resale (`POST /resale/tickets/{code}`) or transfer ownership (`POST /transfers/{code}/transfer`).
 
 ---
 
 ### 2. Organizer Dashboard Views
 
-#### 🔑 Page: Organizer Portal Auth (`/organizer`)
+#### Page: Organizer Portal Auth (`/organizer`)
 1. Provide Login and Registration forms.
 2. Send sign in request to `POST /auth/organizer/login` and signup to `POST /auth/organizer/signup`.
-3. Persist `access_token` and `role` properties in local storage on success.
+3. Persist `organizer_token` and `role` properties in local storage on success.
 
-#### 📊 Page: Organizer Dashboard Home (`/organizer/dashboard`)
-1. Call `GET /auth/organizer/me` (requires Bearer header) to retrieve profile details.
-2. Call `GET /events/organizer` to populate events table.
-3. Call `GET /payouts/organizer` (if requesting revenue transfers) and request payout using `POST /payouts/request`.
+#### Page: Organizer Dashboard Home (`/organizer/dashboard`)
+1. Call `GET /organizer/dashboard` (requires Bearer header) to retrieve profile details and sales summary.
+2. Call `GET /events/organizer/my-events` to populate events table with governance badges.
+3. Request payout using `POST /organizer/payouts`.
 
-#### ➕ Page: Create/Edit Event (`/organizer/events/new`)
-1. Render event parameters matching `EventCreate` schema.
+#### Page: Create/Edit Event (`/organizer`)
+1. Render event parameters matching `EventCreate` schema (including Category, Resale toggle, Refund toggle, Transfer toggle, Group Discount parameters, and Cancellation Policies).
 2. Submit details to `POST /events/organizer` (creates event in `draft` status).
-3. Once the event is created, call `POST /events/organizer/{event_id}/ticket-types` to define pricing tier levels.
-4. Click "Publish Event" to dispatch a `POST /events/organizer/{event_id}/publish` call, changing its status to `pending` (for admin moderation).
+3. Call `POST /events/organizer/{event_id}/ticket-types` to define pricing tier levels.
+4. Click "Publish Event" to dispatch a `POST /events/organizer/{event_id}/publish` call, changing status to `published`.
+5. Use Edit Event modal (`PUT /events/organizer/{id}`) to adjust settings anytime.
 
-#### 📷 Page: Entry Scanner Console (`/organizer/scan`)
-1. Integrate QR scanner camera library.
-2. On QR scanning detection, capture ticket code and dispatch a `POST /checkin/scan` payload.
-3. Render status screens depending on response validity (e.g. green for check-in successful, red for duplicate scan / already used).
-
----
-
-### 3. Admin moderation Views
-
-#### 🛡️ Page: Admin Console (`/admin/dashboard`)
-1. Moderate pending events: call `GET /events/admin/pending`. Perform validation audits and invoke `POST /events/admin/approve` with `{ "approved": true }` to list on guest explorer.
-2. Review payouts: call `GET /payouts/admin/pending` and approve organizer revenue transfers using `POST /payouts/admin/approve`.
-3. Manage settings: call `GET /settings` and adjust commission rates using `POST /settings`.
+#### Page: Entry Scanner Console (`/organizer/scan`)
+1. Provide ticket pass code input or camera scanner.
+2. Dispatch a `POST /checkin/scan` payload with `{ "ticket_code": code }`.
+3. Render status screens depending on response validity (e.g. check-in successful vs duplicate scan / already used).
 
 ---
 
-## 🛠️ Complete JavaScript SDK Implementation Examples
+### 3. Admin Governance Views
+
+#### Page: Admin Governance Console (`/admin`)
+1. Governance Queue — Event Moderation: call `GET /admin/events`. Review submissions and invoke `PUT /admin/events/{id}/approve` with `{ "approved": true }`.
+2. Governance Queue — Organizer Revenue Payouts: call `GET /admin/payouts`. Review pending requests and invoke `PUT /admin/payouts/{id}/process`.
+3. Governance Queue — Refund Requests: call `GET /admin/refunds`. Approve or reject customer refund requests via `PUT /admin/orders/{id}/refund`.
+4. Governance Queue — Secondary Resale Moderation: call `GET /admin/resale`. Approve or reject listings via `PUT /admin/resale/{id}/approve`.
+5. Platform Settings: call `GET /admin/config/commission` and adjust commission rates using `PUT /admin/config/commission`.
+
+---
+
+## Complete JavaScript SDK Implementation Examples
 
 ### Authenticated Fetch Wrapper
 ```javascript
 const API_BASE_URL = 'https://api.alphapass-ticketing.com'; // Change to actual API Gateway URL
 
 async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token') || localStorage.getItem('organizer_token') || localStorage.getItem('admin_token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -245,8 +248,8 @@ async function submitCheckout(eventId, ticketTypeId, name, email, promoCode = nu
 ```javascript
 async function transferTicket(ticketCode, fromEmail, toName, toEmail) {
   const payload = {
-    to_name: toName,
-    to_email: toEmail
+    recipient_name: toName,
+    recipient_email: toEmail
   };
 
   try {

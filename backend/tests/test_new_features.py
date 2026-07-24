@@ -107,3 +107,19 @@ def test_create_admin(client, admin_headers):
     data = r.json()
     assert data["email"] == "newsubadmin@test.com"
     assert data["is_super"] is False
+
+
+# 5. Test Admin Governance Queues
+def test_admin_governance_queues(client, admin_headers):
+    r1 = client.get("/admin/payouts", headers=admin_headers)
+    assert r1.status_code == 200
+    assert isinstance(r1.json(), list)
+
+    r2 = client.get("/admin/refunds", headers=admin_headers)
+    assert r2.status_code == 200
+    assert "items" in r2.json()
+
+    r3 = client.get("/admin/resale", headers=admin_headers)
+    assert r3.status_code == 200
+    assert "items" in r3.json()
+

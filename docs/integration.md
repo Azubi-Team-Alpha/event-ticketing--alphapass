@@ -4,7 +4,9 @@ This guide provides an end-to-end technical reference for **AlphaPass** (Event T
 
 ---
 
-## 🏛️ 1. Architecture Flow Diagram
+## 1. Architecture Flow Diagram
+
+![AlphaPass AWS Serverless Architecture Diagram](alphapass-architecture-diagram.drawio.png)
 
 ```mermaid
 flowchart TD
@@ -28,7 +30,7 @@ flowchart TD
         DDB_Users["DynamoDB: alphapass-organizers-dev"]
         DDB_Resale["DynamoDB: alphapass-resale-listings-dev"]
         DDB_Logs["DynamoDB: alphapass-audit-logs-dev"]
-        S3_Assets["Amazon S3 Bucket<br>(PDF Passes, QR Codes, Event Banners)"]
+        S3_Assets["Amazon S3 Bucket<br>(PDF Passes, Event Banners)"]
         SNS["Amazon SNS / SES<br>(Email Notifications)"]
     end
 
@@ -45,7 +47,7 @@ flowchart TD
 
 ---
 
-## 🌐 2. Frontend Architecture & Shared SDK (`app-api.js`)
+## 2. Frontend Architecture & Shared SDK (`app-api.js`)
 
 The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) built using Vanilla HTML5, Bootstrap 5, and JavaScript.
 
@@ -69,7 +71,7 @@ The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) buil
 
 ---
 
-## 📡 3. Complete API Endpoint Specification
+## 3. Complete API Endpoint Specification
 
 ### Public & Customer Endpoints
 
@@ -103,7 +105,7 @@ The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) buil
       "payment_method": "Mobile Money"
     }
     ```
-  - **Returns**: `OrderResponse` including generated ticket pass objects and S3 QR code URLs.
+  - **Returns**: `OrderResponse` including generated ticket pass objects and ticket codes.
 - **`POST /orders/lookup`**
   - **Body**: `{ "email": "alice@example.com", "order_id": "ORD-123456" }`
   - **Returns**: `[OrderResponse]`
@@ -116,7 +118,7 @@ The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) buil
 
 #### 4. Digital Passes & PDF Generation
 - **`GET /tickets/{ticket_code}`**
-  - **Returns**: `TicketResponse` (status, attendee, event_title, qr_code_url)
+  - **Returns**: `TicketResponse` (status, attendee, event_title, ticket_code)
 - **`GET /tickets/{ticket_code}/pdf`**
   - **Returns**: Binary PDF Stream (`application/pdf`) generated on-the-fly via ReportLab.
 
@@ -142,12 +144,13 @@ The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) buil
 - **`POST /auth/organizer/login`**: Authenticate organizer (`email`, `password`) -> returns JWT `access_token`.
 - **`GET /organizer/dashboard`**: Fetch revenue metrics, net earnings, total tickets sold, pending payouts.
 - **`GET /events/organizer/my-events`**: List events created by authenticated organizer.
-- **`POST /events/organizer`**: Create new event (`title`, `description`, `venue_name`, `city`, `starts_at`, `ends_at`, `banner_image_url`).
+- **`POST /events/organizer`**: Create new event (`title`, `description`, `venue_name`, `city`, `starts_at`, `ends_at`, `allow_resale`, `allow_refunds`, `allow_transfers`, `group_discount_threshold`, `group_discount_percent`, `policies`).
+- **`PUT /events/organizer/{id}`**: Update event settings and governance policies.
 - **`POST /events/organizer/{id}/publish`**: Transition event status from `draft` to `published`.
 - **`POST /events/organizer/{id}/ticket-types`**: Add ticket pass tier (`name`, `price`, `quantity`, `purchase_limit`).
 - **`POST /events/upload-banner`**: Upload cover image directly to S3 bucket -> returns `{ "image_url": "https://..." }`.
-- **`GET /organizer/events/{id}/attendees`**: Export attendee list (`format=json` or `format=csv`).
-- **`POST /checkin/scan`**: Gate scanner check-in (`ticket_code`) -> marks pass as used.
+- **`GET /organizer/events/{id}/attendees`**: Export attendee roster (`export=csv` or `export=pdf`).
+- **`POST /checkin/scan`**: Gate pass code check-in (`ticket_code`) -> marks pass as used.
 
 ---
 
@@ -157,12 +160,18 @@ The frontend is a zero-dependency, ultra-fast Single Page Application (SPA) buil
 - **`GET /admin/dashboard`**: Total platform revenue, published events, total organizers, commission fees.
 - **`GET /admin/events`**: List all platform events including draft/pending.
 - **`PUT /admin/events/{id}/approve`**: Approve or reject pending event (`approved: bool`).
+- **`GET /admin/payouts`**: List organizer revenue payout requests.
+- **`PUT /admin/payouts/{id}/process`**: Process organizer payout request.
+- **`GET /admin/refunds`**: List pending order refund requests.
+- **`PUT /admin/orders/{id}/refund`**: Approve or reject order refund request.
+- **`GET /admin/resale`**: List secondary market resale listings.
+- **`PUT /admin/resale/{id}/approve`**: Approve or reject secondary resale listing.
 - **`PUT /admin/config/commission`**: Set global commission percentage (`commission_percent: float`).
 - **`POST /admin/categories`**: Create event category (`name`, `description`).
 
 ---
 
-## 🛠️ 4. Integration Best Practices & Security
+## 4. Integration Best Practices & Security
 
 1. **JWT Storage**: Store organizer and admin tokens in `localStorage` under `organizer_token` and `admin_token`.
 2. **Atomic Inventory & Race Condition Prevention**:

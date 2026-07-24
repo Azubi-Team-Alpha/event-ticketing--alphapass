@@ -11,7 +11,6 @@ from app.db.dynamodb import dynamodb_helper
 from app.schemas.schemas import (
     ResaleListingCreate, ResaleListingResponse, ResalePurchase,
 )
-from app.core.qr import upload_qr_to_s3
 from app.core.email import send_email
 from app.core.utils import format_dt as _format_dt
 
@@ -205,13 +204,6 @@ def purchase_resale_ticket(
         "buyer_email": body.buyer_email,
         "buyer_ticket_id": new_ticket_id,
     })
-
-    try:
-        qr_url = upload_qr_to_s3(new_code)
-        dynamodb_helper.update_ticket(new_ticket_id, {"qr_image_url": qr_url})
-    except Exception as e:
-        print(f"[QR] resale ticket: {e}")
-        dynamodb_helper.update_ticket(new_ticket_id, {"qr_image_url": f"/tickets/{new_code}/qr"})
 
     _send_resale_emails(
         listing.get("seller_email"), listing.get("seller_name"),

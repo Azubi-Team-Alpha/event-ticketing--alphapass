@@ -4,7 +4,7 @@ import csv
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from app.db.dynamodb import dynamodb_helper
@@ -217,6 +217,16 @@ def export_attendees(
                         "checked_in": False,
                         "checked_in_at": None,
                     })
+
+    is_pdf = (export and export.lower() == "pdf") or (format and format.lower() == "pdf")
+    if is_pdf:
+        from app.core.pdf import generate_attendee_list_pdf
+        pdf_bytes = generate_attendee_list_pdf(event.get("title", "Event"), tickets)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=attendees_event_{event_id}.pdf"}
+        )
 
     is_csv = (export and export.lower() == "csv") or (format and format.lower() == "csv")
     if is_csv:

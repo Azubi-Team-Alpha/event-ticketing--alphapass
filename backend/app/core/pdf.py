@@ -3,17 +3,15 @@ import html
 from datetime import datetime, timezone
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-
-from app.core.qr import generate_qr_code
 
 
 def generate_ticket_pdf(ticket) -> bytes:
     buffer = io.BytesIO()
 
-    # 1. Setup document (Margins: 0.5 inch / 36 pt)
+    # Setup document (Margins: 0.5 inch / 36 pt)
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
@@ -87,7 +85,7 @@ def generate_ticket_pdf(ticket) -> bytes:
         price = getattr(tt, "price", "0.00")
         price_str = f"₵{price}"
     else:
-        ticket_type_name = str(getattr(ticket, "ticket_type_name", None) or (ticket.get("ticket_type_name") if isinstance(ticket, dict) else "") or "General Pass")
+        ticket_type_name = str(getattr(ticket, "ticket_type_name", None) or (ticket.get("ticket_type") if isinstance(ticket, dict) else "") or "General Pass")
         price_str = "₵0.00"
 
     # HTML Escape all dynamic values for ReportLab Paragraph compatibility
@@ -98,11 +96,7 @@ def generate_ticket_pdf(ticket) -> bytes:
     location_str_esc = html.escape(str(location_str)).replace('\n', '<br/>')
     policies_esc = html.escape(str(policies)) if policies else "Standard platform terms apply."
 
-    # 2. Get QR image wrap
-    qr_bytes = generate_qr_code(ticket_code)
-    qr_image = Image(io.BytesIO(qr_bytes), width=1.5 * inch, height=1.5 * inch)
-
-    # 3. Create Styles
+    # Create Styles
     styles = getSampleStyleSheet()
 
     primary_color = colors.HexColor("#4f46e5")    # Indigo
@@ -162,8 +156,8 @@ def generate_ticket_pdf(ticket) -> bytes:
         'CodeLabel',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=8,
-        leading=10,
+        fontSize=9,
+        leading=11,
         textColor=gray_text,
         alignment=1
     )
@@ -172,9 +166,9 @@ def generate_ticket_pdf(ticket) -> bytes:
         'CodeValue',
         parent=styles['Normal'],
         fontName='Courier-Bold',
-        fontSize=9,
-        leading=11,
-        textColor=dark_text,
+        fontSize=14,
+        leading=16,
+        textColor=primary_color,
         alignment=1
     )
 
@@ -188,7 +182,7 @@ def generate_ticket_pdf(ticket) -> bytes:
         ],
         [
             Paragraph("Official Event Entry Pass", subtitle_style),
-            Paragraph("Verified Digital Ticket", ParagraphStyle('RightSub', parent=subtitle_style, alignment=2))
+            Paragraph("Verified Digital Ticket Pass", ParagraphStyle('RightSub', parent=subtitle_style, alignment=2))
         ]
     ]
 
@@ -223,13 +217,15 @@ def generate_ticket_pdf(ticket) -> bytes:
     ]
 
     right_flow = [
-        qr_image,
+        Spacer(1, 15),
+        Paragraph("OFFICIAL TICKET CODE", code_label_style),
         Spacer(1, 6),
-        Paragraph("TICKET CODE", code_label_style),
-        Paragraph(html.escape(ticket_code), code_val_style)
+        Paragraph(html.escape(ticket_code), code_val_style),
+        Spacer(1, 10),
+        Paragraph("Present this code at event gate", ParagraphStyle('CodeSub', parent=code_label_style, fontSize=8))
     ]
 
-    main_table = Table([[left_flow, right_flow]], colWidths=[5.3 * inch, 2.2 * inch])
+    main_table = Table([[left_flow, right_flow]], colWidths=[5.0 * inch, 2.5 * inch])
     main_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), light_bg),
         ('PADDING', (0, 0), (-1, -1), 16),
@@ -259,13 +255,131 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     story.append(Paragraph("IMPORTANT INFORMATION", terms_title_style))
     story.append(Paragraph(
-        "• Please present this ticket at the venue entrance. The QR code must be clearly readable on a phone screen or printed paper.<br/>"
-        "• Each ticket is valid for one (1) entry and can only be scanned once. Duplicate scans will be rejected.<br/>"
+        "• Please present your official ticket code at the venue entrance for gate check-in.<br/>"
+        "• Each ticket pass code is valid for one (1) entry and can only be used once.<br/>"
         "• Admission policies are set by the organizer. Event policies: "
         f"<i>{policies_esc}</i><br/>"
-        "• Keep this ticket secure. Do not share the QR code or link to prevent unauthorized transfers.",
+        "• Keep this ticket pass secure and do not share your unique ticket code to prevent unauthorized entry.",
         terms_body_style
     ))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def generate_attendee_list_pdf(event_title: str, tickets: list) -> bytes:
+    """Generate a printable PDF roster of event attendees matching CSV layout."""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+
+    styles = getSampleStyleSheet()
+    primary_color = colors.HexColor("#4f46e5")
+    dark_text = colors.HexColor("#1e293b")
+    light_bg = colors.HexColor("#f8fafc")
+    alt_bg = colors.HexColor("#f1f5f9")
+    border_color = colors.HexColor("#cbd5e1")
+    gray_text = colors.HexColor("#64748b")
+
+    title_style = ParagraphStyle(
+        'RosterTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=16,
+        leading=20,
+        textColor=primary_color,
+        spaceAfter=4
+    )
+    meta_style = ParagraphStyle(
+        'RosterMeta',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=12,
+        textColor=gray_text,
+        spaceAfter=14
+    )
+
+    header_cell_style = ParagraphStyle(
+        'HeaderCell',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=8,
+        leading=10,
+        textColor=colors.white
+    )
+    cell_style = ParagraphStyle(
+        'DataCell',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8,
+        leading=10,
+        textColor=dark_text
+    )
+
+    story = []
+    event_title_esc = html.escape(str(event_title or "Event Attendees"))
+    story.append(Paragraph(f"Attendee Roster - {event_title_esc}", title_style))
+    now_str = datetime.now(timezone.utc).strftime("%B %d, %Y %I:%M %p UTC")
+    story.append(Paragraph(f"Generated on {now_str} | Total Attendees: {len(tickets)}", meta_style))
+
+    table_data = [
+        [
+            Paragraph("Ticket Code", header_cell_style),
+            Paragraph("Attendee Name", header_cell_style),
+            Paragraph("Attendee Email", header_cell_style),
+            Paragraph("Ticket Type", header_cell_style),
+            Paragraph("Status", header_cell_style),
+            Paragraph("Checked In", header_cell_style),
+            Paragraph("Checked In At", header_cell_style),
+        ]
+    ]
+
+    for t in tickets:
+        t_code = html.escape(str(t.get("ticket_code") or ""))
+        name = html.escape(str(t.get("attendee_name") or ""))
+        email = html.escape(str(t.get("attendee_email") or ""))
+        t_type = html.escape(str(t.get("ticket_type") or ""))
+        status = html.escape(str(t.get("status") or ""))
+        checked_in = "Yes" if t.get("checked_in") else "No"
+        checked_at = html.escape(str(t.get("checked_in_at") or ""))
+
+        table_data.append([
+            Paragraph(t_code, cell_style),
+            Paragraph(name, cell_style),
+            Paragraph(email, cell_style),
+            Paragraph(t_type, cell_style),
+            Paragraph(status, cell_style),
+            Paragraph(checked_in, cell_style),
+            Paragraph(checked_at, cell_style),
+        ])
+
+    col_widths = [85, 95, 120, 80, 50, 50, 60]
+    attendee_table = Table(table_data, colWidths=col_widths, repeatRows=1)
+
+    t_style = [
+        ('BACKGROUND', (0, 0), (-1, 0), primary_color),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('PADDING', (0, 0), (-1, -1), 5),
+        ('GRID', (0, 0), (-1, -1), 0.5, border_color),
+    ]
+
+    for i in range(1, len(table_data)):
+        if i % 2 == 0:
+            t_style.append(('BACKGROUND', (0, i), (-1, i), alt_bg))
+        else:
+            t_style.append(('BACKGROUND', (0, i), (-1, i), light_bg))
+
+    attendee_table.setStyle(TableStyle(t_style))
+    story.append(attendee_table)
 
     doc.build(story)
     buffer.seek(0)
