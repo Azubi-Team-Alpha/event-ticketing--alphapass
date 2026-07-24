@@ -1,12 +1,12 @@
-# 🎟️ AlphaPass AWS Serverless Deployment & Infrastructure Playbook
+# AlphaPass AWS Serverless Deployment & Infrastructure Playbook
 
 This document is the official infrastructure deployment and operational playbook for **AlphaPass** (Serverless Event Ticketing, Resale Exchange & Governance Platform).
 
-The production architecture strategy is **Automated Direct Serverless Stack (AWS Lambda ZIP + API Gateway + S3 Direct Website Hosting + Amazon DynamoDB)**.
+The production architecture strategy is **Automated Direct Serverless Stack (AWS Lambda ZIP + API Gateway REST Proxy + S3 Direct Website Hosting + Amazon DynamoDB)**.
 
 ---
 
-## 🏛️ Infrastructure Component Architecture
+## Infrastructure Component Architecture
 
 | Component | AWS Resource | Deployment Method | Configuration File |
 | :--- | :--- | :--- | :--- |
@@ -20,7 +20,7 @@ The production architecture strategy is **Automated Direct Serverless Stack (AWS
 
 ---
 
-## 🚀 Step-by-Step Manual Deployment Instructions
+## Step-by-Step Manual Deployment Instructions
 
 ### Prerequisites
 - Installed AWS CLI (`aws --version`) configured with valid credentials (`aws configure`).
@@ -74,18 +74,18 @@ Once synced, open `http://$FRONTEND_URL` in your browser to access the live plat
 
 ---
 
-## 🔄 GitHub Actions CI/CD Workflows
+## GitHub Actions CI/CD Workflows
 
 The repository contains automated GitHub Actions workflows under `.github/workflows/`:
 
-### 1. Automated Deployment Pipeline ([.github/workflows/deploy.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/deploy.yml))
+### 1. Automated Deployment Pipeline ([.github/workflows/deploy.yml](.github/workflows/deploy.yml))
 Triggered on `push` or `pull_request` to `main`, or via manual **Workflow Dispatch**:
 
-- **Stage 1 (Test)**: Runs `pytest` test suite across all 42 backend unit/integration tests.
+- **Stage 1 (Test)**: Runs `pytest` test suite across all 45 backend unit/integration tests.
 - **Stage 2 (Package)**: Prepares production Python dependencies for Lambda packaging.
 - **Stage 3 (Deploy)**: Executes `terraform apply`, updates Lambda code, injects live API Gateway URL into `frontend/js/config.js`, syncs static frontend files to S3, and posts deployment summary details.
 
-### 2. Manual Infrastructure Teardown Workflow ([.github/workflows/teardown.yml](file:///home/haadi/Desktop/AWS%20Cloud/Azubi-AWS-AI/Team%20Alpha/alphapass/.github/workflows/teardown.yml))
+### 2. Manual Infrastructure Teardown Workflow ([.github/workflows/teardown.yml](.github/workflows/teardown.yml))
 Destroys all provisioned AWS cloud infrastructure on demand from GitHub Actions UI:
 
 1. Go to **Actions** -> **AlphaPass Infrastructure Teardown**.
@@ -95,7 +95,7 @@ Destroys all provisioned AWS cloud infrastructure on demand from GitHub Actions 
 
 ---
 
-## 🔐 Required GitHub Repository Secrets
+## Required GitHub Repository Secrets
 
 Configure the following secrets in GitHub under **Settings > Secrets and variables > Actions**:
 
@@ -108,7 +108,7 @@ Configure the following secrets in GitHub under **Settings > Secrets and variabl
 
 ---
 
-## 🛠️ Environment Variables Reference (`.env`)
+## Environment Variables Reference (`.env`)
 
 ```env
 # APP
@@ -144,7 +144,7 @@ EVENT_CATEGORIES_TABLE="alphapass-event-categories-dev"
 
 ---
 
-## 🧹 Local Clean & Teardown Commands
+## Local Clean & Teardown Commands
 
 To completely remove local build artifacts and Python virtualenv caches:
 
