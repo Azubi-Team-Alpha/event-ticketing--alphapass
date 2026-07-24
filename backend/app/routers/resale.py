@@ -113,10 +113,13 @@ def list_for_resale(ticket_code: str, body: ResaleListingCreate):
     listing_id = str(uuid.uuid4())
     status_str = "pending" if require_approval else "active"
 
+    seller_name = body.seller_name or ticket.get("attendee_name") or order.get("guest_name") or "Seller"
+    seller_email = body.seller_email or ticket.get("attendee_email") or order.get("guest_email") or "seller@example.com"
+
     listing_data = dynamodb_helper.create_resale_listing(listing_id, {
         "ticket_id": ticket_id,
-        "seller_name": body.seller_name,
-        "seller_email": body.seller_email,
+        "seller_name": seller_name,
+        "seller_email": seller_email,
         "asking_price": str(body.asking_price),
         "face_value": str(face_value),
         "status": status_str,
