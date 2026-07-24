@@ -6,6 +6,8 @@ This guide provides an end-to-end technical reference for **AlphaPass** (Event T
 
 ## 1. Architecture Flow Diagram
 
+![AlphaPass AWS Serverless Architecture Diagram](alphapass-architecture-diagram.drawio.png)
+
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["Client Tier (Browser / Mobile / Scanner)"]

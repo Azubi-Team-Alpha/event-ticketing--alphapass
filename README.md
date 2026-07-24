@@ -43,6 +43,8 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 ## System Architecture
 
+![AlphaPass AWS Serverless Architecture Diagram](docs/alphapass-architecture-diagram.drawio.png)
+
 The platform operates on a serverless AWS cloud infrastructure:
 
 - **Frontend Client**: Static web pages hosted on Amazon S3 Website Hosting.
