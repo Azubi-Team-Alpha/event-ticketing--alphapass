@@ -79,9 +79,12 @@ def _format_order_response(
                 "status": t.get("status", "active"),
                 "is_used": t.get("is_used", False),
                 "used_at": _format_dt(t.get("used_at")),
-                "attendee_name": t.get("attendee_name"),
-                "attendee_email": t.get("attendee_email"),
+                "attendee_name": t.get("attendee_name") or order.get("guest_name"),
+                "attendee_email": t.get("attendee_email") or order.get("guest_email"),
                 "issued_at": _format_dt(t.get("issued_at")) or datetime.now(timezone.utc),
+                "event_id": event_id,
+                "event_title": event.get("title") or "Event",
+                "ticket_type_name": t.get("ticket_type_name") or tt_name,
             })
 
         # --- quantity_remaining: use real data from event ticket_type ---
@@ -148,38 +151,36 @@ def validate_promo(body: ApplyPromoCode):
     code_str = body.code.upper()
     promo = dynamodb_helper.get_promo_code(code_str)
     if not promo or promo.get("event_id") != body.event_id or not promo.get("is_active", True):
-        return PromoCodeValidation(valid=False, message="Invalid or expired promo code")
-
-    expires_at = promo.get("expires_at")
-    if expires_at:
-        exp_dt = _format_dt(expires_at)
-        if exp_dt and exp_dt < datetime.now(timezone.utc):
-            return PromoCodeValidation(valid=False, message="Promo code has expired")
-
+        return PromoCodeValidation(valid=False, discount_percent=0, message="Invalid or inactive promo code")
     max_uses = promo.get("max_uses")
     if max_uses and int(promo.get("used_count", 0)) >= int(max_uses):
-        return PromoCodeValidation(valid=False, message="Promo code usage limit reached")
-
+        return PromoCodeValidation(valid=False, discount_percent=0, message="Promo code usage limit reached")
+    val = Decimal(str(promo.get("discount_value", 10)))
     return PromoCodeValidation(
         valid=True,
-        message="Promo code applied",
+        discount_percent=int(val),
+        discount_value=val,
         discount_type=promo.get("discount_type", "percentage"),
-        discount_value=Decimal(str(promo.get("discount_value", 0))),
+        message=f"Promo code '{code_str}' applied ({val}% OFF)"
     )
 
 
-# ── Organizer: view orders for an event ──────────────────────────────────────
-# NOTE: This route MUST stay above /{order_id} to prevent FastAPI routing
-# /orders/event/... to the /{order_id} handler.
+# ── List Orders (Admin / Organizer) ───────────────────────────────────────────
 
-@router.get("/event/{event_id}", response_model=list[OrderResponse])
-def event_orders(
-    event_id: str,
-    is_bulk: bool | None = Query(None),
+@router.get("", response_model=List[OrderResponse])
+def list_orders(
+    event_id: Optional[str] = Query(None),
+    is_bulk: Optional[bool] = Query(None),
     current_user: AttrDict = Depends(get_current_user),
 ):
-    """List all orders for an event. Requires organizer or admin authentication."""
-    # Organizers can only see orders for their own events
+    """List orders for an event or all orders if admin."""
+    if not event_id:
+        if "AdminID" not in current_user and current_user.get("role") != "admin":
+            raise HTTPException(403, "Admin authorization required to view all orders")
+        all_orders = dynamodb_helper.list_orders()
+        event_cache: Dict[str, Dict[str, Any]] = {}
+        return [_format_order_response(o, event_cache) for o in all_orders]
+
     if "OrganizerID" in current_user:
         event = dynamodb_helper.get_event(event_id)
         org_id = current_user.get("OrganizerID") or current_user.get("id")
@@ -191,7 +192,6 @@ def event_orders(
             orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) >= 5]
         else:
             orders = [o for o in orders if sum(int(i.get("quantity", 1)) for i in o.get("items", [])) < 5]
-    # Share a single event cache across all order responses (N+1 fix)
     event_cache: Dict[str, Dict[str, Any]] = {}
     return [_format_order_response(o, event_cache) for o in orders]
 
@@ -217,6 +217,8 @@ def create_order(
     subtotal = Decimal("0.00")
     order_items = []
     all_tickets = []
+
+    guest_email_norm = body.guest_email.strip().lower()
 
     for item in body.items:
         tt = next((t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)), None)
@@ -254,6 +256,7 @@ def create_order(
         for _ in range(item.quantity):
             t_id = str(uuid.uuid4())
             code = f"AP-{secrets.token_hex(4).upper()}"
+            att_email = (item.attendee_email or guest_email_norm).strip().lower()
             t_entry = {
                 "TicketID": t_id,
                 "id": t_id,
@@ -262,7 +265,7 @@ def create_order(
                 "ticket_type_name": tt.get("name", "Standard"),
                 "ticket_code": code,
                 "attendee_name": item.attendee_name or body.guest_name,
-                "attendee_email": item.attendee_email or body.guest_email,
+                "attendee_email": att_email,
                 "status": "active",
                 "is_used": False,
                 "issued_at": datetime.now(timezone.utc).isoformat(),
@@ -310,7 +313,7 @@ def create_order(
         "event_id": body.event_id,
         "promo_code_id": body.promo_code.upper() if body.promo_code else None,
         "guest_name": body.guest_name,
-        "guest_email": body.guest_email,
+        "guest_email": guest_email_norm,
         "guest_phone": body.guest_phone,
         "status": "confirmed",
         "subtotal": str(subtotal),
@@ -335,7 +338,7 @@ def create_order(
     dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
 
     # Generate QR codes and send confirmation email
-    _generate_qr_and_notify(all_tickets, order_id, body.guest_email, body.guest_name, event, total)
+    _generate_qr_and_notify(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)
 
     return _format_order_response(order_data)
 
@@ -363,17 +366,28 @@ def lookup_order(body: OrderLookup):
         return _format_order_response(order)
 
     if target_email:
-        # Use GSI (guest_email-index) instead of full table scan
-        matching = dynamodb_helper.list_orders_by_email(target_email)
-        if not matching:
+        matching_orders = dynamodb_helper.list_orders_by_email(target_email)
+        matching_tickets = dynamodb_helper.list_tickets_by_email(target_email)
+
+        existing_order_ids = {m.get("OrderID") or m.get("id") for m in matching_orders}
+        for t in matching_tickets:
+            o_id = t.get("order_id")
+            if o_id and o_id not in existing_order_ids:
+                ord_obj = dynamodb_helper.get_order(o_id)
+                if ord_obj:
+                    matching_orders.append(ord_obj)
+                    existing_order_ids.add(o_id)
+
+        if not matching_orders:
             raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
 
-        latest = sorted(matching, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
+        latest = sorted(matching_orders, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
         event_cache: Dict[str, Dict[str, Any]] = {}
         formatted_latest = _format_order_response(latest, event_cache)
 
+        seen_codes = set()
         all_tix = []
-        for m in matching:
+        for m in matching_orders:
             fmt_m = _format_order_response(m, event_cache)
             all_tix.extend(fmt_m.get("tickets", []))
 

@@ -1,4 +1,5 @@
 import io
+import html
 from datetime import datetime, timezone
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -22,8 +23,8 @@ def generate_ticket_pdf(ticket) -> bytes:
         bottomMargin=36
     )
 
-    ticket_code = getattr(ticket, "ticket_code", None) or (ticket.get("ticket_code") if isinstance(ticket, dict) else "TICKET")
-    attendee_name = getattr(ticket, "attendee_name", None) or (ticket.get("attendee_name") if isinstance(ticket, dict) else "Guest")
+    ticket_code = str(getattr(ticket, "ticket_code", None) or (ticket.get("ticket_code") if isinstance(ticket, dict) else "") or "TICKET")
+    attendee_name = str(getattr(ticket, "attendee_name", None) or (ticket.get("attendee_name") if isinstance(ticket, dict) else "") or "Guest Attendee")
 
     # Extract event data
     event = getattr(ticket, "event", None) or (ticket.get("event") if isinstance(ticket, dict) else None)
@@ -76,18 +77,26 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     location_str = f"{venue}\n{address}\n{city_country}".strip()
 
-    # Ticket type
+    # Ticket type & pricing
     tt = getattr(ticket, "ticket_type", None) or (ticket.get("ticket_type") if isinstance(ticket, dict) else None)
     if isinstance(tt, dict):
         ticket_type_name = tt.get("name", "General Admission")
-        price_str = f"${tt.get('price', '0.00')}"
+        price_str = f"₵{tt.get('price', '0.00')}"
     elif tt:
         ticket_type_name = getattr(tt, "name", "General Admission")
         price = getattr(tt, "price", "0.00")
-        price_str = f"${price}"
+        price_str = f"₵{price}"
     else:
-        ticket_type_name = ticket.get("ticket_type_name", "General Admission") if isinstance(ticket, dict) else "General Admission"
-        price_str = "$0.00"
+        ticket_type_name = str(getattr(ticket, "ticket_type_name", None) or (ticket.get("ticket_type_name") if isinstance(ticket, dict) else "") or "General Pass")
+        price_str = "₵0.00"
+
+    # HTML Escape all dynamic values for ReportLab Paragraph compatibility
+    event_title_esc = html.escape(str(event_title))
+    attendee_name_esc = html.escape(str(attendee_name))
+    ticket_type_name_esc = html.escape(str(ticket_type_name))
+    date_str_esc = html.escape(str(date_str))
+    location_str_esc = html.escape(str(location_str)).replace('\n', '<br/>')
+    policies_esc = html.escape(str(policies)) if policies else "Standard platform terms apply."
 
     # 2. Get QR image wrap
     qr_bytes = generate_qr_code(ticket_code)
@@ -96,10 +105,10 @@ def generate_ticket_pdf(ticket) -> bytes:
     # 3. Create Styles
     styles = getSampleStyleSheet()
 
-    primary_color = colors.HexColor("#6366f1")    # Indigo
+    primary_color = colors.HexColor("#4f46e5")    # Indigo
     dark_text = colors.HexColor("#1e293b")        # Slate-800
     light_bg = colors.HexColor("#f8fafc")         # Slate-50
-    border_color = colors.HexColor("#e2e8f0")     # Slate-200
+    border_color = colors.HexColor("#cbd5e1")     # Slate-300
     gray_text = colors.HexColor("#64748b")        # Slate-500
 
     title_style = ParagraphStyle(
@@ -175,11 +184,11 @@ def generate_ticket_pdf(ticket) -> bytes:
     header_data = [
         [
             Paragraph("ALPHAPASS", title_style),
-            Paragraph(f"TICKET #{ticket_code[:8].upper()}", ParagraphStyle('RightHeader', parent=title_style, alignment=2))
+            Paragraph(f"TICKET #{html.escape(ticket_code[:12].upper())}", ParagraphStyle('RightHeader', parent=title_style, alignment=2))
         ],
         [
-            Paragraph("Official Event Ticket", subtitle_style),
-            Paragraph("Guest-First Checkout", ParagraphStyle('RightSub', parent=subtitle_style, alignment=2))
+            Paragraph("Official Event Entry Pass", subtitle_style),
+            Paragraph("Verified Digital Ticket", ParagraphStyle('RightSub', parent=subtitle_style, alignment=2))
         ]
     ]
 
@@ -195,17 +204,17 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     # ── CONTENT TABLE ──
     left_flow = [
-        Paragraph(event_title, event_title_style),
+        Paragraph(event_title_esc, event_title_style),
         Paragraph("DATE & TIME", label_style),
-        Paragraph(date_str, value_style),
+        Paragraph(date_str_esc, value_style),
         Spacer(1, 8),
         Paragraph("LOCATION", label_style),
-        Paragraph(location_str.replace('\n', '<br/>'), value_style),
+        Paragraph(location_str_esc, value_style),
         Spacer(1, 12),
 
         Table([
             [Paragraph("ATTENDEE", label_style), Paragraph("TICKET TYPE", label_style), Paragraph("PRICE", label_style)],
-            [Paragraph(attendee_name, value_style), Paragraph(ticket_type_name, value_style), Paragraph(price_str, value_style)]
+            [Paragraph(attendee_name_esc, value_style), Paragraph(ticket_type_name_esc, value_style), Paragraph(html.escape(price_str), value_style)]
         ], colWidths=[2.2 * inch, 1.8 * inch, 1.0 * inch], style=[
             ('PADDING', (0, 0), (-1, -1), 0),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
@@ -217,7 +226,7 @@ def generate_ticket_pdf(ticket) -> bytes:
         qr_image,
         Spacer(1, 6),
         Paragraph("TICKET CODE", code_label_style),
-        Paragraph(ticket_code, code_val_style)
+        Paragraph(html.escape(ticket_code), code_val_style)
     ]
 
     main_table = Table([[left_flow, right_flow]], colWidths=[5.3 * inch, 2.2 * inch])
@@ -252,8 +261,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     story.append(Paragraph(
         "• Please present this ticket at the venue entrance. The QR code must be clearly readable on a phone screen or printed paper.<br/>"
         "• Each ticket is valid for one (1) entry and can only be scanned once. Duplicate scans will be rejected.<br/>"
-        "• Admission policies (age restrictions, dress code, etc.) are set by the organizer. Event policies: "
-        f"<i>{policies or 'Standard platform terms apply.'}</i><br/>"
+        "• Admission policies are set by the organizer. Event policies: "
+        f"<i>{policies_esc}</i><br/>"
         "• Keep this ticket secure. Do not share the QR code or link to prevent unauthorized transfers.",
         terms_body_style
     ))

@@ -112,8 +112,12 @@
                     <div class="modal-body p-4">
                         <p class="text-muted small">List ticket <strong id="resaleTicketCode">TKT-000</strong> on the official AlphaPass Secondary Exchange.</p>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Seller Name *</label>
+                            <label class="form-label fw-bold">Seller Full Name *</label>
                             <input type="text" id="resaleSellerName" class="form-control" placeholder="Your Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Seller Email Address *</label>
+                            <input type="email" id="resaleSellerEmail" class="form-control" placeholder="seller@example.com" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Asking Price (₵) *</label>
@@ -173,6 +177,7 @@
                                     ? tkt.qr_image_url 
                                     : (tkt.qr_image_url ? `${API_BASE_URL}${tkt.qr_image_url}` : `${API_BASE_URL}/tickets/${tkt.ticket_code}/qr`);
                                 const isResale = tkt.status === 'resold' || tkt.status === 'resale_pending' || tkt.status === 'resale_listed';
+                                const attNameEsc = (tkt.attendee_name || order.guest_name || 'Guest').replace(/'/g, "\\'");
                                 return `
                                 <div class="col-md-6">
                                     <div class="card border border-light shadow-sm p-4 rounded-3 bg-light">
@@ -180,7 +185,7 @@
                                             <span class="badge bg-primary">${tkt.ticket_type_name || 'General Pass'}</span>
                                             <code class="fw-bold fs-6 text-dark">${tkt.ticket_code}</code>
                                         </div>
-                                        <h5 class="fw-bold text-dark mb-1">${tkt.event_title || 'AWS & Cloud AI Summit Accra 2026'}</h5>
+                                        <h5 class="fw-bold text-dark mb-1">${tkt.event_title || order.event_title || 'Event Pass'}</h5>
                                         <div class="small text-muted mb-3"><i class="fa fa-user me-1"></i> Attendee: ${tkt.attendee_name || order.guest_name}</div>
                                         
                                         <div class="text-center my-3">
@@ -192,7 +197,7 @@
                                             <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
                                             ${isResale
                                                 ? `<button class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="cancelResaleListing('${tkt.ticket_code}')"><i class="fa fa-ban me-1"></i> Cancel Resale Listing</button>`
-                                                : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
+                                                : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}', '${attNameEsc}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
                                             }
                                         </div>
                                     </div>
@@ -215,12 +220,15 @@
             modal.show();
         }
 
-        function openResaleModal(code) {
+        function openResaleModal(code, attendeeName) {
             currentSelectedCode = code;
             document.getElementById('resaleTicketCode').textContent = code;
             const email = document.getElementById('lookupEmail').value.trim();
-            if (email && document.getElementById('resaleSellerName')) {
-                document.getElementById('resaleSellerName').value = email.split('@')[0];
+            if (document.getElementById('resaleSellerEmail')) {
+                document.getElementById('resaleSellerEmail').value = email || '';
+            }
+            if (document.getElementById('resaleSellerName')) {
+                document.getElementById('resaleSellerName').value = attendeeName || (email ? email.split('@')[0] : 'Seller');
             }
             const modal = new bootstrap.Modal(document.getElementById('resaleModal'));
             modal.show();
@@ -280,16 +288,21 @@
                 e.preventDefault();
                 const price = parseFloat(document.getElementById('resalePrice').value);
                 const sellerName = document.getElementById('resaleSellerName').value.trim();
-                const email = document.getElementById('lookupEmail').value.trim();
+                const sellerEmail = document.getElementById('resaleSellerEmail').value.trim() || document.getElementById('lookupEmail').value.trim();
+
+                if (!sellerName || !sellerEmail) {
+                    showToast('Please provide seller name and email.', 'danger');
+                    return;
+                }
 
                 try {
                     await apiFetch(`/resale/tickets/${currentSelectedCode}`, {
                         method: 'POST',
-                        body: JSON.stringify({ seller_name: sellerName || 'Seller', seller_email: email, asking_price: price })
+                        body: JSON.stringify({ seller_name: sellerName, seller_email: sellerEmail, asking_price: price })
                     });
                     bootstrap.Modal.getInstance(document.getElementById('resaleModal')).hide();
                     showToast(`Ticket ${currentSelectedCode} listed for resale at ₵${price.toFixed(2)}!`, 'success');
-                    setTimeout(() => fetchWallet(email), 1200);
+                    setTimeout(() => fetchWallet(sellerEmail), 1200);
                 } catch (err) {
                     showToast('Resale listing failed: ' + err.message, 'danger');
                 }
