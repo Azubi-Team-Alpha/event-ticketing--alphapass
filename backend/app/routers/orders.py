@@ -375,16 +375,34 @@ def get_order(order_id: str):
 
 @router.post("/lookup", response_model=OrderResponse)
 def lookup_order(body: OrderLookup):
-    target_email = (body.guest_email or body.email or "").strip().lower()
+    raw_query = (body.search_query or body.ticket_code or body.order_id or body.guest_email or body.email or "").strip()
+    if not raw_query:
+        raise HTTPException(400, "Please provide an Order ID, Ticket Code, or Email address")
 
-    if body.order_id:
-        order = dynamodb_helper.get_order(body.order_id)
-        if not order:
-            raise HTTPException(404, "Order not found")
-        if target_email and order.get("guest_email", "").lower() != target_email:
-            raise HTTPException(404, "Order not found")
-        return _format_order_response(order)
+    target_email = raw_query.lower() if "@" in raw_query else (body.guest_email or body.email or "").strip().lower()
 
+    # 1. Ticket Code lookup
+    if "@" not in raw_query:
+        ticket = dynamodb_helper.get_ticket_by_code(raw_query)
+        if not ticket and not raw_query.startswith("AP-"):
+            ticket = dynamodb_helper.get_ticket_by_code(f"AP-{raw_query.upper()}")
+        if ticket:
+            o_id = ticket.get("order_id")
+            if o_id:
+                order = dynamodb_helper.get_order(o_id)
+                if order:
+                    return _format_order_response(order)
+
+    # 2. Direct Order ID lookup
+    order_id = body.order_id or (raw_query if "@" not in raw_query else None)
+    if order_id:
+        order = dynamodb_helper.get_order(order_id)
+        if order:
+            if target_email and order.get("guest_email", "").strip().lower() != target_email:
+                raise HTTPException(404, "Order not found for this email")
+            return _format_order_response(order)
+
+    # 3. Guest Email lookup
     if target_email:
         matching_orders = dynamodb_helper.list_orders_by_email(target_email)
         matching_tickets = dynamodb_helper.list_tickets_by_email(target_email)
@@ -399,13 +417,12 @@ def lookup_order(body: OrderLookup):
                     existing_order_ids.add(o_id)
 
         if not matching_orders:
-            raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
+            raise HTTPException(404, f"No active ticket passes found for email '{target_email}'")
 
         latest = sorted(matching_orders, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
         event_cache: Dict[str, Dict[str, Any]] = {}
         formatted_latest = _format_order_response(latest, event_cache)
 
-        seen_codes = set()
         all_tix = []
         for m in matching_orders:
             fmt_m = _format_order_response(m, event_cache)
@@ -414,7 +431,7 @@ def lookup_order(body: OrderLookup):
         formatted_latest["tickets"] = all_tix
         return formatted_latest
 
-    raise HTTPException(400, "Please provide an order_id or email address")
+    raise HTTPException(404, f"No ticket pass found matching '{raw_query}'")
 
 
 @router.put("/{order_id}/cancel")

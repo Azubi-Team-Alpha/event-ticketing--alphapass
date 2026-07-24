@@ -463,8 +463,10 @@ class OrderResponse(BaseModel):
 
 class OrderLookup(BaseModel):
     order_id: Optional[str] = None
-    guest_email: Optional[EmailStr] = None
-    email: Optional[EmailStr] = None
+    guest_email: Optional[str] = None
+    email: Optional[str] = None
+    ticket_code: Optional[str] = None
+    search_query: Optional[str] = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -48,15 +48,15 @@
     <!-- Main Wallet Search & Cards Section -->
     <div class="container-fluid py-4">
         <div class="container">
-            <!-- Email Lookup Form -->
+            <!-- Search Lookup Form -->
             <div class="card border-0 shadow-sm rounded-3 p-4 mb-5 bg-light">
-                <h4 class="fw-bold mb-3"><i class="fa fa-search text-primary me-2"></i> Look Up Passes by Guest Email</h4>
+                <h4 class="fw-bold mb-3"><i class="fa fa-search text-primary me-2"></i> Search Ticket Wallet</h4>
                 <form id="walletLookupForm" class="row g-3">
                     <div class="col-md-9">
-                        <input type="email" id="lookupEmail" class="form-control py-3" placeholder="Enter guest email address (e.g. alice@example.com)" required>
+                        <input type="text" id="lookupEmail" class="form-control py-3" placeholder="Enter Guest Email, Order ID, or Ticket Pass Code (e.g. alice@example.com or ORD-882103)" required>
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold" id="lookupBtn"><i class="fa fa-search me-1"></i> Retrieve Passes</button>
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold" id="lookupBtn"><i class="fa fa-search me-1"></i> Search Wallet</button>
                     </div>
                 </form>
             </div>
@@ -64,8 +64,9 @@
             <!-- Wallet Results Grid -->
             <div id="walletResultsContainer">
                 <div class="text-center py-5 text-muted">
-                    <i class="fa fa-ticket-alt fa-4x text-primary opacity-50 mb-3"></i>
-                    <h5>Enter your email above to load your active ticket passes.</h5>
+                    <i class="fa fa-search-location fa-4x text-primary opacity-50 mb-3"></i>
+                    <h5 class="fw-bold text-dark">Search Ticket Wallet</h5>
+                    <p class="small text-muted mb-0">Enter your Guest Email address, Order ID, or Ticket Pass Code above to retrieve your passes.</p>
                 </div>
             </div>
         </div>
@@ -150,18 +151,31 @@
     <script>
         let currentSelectedCode = null;
 
-        async function fetchWallet(email) {
+        async function fetchWallet(query) {
             const container = document.getElementById('walletResultsContainer');
-            container.innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-3x text-primary"></i><p class="mt-2 text-muted">Retrieving order passes...</p></div>';
+            if (!query || !query.trim()) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa fa-search-location fa-4x text-primary opacity-50 mb-3"></i>
+                        <h5 class="fw-bold text-dark">Search Ticket Wallet</h5>
+                        <p class="small text-muted mb-0">Enter your Guest Email address, Order ID, or Ticket Pass Code above to retrieve your passes.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-3x text-primary"></i><p class="mt-2 text-muted">Searching wallet passes...</p></div>';
 
             try {
+                const q = query.trim();
+                const payload = { search_query: q, email: q, order_id: q, ticket_code: q };
                 const order = await apiFetch('/orders/lookup', {
                     method: 'POST',
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify(payload)
                 });
 
                 if (!order || !order.tickets || order.tickets.length === 0) {
-                    container.innerHTML = '<div class="alert alert-warning text-center">No active tickets found for this email address.</div>';
+                    container.innerHTML = `<div class="alert alert-warning text-center">No active ticket passes found matching "${sanitizeHTML(q)}".</div>`;
                     return;
                 }
 
@@ -236,6 +250,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const urlEmail = urlParams.get('email');
             const urlOrderId = urlParams.get('order_id');
+            const urlTicketCode = urlParams.get('ticket_code') || urlParams.get('code');
 
             // Show order confirmation banner when redirected from checkout
             if (urlOrderId) {
@@ -243,24 +258,23 @@
                 banner.className = 'container mt-3';
                 banner.innerHTML = `<div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
                     <i class="fa fa-check-circle me-2"></i>
-                    <strong>Order Confirmed!</strong> Your order <code>${urlOrderId}</code> was placed successfully. Your tickets are shown below.
+                    <strong>Order Confirmed!</strong> Your order <code>${sanitizeHTML(urlOrderId)}</code> was placed successfully. Your tickets are shown below.
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>`;
                 document.querySelector('#walletResultsContainer').before(banner);
             }
 
-            // Pre-fill email from URL param or localStorage
-            const savedEmail = urlEmail || localStorage.getItem('alphapass_guest_email') || '';
-            if (savedEmail) {
-                document.getElementById('lookupEmail').value = savedEmail;
-                fetchWallet(savedEmail);
+            // ONLY auto-fetch if redirected directly with URL search parameters (e.g. from checkout page)
+            const initialQuery = urlOrderId || urlEmail || urlTicketCode || '';
+            if (initialQuery) {
+                document.getElementById('lookupEmail').value = initialQuery;
+                fetchWallet(initialQuery);
             }
 
             document.getElementById('walletLookupForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const email = document.getElementById('lookupEmail').value.trim();
-                localStorage.setItem('alphapass_guest_email', email);
-                fetchWallet(email);
+                const q = document.getElementById('lookupEmail').value.trim();
+                fetchWallet(q);
             });
 
             document.getElementById('transferForm').addEventListener('submit', async (e) => {
