@@ -250,7 +250,7 @@
                 if (!code) return;
 
                 const cart = CartManager.getCart();
-                const eventId = cart[0]?.event_id;
+                const eventId = (cart && cart.length > 0) ? (cart[0].event_id || cart[0].eventId || '') : '';
 
                 try {
                     const res = await apiFetch('/orders/validate-promo', {
@@ -259,7 +259,7 @@
                     });
 
                     if (res.valid) {
-                        appliedDiscountPercent = res.discount_percent || 10;
+                        appliedDiscountPercent = parseFloat(res.discount_value || res.discount_percent || 10);
                         msg.className = 'small mt-2 text-success fw-bold';
                         msg.textContent = res.message || 'Promo code applied successfully!';
                         showToast(`Promo Code ${code} applied (${appliedDiscountPercent}% OFF)!`, 'success');
@@ -271,7 +271,9 @@
                     }
                     renderCart();
                 } catch (err) {
-                    console.error(err);
+                    msg.className = 'small mt-2 text-danger fw-bold';
+                    msg.textContent = err.message || 'Failed to validate promo code.';
+                    showToast(err.message, 'danger');
                 }
             });
         });

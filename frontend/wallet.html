@@ -112,6 +112,10 @@
                     <div class="modal-body p-4">
                         <p class="text-muted small">List ticket <strong id="resaleTicketCode">TKT-000</strong> on the official AlphaPass Secondary Exchange.</p>
                         <div class="mb-3">
+                            <label class="form-label fw-bold">Seller Name *</label>
+                            <input type="text" id="resaleSellerName" class="form-control" placeholder="Your Name" required>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label fw-bold">Asking Price (₵) *</label>
                             <input type="number" step="0.01" id="resalePrice" class="form-control" placeholder="150.00" required>
                             <div class="small text-muted mt-1">Maximum allowed price markup is 10% over face value.</div>
@@ -168,6 +172,7 @@
                                 const qrSrc = (tkt.qr_image_url && tkt.qr_image_url.startsWith('http')) 
                                     ? tkt.qr_image_url 
                                     : (tkt.qr_image_url ? `${API_BASE_URL}${tkt.qr_image_url}` : `${API_BASE_URL}/tickets/${tkt.ticket_code}/qr`);
+                                const isResale = tkt.status === 'resold' || tkt.status === 'resale_pending' || tkt.status === 'resale_listed';
                                 return `
                                 <div class="col-md-6">
                                     <div class="card border border-light shadow-sm p-4 rounded-3 bg-light">
@@ -185,7 +190,7 @@
                                         <div class="d-grid gap-2">
                                             <a href="${API_BASE_URL}/tickets/${tkt.ticket_code}/pdf" target="_blank" class="btn btn-outline-primary rounded-pill btn-sm fw-bold"><i class="fa fa-download me-1"></i> Download PDF Ticket</a>
                                             <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
-                                            ${(tkt.status === 'resale_pending' || tkt.status === 'resale_listed')
+                                            ${isResale
                                                 ? `<button class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="cancelResaleListing('${tkt.ticket_code}')"><i class="fa fa-ban me-1"></i> Cancel Resale Listing</button>`
                                                 : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
                                             }
@@ -213,6 +218,10 @@
         function openResaleModal(code) {
             currentSelectedCode = code;
             document.getElementById('resaleTicketCode').textContent = code;
+            const email = document.getElementById('lookupEmail').value.trim();
+            if (email && document.getElementById('resaleSellerName')) {
+                document.getElementById('resaleSellerName').value = email.split('@')[0];
+            }
             const modal = new bootstrap.Modal(document.getElementById('resaleModal'));
             modal.show();
         }
@@ -270,12 +279,13 @@
             document.getElementById('resaleForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const price = parseFloat(document.getElementById('resalePrice').value);
+                const sellerName = document.getElementById('resaleSellerName').value.trim();
                 const email = document.getElementById('lookupEmail').value.trim();
 
                 try {
                     await apiFetch(`/resale/tickets/${currentSelectedCode}`, {
                         method: 'POST',
-                        body: JSON.stringify({ asking_price: price, guest_email: email })
+                        body: JSON.stringify({ seller_name: sellerName || 'Seller', seller_email: email, asking_price: price })
                     });
                     bootstrap.Modal.getInstance(document.getElementById('resaleModal')).hide();
                     showToast(`Ticket ${currentSelectedCode} listed for resale at ₵${price.toFixed(2)}!`, 'success');
@@ -291,8 +301,9 @@
             if (!confirm(`Are you sure you want to remove ticket ${code} from the resale market?`)) return;
 
             try {
-                await apiFetch(`/resale/tickets/${code}/remove?guest_email=${encodeURIComponent(email)}`, {
-                    method: 'POST'
+                await apiFetch(`/resale/tickets/${code}/remove`, {
+                    method: 'POST',
+                    body: JSON.stringify({ seller_email: email })
                 });
                 showToast(`Ticket ${code} unlisted from resale market!`, 'success');
                 fetchWallet(email);
