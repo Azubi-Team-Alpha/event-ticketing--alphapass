@@ -721,7 +721,7 @@
         async function loadPayouts() {
             const tbody = document.getElementById('payoutsTableBody');
             try {
-                const res = await apiFetch('/organizer/payouts');
+                const res = await apiFetch('/admin/payouts');
                 const list = Array.isArray(res) ? res : (res.items || []);
                 if (list.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No payout requests in queue.</td></tr>`;
