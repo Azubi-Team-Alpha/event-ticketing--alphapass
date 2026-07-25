@@ -38,9 +38,9 @@ def organizer_dashboard(org: AttrDict = Depends(get_current_organizer)):
 
     total_orders = len(orders)
     total_tickets_sold = sum(sum(int(i.get("quantity", 1)) for i in o.get("items", [])) for o in orders)
-    ticket_sales_revenue = sum(Decimal(str(o.get("subtotal", 0))) - Decimal(str(o.get("discount_amount", 0))) for o in orders)
+    gross_revenue = sum(Decimal(str(o.get("subtotal", 0))) - Decimal(str(o.get("discount_amount", 0))) for o in orders)
     platform_fees = sum(Decimal(str(o.get("platform_fee", 0))) for o in orders)
-    net_earnings = max(Decimal("0.00"), ticket_sales_revenue - platform_fees)
+    net_earnings = max(Decimal("0.00"), gross_revenue - platform_fees)
 
     payouts = dynamodb_helper.list_payouts_by_organizer(org_id)
     processed_payouts = sum(Decimal(str(p.get("amount", 0))) for p in payouts if p.get("status") == "processed")
