@@ -59,10 +59,12 @@ jobs:
 
   # ── STAGE 3: INFRASTRUCTURE & FRONTEND DEPLOYMENT ──────────────────────────
   deploy:
-    name:  Deploy Infrastructure & Frontend (AWS)
     needs: [test, package]
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+      TF_VAR_ses_sender_email: ${{ secrets.SES_SENDER_EMAIL }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -130,16 +132,16 @@ jobs:
           cd infra
           terraform plan \
             -var="environment=dev" \
-            -var="secret_key=${{ secrets.SECRET_KEY }}" \
-            -var="ses_sender_email=${{ secrets.SES_SENDER_EMAIL }}"
+            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="ses_sender_email=${TF_VAR_ses_sender_email}"
 
       - name: Terraform Apply (Provision Infrastructure & Package Backend)
         run: |
           cd infra
           terraform apply \
             -var="environment=dev" \
-            -var="secret_key=${{ secrets.SECRET_KEY }}" \
-            -var="ses_sender_email=${{ secrets.SES_SENDER_EMAIL }}" \
+            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="ses_sender_email=${TF_VAR_ses_sender_email}" \
             -auto-approve
 
       - name: Deploy Backend Application Code to AWS Lambda Function

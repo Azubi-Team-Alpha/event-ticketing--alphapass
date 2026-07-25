@@ -12,6 +12,8 @@ jobs:
   teardown:
     name: Destroy AWS Infrastructure
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
     steps:
       - name: Verify Confirmation Input
         run: |
@@ -44,7 +46,7 @@ jobs:
         continue-on-error: true
         run: |
           cd infra
-          terraform destroy -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY || 'alphapass-teardown-secret-key' }}" -auto-approve
+          terraform destroy -var="environment=dev" -var="secret_key=${TF_VAR_secret_key}" -auto-approve
 
       - name: AWS CLI Comprehensive Resource Purge
         run: |

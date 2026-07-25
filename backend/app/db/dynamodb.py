@@ -354,16 +354,19 @@ class DynamoDBHelper:
         """
         from boto3.dynamodb.conditions import Attr
         table = self._get_table(self.promo_codes_table_name)
-        kwargs = {
+        # Build kwargs without ConditionExpression first, then add it separately
+        # so the Attr condition object is not placed inside a typed dict that
+        # expects only str | dict values (pyrefly / pyright false-positive).
+        update_kwargs: Any = {
             "Key": {"Code": code},
             "UpdateExpression": "ADD used_count :one SET updated_at = :ts",
             "ExpressionAttributeValues": {":one": Decimal("1"), ":ts": _now_iso()},
             "ReturnValues": "NONE",
         }
         if max_uses is not None:
-            kwargs["ConditionExpression"] = Attr("used_count").lt(int(max_uses))
+            update_kwargs["ConditionExpression"] = Attr("used_count").lt(int(max_uses))
         try:
-            table.update_item(**kwargs)
+            table.update_item(**update_kwargs)
             return True
         except table.meta.client.exceptions.ConditionalCheckFailedException:
             return False
@@ -408,12 +411,12 @@ class DynamoDBHelper:
 
             # 2. Locate target ticket_type and validate stock
             target_idx = None
-            old_sold = None
+            old_sold: int = 0  # explicit int init satisfies type checker (was None)
             for idx, tt in enumerate(ticket_types):
-                if str(tt.get("id", "")) == str(ticket_type_id):
+                if tt.get("id", "") == ticket_type_id:  # ticket_type_id is already str
                     target_idx = idx
-                    old_sold = int(tt.get("quantity_sold", 0))
-                    available = int(tt.get("quantity", 0)) - old_sold
+                    old_sold = int(tt.get("quantity_sold") or 0)
+                    available = int(tt.get("quantity") or 0) - old_sold
                     if available < quantity:
                         return False  # Out of stock
                     break
@@ -423,7 +426,7 @@ class DynamoDBHelper:
 
             # 3. Build updated list with incremented quantity_sold
             new_ticket_types = [dict(tt) for tt in ticket_types]
-            new_ticket_types[target_idx]["quantity_sold"] = old_sold + quantity
+            new_ticket_types[target_idx]["quantity_sold"] = old_sold + quantity  # both guaranteed int
 
             # 4. Conditional write: only succeeds if quantity_sold still equals
             # the value we read (optimistic lock). Uses raw client for list update.
@@ -596,7 +599,7 @@ class DynamoDBHelper:
                 {"CategoryID": "cat-6", "name": "Workshops & Masterclasses", "description": "Skill building & hands-on bootcamps", "slug": "workshops-masterclasses", "sort_order": 6}
             ]
             for c in default_cats:
-                self.create_category(c)
+                self.create_category(c["CategoryID"], c)  # was: create_category(c) – missing category_id arg
             return default_cats
         return cats
 
