@@ -38,7 +38,7 @@ The AlphaPass CI/CD pipeline delivers fully automated build, test, infrastructur
 ### Stage 3: Infrastructure Sanitation & Provisioning
 - **Authentication:** Authenticates to AWS using GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`).
 - **Pre-Deploy Sanitation:**
-  - Checks if an existing S3 website bucket (`alphapass-frontend-dev`) exists.
+  - Checks if an existing S3 website bucket (`alphapass.alphateam.live`) exists.
   - Purges versioned objects and delete markers to prevent `BucketAlreadyExists` or `BucketNotEmpty` conflicts.
   - Checks and clears pre-existing AWS Budgets (`alphapass-free-tier-budget-dev`) to prevent duplicate record exceptions during fresh Terraform deployments.
 - **Terraform Automation:**
