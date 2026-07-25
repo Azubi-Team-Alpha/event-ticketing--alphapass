@@ -219,9 +219,16 @@ def create_order(
     guest_email_norm = body.guest_email.strip().lower()
 
     for item in body.items:
-        tt = next((t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)), None)
+        tt = next(
+            (t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)),
+            None,
+        )
         if not tt:
-            raise HTTPException(404, f"Ticket type '{item.ticket_type_id}' not found or inactive")
+            raise HTTPException(
+                400,
+                f"Ticket type '{item.ticket_type_id}' is not available for this event. "
+                "Please select a valid ticket tier.",
+            )
 
         avail = int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))
         if item.quantity > avail:
@@ -248,7 +255,22 @@ def create_order(
             "line_total": str(line),
         })
 
-        # Update sold count on event ticket_type (in-memory; written back below)
+        # ── Atomic inventory reservation ──────────────────────────────────────
+        # Use a conditional DynamoDB write to atomically increment quantity_sold
+        # only if sufficient stock remains, preventing concurrent oversell.
+        reserved = dynamodb_helper.atomic_reserve_ticket_inventory(
+            event_id=body.event_id,
+            ticket_type_id=item.ticket_type_id,
+            quantity=item.quantity,
+        )
+        if not reserved:
+            raise HTTPException(
+                400,
+                f"Tickets for '{tt.get('name')}' sold out while processing your order. "
+                "Please try again.",
+            )
+        # Reflect the reservation in the local copy so subsequent items in the
+        # same order can read an accurate availability without another DB hit.
         tt["quantity_sold"] = int(tt.get("quantity_sold", 0)) + item.quantity
 
         for _ in range(item.quantity):
@@ -264,6 +286,8 @@ def create_order(
                 "ticket_type_id": item.ticket_type_id,
                 "ticket_type_name": tt.get("name", "Standard"),
                 "ticket_code": code,
+                "unit_price": str(price),
+                "price": str(price),
                 "attendee_name": item.attendee_name or body.guest_name,
                 "attendee_email": att_email,
                 "status": "active",
@@ -335,11 +359,15 @@ def create_order(
         t["event_id"] = body.event_id
         dynamodb_helper.create_ticket(t["TicketID"], t)
 
-    # Update event ticket_types in DynamoDB
-    dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
+    # NOTE: ticket_types quantity_sold is already updated atomically per item
+    # above via atomic_reserve_ticket_inventory. No full write-back needed here.
 
-    # Send order confirmation email
-    _send_order_confirmation(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)
+    # Send order confirmation email in the background so SES latency
+    # does not delay the HTTP 201 response to the buyer.
+    background_tasks.add_task(
+        _send_order_confirmation,
+        all_tickets, order_id, guest_email_norm, body.guest_name, event, total,
+    )
 
     return _format_order_response(order_data)
 
@@ -356,16 +384,34 @@ def get_order(order_id: str):
 
 @router.post("/lookup", response_model=OrderResponse)
 def lookup_order(body: OrderLookup):
-    target_email = (body.guest_email or body.email or "").strip().lower()
+    raw_query = (body.search_query or body.ticket_code or body.order_id or body.guest_email or body.email or "").strip()
+    if not raw_query:
+        raise HTTPException(400, "Please provide an Order ID, Ticket Code, or Email address")
 
-    if body.order_id:
-        order = dynamodb_helper.get_order(body.order_id)
-        if not order:
-            raise HTTPException(404, "Order not found")
-        if target_email and order.get("guest_email", "").lower() != target_email:
-            raise HTTPException(404, "Order not found")
-        return _format_order_response(order)
+    target_email = raw_query.lower() if "@" in raw_query else (body.guest_email or body.email or "").strip().lower()
 
+    # 1. Ticket Code lookup
+    if "@" not in raw_query:
+        ticket = dynamodb_helper.get_ticket_by_code(raw_query)
+        if not ticket and not raw_query.startswith("AP-"):
+            ticket = dynamodb_helper.get_ticket_by_code(f"AP-{raw_query.upper()}")
+        if ticket:
+            o_id = ticket.get("order_id")
+            if o_id:
+                order = dynamodb_helper.get_order(o_id)
+                if order:
+                    return _format_order_response(order)
+
+    # 2. Direct Order ID lookup
+    order_id = body.order_id or (raw_query if "@" not in raw_query else None)
+    if order_id:
+        order = dynamodb_helper.get_order(order_id)
+        if order:
+            if target_email and order.get("guest_email", "").strip().lower() != target_email:
+                raise HTTPException(404, "Order not found for this email")
+            return _format_order_response(order)
+
+    # 3. Guest Email lookup
     if target_email:
         matching_orders = dynamodb_helper.list_orders_by_email(target_email)
         matching_tickets = dynamodb_helper.list_tickets_by_email(target_email)
@@ -380,13 +426,12 @@ def lookup_order(body: OrderLookup):
                     existing_order_ids.add(o_id)
 
         if not matching_orders:
-            raise HTTPException(404, f"No active order tickets found for email '{target_email}'")
+            raise HTTPException(404, f"No active ticket passes found for email '{target_email}'")
 
         latest = sorted(matching_orders, key=lambda x: str(x.get("created_at", "")), reverse=True)[0]
         event_cache: Dict[str, Dict[str, Any]] = {}
         formatted_latest = _format_order_response(latest, event_cache)
 
-        seen_codes = set()
         all_tix = []
         for m in matching_orders:
             fmt_m = _format_order_response(m, event_cache)
@@ -395,7 +440,7 @@ def lookup_order(body: OrderLookup):
         formatted_latest["tickets"] = all_tix
         return formatted_latest
 
-    raise HTTPException(400, "Please provide an order_id or email address")
+    raise HTTPException(404, f"No ticket pass found matching '{raw_query}'")
 
 
 @router.put("/{order_id}/cancel")

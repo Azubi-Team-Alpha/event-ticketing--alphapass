@@ -285,7 +285,16 @@ class DynamoDBHelper:
         return self._convert_decimals(item) if item else None
 
     def get_ticket_by_code(self, ticket_code: str) -> Optional[Dict[str, Any]]:
-        items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", ticket_code)
+        if not ticket_code:
+            return None
+        code_clean = ticket_code.strip()
+        items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", code_clean)
+        if not items and code_clean != code_clean.upper():
+            items = self._query_gsi(self.tickets_table_name, "ticket_code-index", "ticket_code", code_clean.upper())
+        if not items:
+            item = self.get_ticket(code_clean)
+            if item:
+                return item
         return items[0] if items else None
 
     def list_tickets_by_order(self, order_id: str) -> List[Dict[str, Any]]:
@@ -345,19 +354,105 @@ class DynamoDBHelper:
         """
         from boto3.dynamodb.conditions import Attr
         table = self._get_table(self.promo_codes_table_name)
-        kwargs = {
+        # Build kwargs without ConditionExpression first, then add it separately
+        # so the Attr condition object is not placed inside a typed dict that
+        # expects only str | dict values (pyrefly / pyright false-positive).
+        update_kwargs: Any = {
             "Key": {"Code": code},
             "UpdateExpression": "ADD used_count :one SET updated_at = :ts",
             "ExpressionAttributeValues": {":one": Decimal("1"), ":ts": _now_iso()},
             "ReturnValues": "NONE",
         }
         if max_uses is not None:
-            kwargs["ConditionExpression"] = Attr("used_count").lt(int(max_uses))
+            update_kwargs["ConditionExpression"] = Attr("used_count").lt(int(max_uses))
         try:
-            table.update_item(**kwargs)
+            table.update_item(**update_kwargs)
             return True
         except table.meta.client.exceptions.ConditionalCheckFailedException:
             return False
+
+    def atomic_reserve_ticket_inventory(
+        self,
+        event_id: str,
+        ticket_type_id: str,
+        quantity: int,
+    ) -> bool:
+        """
+        Atomically increment quantity_sold for a specific ticket type inside the
+        event's ticket_types list, using a read-modify-conditional-write loop.
+
+        The event item stores ticket_types as a List attribute. DynamoDB does not
+        support atomic updates to list elements by value, so we use an optimistic
+        locking pattern:
+
+          1. Read the current event item.
+          2. Find the target ticket_type by id and verify remaining stock.
+          3. Write the updated ticket_types list back with a ConditionExpression
+             that checks quantity_sold is still at the value we read.
+          4. If the condition fails (another writer updated it concurrently),
+             retry up to MAX_RETRIES times before giving up.
+
+        Returns True if the reservation succeeded, False if stock is exhausted
+        or if optimistic locking retries are exceeded.
+        """
+        from botocore.exceptions import ClientError
+
+        MAX_RETRIES = 5
+        table = self._get_table(self.events_table_name)
+
+        for attempt in range(MAX_RETRIES):
+            # 1. Read current state
+            response = table.get_item(Key={"EventID": event_id})
+            event = response.get("Item")
+            if not event:
+                return False
+
+            ticket_types = event.get("ticket_types", [])
+
+            # 2. Locate target ticket_type and validate stock
+            target_idx = None
+            old_sold: int = 0  # explicit int init satisfies type checker (was None)
+            for idx, tt in enumerate(ticket_types):
+                if tt.get("id", "") == ticket_type_id:  # ticket_type_id is already str
+                    target_idx = idx
+                    old_sold = int(tt.get("quantity_sold") or 0)
+                    available = int(tt.get("quantity") or 0) - old_sold
+                    if available < quantity:
+                        return False  # Out of stock
+                    break
+
+            if target_idx is None:
+                return False  # Ticket type not found
+
+            # 3. Build updated list with incremented quantity_sold
+            new_ticket_types = [dict(tt) for tt in ticket_types]
+            new_ticket_types[target_idx]["quantity_sold"] = old_sold + quantity  # both guaranteed int
+
+            # 4. Conditional write: only succeeds if quantity_sold still equals
+            # the value we read (optimistic lock). Uses raw client for list update.
+            try:
+                update_expr = "SET ticket_types = :new_tts, updated_at = :ts"
+                expr_values = {
+                    ":new_tts": self._convert_floats(new_ticket_types),
+                    ":ts": _now_iso(),
+                    ":expected_sold": Decimal(str(old_sold)),
+                }
+                # Condition: the specific list element's quantity_sold hasn't changed
+                condition_expr = f"ticket_types[{target_idx}].quantity_sold = :expected_sold"
+                table.update_item(
+                    Key={"EventID": event_id},
+                    UpdateExpression=update_expr,
+                    ConditionExpression=condition_expr,
+                    ExpressionAttributeValues=expr_values,
+                )
+                return True  # Reservation committed
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                    # Another request updated concurrently – retry
+                    continue
+                raise
+
+        return False  # All retries exhausted
 
     # ── Resale Listings Table API ─────────────────────────────────────────────
 
@@ -504,7 +599,7 @@ class DynamoDBHelper:
                 {"CategoryID": "cat-6", "name": "Workshops & Masterclasses", "description": "Skill building & hands-on bootcamps", "slug": "workshops-masterclasses", "sort_order": 6}
             ]
             for c in default_cats:
-                self.create_category(c)
+                self.create_category(c["CategoryID"], c)  # was: create_category(c) – missing category_id arg
             return default_cats
         return cats
 

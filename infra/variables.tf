@@ -22,3 +22,9 @@ variable "secret_key" {
   default     = "alphapass-default-secret-key-dev"
   description = "JWT signing secret key for the Lambda backend"
 }
+
+variable "ses_sender_email" {
+  type        = string
+  default     = "noreply@alphapass.alphateam.live"
+  description = "Verified SES sender address used for all transactional emails (must be verified in AWS SES)"
+}

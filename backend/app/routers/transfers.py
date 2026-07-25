@@ -22,7 +22,9 @@ def transfer_ticket(
     if not ticket:
         raise HTTPException(404, "Ticket not found")
 
-    ticket_id = ticket.get("TicketID") or ticket.get("id")
+    ticket_id: str = ticket.get("TicketID") or ticket.get("id") or ""
+    if not ticket_id:
+        raise HTTPException(404, "Ticket has no ID — data integrity error")
     order = dynamodb_helper.get_order(ticket.get("order_id", "")) or {}
     event = dynamodb_helper.get_event(order.get("event_id", "") or ticket.get("event_id", "")) or {}
 
@@ -94,13 +96,14 @@ def transfer_ticket(
 
     return TransferResponse(
         id=transfer_id,
-        ticket_id=ticket_id,
-        from_name=from_name,
-        from_email=from_email,
+        ticket_id=str(ticket_id),
+        from_name=from_name or "",
+        from_email=from_email or "",
         to_name=body.to_name,
         to_email=body.to_email,
         is_completed=True,
         transferred_at=_format_dt(transfer_data.get("transferred_at")) or datetime.now(timezone.utc),
+        created_at=_format_dt(transfer_data.get("created_at")) or datetime.now(timezone.utc),
     )
 
 
@@ -110,18 +113,21 @@ def get_transfer_history(ticket_code: str):
     if not ticket:
         raise HTTPException(404, "Ticket not found")
 
-    ticket_id = ticket.get("TicketID") or ticket.get("id")
+    ticket_id: str = ticket.get("TicketID") or ticket.get("id") or ""
+    if not ticket_id:
+        raise HTTPException(404, "Ticket has no ID — data integrity error")
     transfers = dynamodb_helper.list_transfers_by_ticket(ticket_id)
     return [
         TransferResponse(
             id=t.get("TransferID") or t.get("id", ""),
-            ticket_id=ticket_id,
+            ticket_id=str(ticket_id),
             from_name=t.get("from_name", ""),
             from_email=t.get("from_email", ""),
             to_name=t.get("to_name", ""),
             to_email=t.get("to_email", ""),
             is_completed=t.get("is_completed", True),
             transferred_at=_format_dt(t.get("transferred_at")) or datetime.now(timezone.utc),
+            created_at=_format_dt(t.get("created_at")) or datetime.now(timezone.utc),
         )
         for t in transfers
     ]
@@ -130,15 +136,21 @@ def get_transfer_history(ticket_code: str):
 def _send_transfer_emails(from_email, from_name, to_email, to_name, event_title, ticket_code):
     try:
         from app.core.email import send_email
+        import html as _html
+        safe_from   = _html.escape(str(from_name))
+        safe_to     = _html.escape(str(to_name))
+        safe_to_e   = _html.escape(str(to_email))
+        safe_event  = _html.escape(str(event_title))
+        safe_code   = _html.escape(str(ticket_code))
         send_email(
             from_email,
             f"Ticket Transferred – {event_title}",
-            f"<p>Hi {from_name}, your ticket <code>{ticket_code}</code> for <strong>{event_title}</strong> has been transferred to {to_name} ({to_email}).</p>",
+            f"<p>Hi {safe_from}, your ticket <code>{safe_code}</code> for <strong>{safe_event}</strong> has been transferred to {safe_to} ({safe_to_e}).</p>",
         )
         send_email(
             to_email,
             f"You received a ticket – {event_title}",
-            f"<p>Hi {to_name}, you received a ticket for <strong>{event_title}</strong>. Ticket code: <code>{ticket_code}</code></p>",
+            f"<p>Hi {safe_to}, you received a ticket for <strong>{safe_event}</strong>. Ticket code: <code>{safe_code}</code></p>",
         )
     except Exception as e:
         print(f"[EMAIL] Transfer notification failed: {e}")

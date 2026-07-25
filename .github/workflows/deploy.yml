@@ -59,10 +59,12 @@ jobs:
 
   # ── STAGE 3: INFRASTRUCTURE & FRONTEND DEPLOYMENT ──────────────────────────
   deploy:
-    name:  Deploy Infrastructure & Frontend (AWS)
     needs: [test, package]
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+      TF_VAR_ses_sender_email: ${{ secrets.SES_SENDER_EMAIL }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -128,12 +130,19 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infra
-          terraform plan -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}"
+          terraform plan \
+            -var="environment=dev" \
+            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="ses_sender_email=${TF_VAR_ses_sender_email}"
 
       - name: Terraform Apply (Provision Infrastructure & Package Backend)
         run: |
           cd infra
-          terraform apply -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}" -auto-approve
+          terraform apply \
+            -var="environment=dev" \
+            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="ses_sender_email=${TF_VAR_ses_sender_email}" \
+            -auto-approve
 
       - name: Deploy Backend Application Code to AWS Lambda Function
         run: |
@@ -170,7 +179,7 @@ jobs:
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
 
           # Output raw endpoints prominently to Workflow Step Summary & Action Notice
-          echo "### 🚀 AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "### AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
           echo "- **Frontend Platform S3 URL:** [http://$FRONTEND_URL](http://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
           echo "- **REST API Gateway Endpoint:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
           echo "- **AWS Lambda Backend Function:** \`$LAMBDA_NAME\`" >> $GITHUB_STEP_SUMMARY

@@ -40,9 +40,10 @@ module "sns" {
 
 # --- Module: AWS Lambda backend function ---
 module "lambda" {
-  source      = "./modules/lambda"
-  environment = var.environment
-  secret_key  = var.secret_key
+  source           = "./modules/lambda"
+  environment      = var.environment
+  secret_key       = var.secret_key
+  ses_sender_email = var.ses_sender_email
 
   # All DynamoDB table names
   events_table_name            = module.dynamodb.events_table_name

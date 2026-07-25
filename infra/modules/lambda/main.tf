@@ -131,6 +131,7 @@ resource "aws_lambda_function" "api_backend" {
     variables = {
       ENV                          = var.environment
       SECRET_KEY                   = var.secret_key
+      SES_SENDER_EMAIL             = var.ses_sender_email
       EVENTS_TABLE                 = var.events_table_name
       REGISTRATIONS_TABLE          = var.registrations_table_name
       ORGANIZERS_TABLE             = var.organizers_table_name

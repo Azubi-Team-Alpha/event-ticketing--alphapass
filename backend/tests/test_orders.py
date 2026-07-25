@@ -122,3 +122,25 @@ def test_bulk_order_mixed_types(client: TestClient, sample_event):
     data = resp.json()
     assert data["total_tickets"] == 5
     assert len(data["items"]) == 2
+
+
+def test_order_invalid_ticket_type_id_rejected(client: TestClient, sample_event):
+    """
+    Supplying a nonexistent ticket_type_id must return 400.
+    Previously the API silently auto-created a 'General Admission' fallback ticket
+    type and wrote it back to the event — a correctness bug that allowed ordering
+    against unconfigured events. The fallback has been removed; invalid IDs are
+    now explicitly rejected.
+    """
+    event_id = sample_event["id"]
+    resp = client.post("/orders", json={
+        "event_id": event_id,
+        "guest_name": "Mustapha Haadi",
+        "guest_email": "mustapha@test.com",
+        "guest_phone": "+233548367637",
+        "items": [{"ticket_type_id": "tt-nonexistent", "quantity": 3}],
+    })
+    assert resp.status_code == 400
+    assert "not available" in resp.json()["detail"].lower()
+
+
