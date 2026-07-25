@@ -9,6 +9,12 @@ variable "secret_key" {
   description = "JWT signing secret for the backend"
 }
 
+variable "ses_sender_email" {
+  type        = string
+  description = "Verified SES sender email address for transactional emails"
+  default     = "noreply@alphapass.alphateam.live"
+}
+
 variable "sns_topic_arn" {
   type        = string
   description = "ARN of the notifications SNS topic"

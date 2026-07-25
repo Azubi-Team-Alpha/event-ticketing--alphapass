@@ -130,15 +130,21 @@ def get_transfer_history(ticket_code: str):
 def _send_transfer_emails(from_email, from_name, to_email, to_name, event_title, ticket_code):
     try:
         from app.core.email import send_email
+        import html as _html
+        safe_from   = _html.escape(str(from_name))
+        safe_to     = _html.escape(str(to_name))
+        safe_to_e   = _html.escape(str(to_email))
+        safe_event  = _html.escape(str(event_title))
+        safe_code   = _html.escape(str(ticket_code))
         send_email(
             from_email,
             f"Ticket Transferred – {event_title}",
-            f"<p>Hi {from_name}, your ticket <code>{ticket_code}</code> for <strong>{event_title}</strong> has been transferred to {to_name} ({to_email}).</p>",
+            f"<p>Hi {safe_from}, your ticket <code>{safe_code}</code> for <strong>{safe_event}</strong> has been transferred to {safe_to} ({safe_to_e}).</p>",
         )
         send_email(
             to_email,
             f"You received a ticket – {event_title}",
-            f"<p>Hi {to_name}, you received a ticket for <strong>{event_title}</strong>. Ticket code: <code>{ticket_code}</code></p>",
+            f"<p>Hi {safe_to}, you received a ticket for <strong>{safe_event}</strong>. Ticket code: <code>{safe_code}</code></p>",
         )
     except Exception as e:
         print(f"[EMAIL] Transfer notification failed: {e}")

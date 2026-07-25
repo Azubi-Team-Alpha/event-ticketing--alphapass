@@ -362,8 +362,12 @@ def create_order(
     # NOTE: ticket_types quantity_sold is already updated atomically per item
     # above via atomic_reserve_ticket_inventory. No full write-back needed here.
 
-    # Send order confirmation email
-    _send_order_confirmation(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)
+    # Send order confirmation email in the background so SES latency
+    # does not delay the HTTP 201 response to the buyer.
+    background_tasks.add_task(
+        _send_order_confirmation,
+        all_tickets, order_id, guest_email_norm, body.guest_name, event, total,
+    )
 
     return _format_order_response(order_data)
 

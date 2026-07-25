@@ -128,12 +128,19 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infra
-          terraform plan -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}"
+          terraform plan \
+            -var="environment=dev" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}" \
+            -var="ses_sender_email=${{ secrets.SES_SENDER_EMAIL }}"
 
       - name: Terraform Apply (Provision Infrastructure & Package Backend)
         run: |
           cd infra
-          terraform apply -var="environment=dev" -var="secret_key=${{ secrets.SECRET_KEY }}" -auto-approve
+          terraform apply \
+            -var="environment=dev" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}" \
+            -var="ses_sender_email=${{ secrets.SES_SENDER_EMAIL }}" \
+            -auto-approve
 
       - name: Deploy Backend Application Code to AWS Lambda Function
         run: |
