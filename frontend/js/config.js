@@ -2,4 +2,10 @@
  * AlphaPass Global Frontend Configuration
  * Controls backend API Base URL connection.
  */
-window.ALPHAPASS_API_URL = window.ALPHAPASS_API_URL || '';
+if (typeof window.ALPHAPASS_API_URL === 'undefined' || window.ALPHAPASS_API_URL === '') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.ALPHAPASS_API_URL = 'http://127.0.0.1:8000';
+    } else {
+        window.ALPHAPASS_API_URL = '';
+    }
+}

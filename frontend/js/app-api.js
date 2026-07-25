@@ -3,7 +3,7 @@
  * Connects frontend pages to AWS API Gateway + Lambda backend
  */
 
-const API_BASE_URL = window.ALPHAPASS_API_URL || '';
+const API_BASE_URL = window.ALPHAPASS_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : '');
 
 // Warn loudly in console if API URL is not configured
 if (!API_BASE_URL) {

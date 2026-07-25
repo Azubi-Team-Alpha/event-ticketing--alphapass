@@ -17,8 +17,6 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 All technical architecture, DevOps pipelines, developer manuals, presentation materials, and live demonstration scripts are organized under the [`docs/`](docs/) directory:
 
-- **[Presentation & Team Defense Guide (`docs/PRESENTATION.md`)](docs/PRESENTATION.md):** 9-slide deck outline, visual design recommendations, and speaker talk tracks divided for a 3-presenter team defense.
-- **[Live Demonstration Guide & Script (`docs/LIVE_DEMO_GUIDE.md`)](docs/LIVE_DEMO_GUIDE.md):** Step-by-step walkthrough script for the live application demo across Organizer, Buyer, Wallet, Gate Scanner, and Admin personas.
 - **[Infrastructure Guide (`docs/INFRASTRUCTURE.md`)](docs/INFRASTRUCTURE.md):** Complete AWS serverless topology, 13 DynamoDB table definitions, API Gateway REST proxy, Lambda compute specs, S3 hosting, and IAM least-privilege policies.
 - **[CI/CD & DevOps Manual (`docs/CICD.md`)](docs/CICD.md):** GitHub Actions automated multi-stage pipeline, `pytest` test runner, Terraform automation, pre-deploy sanitation scripts, dynamic API URL injection, and teardown workflows.
 - **[Backend Architecture Guide (`docs/BACKEND.md`)](docs/BACKEND.md):** FastAPI modular router breakdown (10 routers), Mangum ASGI wrapper, ReportLab PDF ticket generator, Boto3 DynamoDB DAO helpers, and test suite details.
@@ -115,7 +113,7 @@ alphapass/
 │   ├── admin.html            # Admin governance console & moderation queues
 │   └── js/                   # Shared API SDK (app-api.js), Config (config.js)
 ├── docs/                     # Comprehensive Architecture & Integration Docs
-│   ├── PRESENTATION.md       # 9-Slide Deck Outline & Team Speaker Notes
+│   ├── PRESENTATION.md       # 5-Slide Deck Outline & Team Speaker Notes
 │   ├── LIVE_DEMO_GUIDE.md    # Step-by-Step Live Demo Execution Script
 │   ├── INFRASTRUCTURE.md     # AWS Serverless & DynamoDB Topology Guide
 │   ├── CICD.md               # GitHub Actions Automation & DevOps Pipeline Guide
@@ -188,5 +186,10 @@ aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=360
 ---
 
 ## Team Alpha (Project Contributors)
+- **Mustapha Haadi** — Developer (Team Lead)
+- **David Yirenkyi** — Developer
+- **Emmanuel Yelisomah** — Developer
+- **Daniel Hanson Reynolds** — Developer
+- **Zakaria Adeeba** — Developer
+- **Evame Cobblah** — Developer
 - **Azubi Cloud & AI Academy Internship Program (Project 2 Portfolio)**
-- **Team Alpha — AWS Serverless Cloud Architecture**

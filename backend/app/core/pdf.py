@@ -166,8 +166,8 @@ def generate_ticket_pdf(ticket) -> bytes:
         'CodeValue',
         parent=styles['Normal'],
         fontName='Courier-Bold',
-        fontSize=14,
-        leading=16,
+        fontSize=13,
+        leading=15,
         textColor=primary_color,
         alignment=1
     )
@@ -196,7 +196,7 @@ def generate_ticket_pdf(ticket) -> bytes:
     story.append(header_table)
     story.append(Spacer(1, 15))
 
-    # ── CONTENT TABLE ──
+    # ── CONTENT TABLE WITH QR CODE MATRIX ──
     left_flow = [
         Paragraph(event_title_esc, event_title_style),
         Paragraph("DATE & TIME", label_style),
@@ -216,21 +216,37 @@ def generate_ticket_pdf(ticket) -> bytes:
         ])
     ]
 
+    # Generate QR Code Drawing for ReportLab
+    try:
+        from reportlab.graphics.barcode import qr
+        from reportlab.graphics.shapes import Drawing
+        qr_widget = qr.QrCodeWidget(ticket_code)
+        b = qr_widget.getBounds()
+        w = b[2] - b[0]
+        h = b[3] - b[1]
+        qr_drawing = Drawing(110, 110, transform=[110 / w, 0, 0, 110 / h, 0, 0])
+        qr_drawing.add(qr_widget)
+    except Exception:
+        qr_drawing = Spacer(1, 10)
+
     right_flow = [
-        Spacer(1, 15),
+        Spacer(1, 5),
+        qr_drawing,
+        Spacer(1, 8),
         Paragraph("OFFICIAL TICKET CODE", code_label_style),
-        Spacer(1, 6),
+        Spacer(1, 4),
         Paragraph(html.escape(ticket_code), code_val_style),
-        Spacer(1, 10),
-        Paragraph("Present this code at event gate", ParagraphStyle('CodeSub', parent=code_label_style, fontSize=8))
+        Spacer(1, 6),
+        Paragraph("Scan QR code at venue gate", ParagraphStyle('CodeSub', parent=code_label_style, fontSize=8))
     ]
 
-    main_table = Table([[left_flow, right_flow]], colWidths=[5.0 * inch, 2.5 * inch])
+    main_table = Table([[left_flow, right_flow]], colWidths=[4.8 * inch, 2.7 * inch])
     main_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), light_bg),
         ('PADDING', (0, 0), (-1, -1), 16),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('BOX', (0, 0), (-1, -1), 1, border_color),
+        ('ALIGN', (1, 0), (1, 0), 'CENTER'),
     ]))
     story.append(main_table)
     story.append(Spacer(1, 20))
@@ -255,8 +271,8 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     story.append(Paragraph("IMPORTANT INFORMATION", terms_title_style))
     story.append(Paragraph(
-        "• Please present your official ticket code at the venue entrance for gate check-in.<br/>"
-        "• Each ticket pass code is valid for one (1) entry and can only be used once.<br/>"
+        "• Please present your official ticket code or QR code at the venue entrance for gate check-in.<br/>"
+        "• Each ticket pass code is valid for one (1) entry and can only be scanned once.<br/>"
         "• Admission policies are set by the organizer. Event policies: "
         f"<i>{policies_esc}</i><br/>"
         "• Keep this ticket pass secure and do not share your unique ticket code to prevent unauthorized entry.",
