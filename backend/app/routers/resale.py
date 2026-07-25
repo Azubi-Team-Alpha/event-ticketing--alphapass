@@ -241,7 +241,7 @@ def purchase_resale_ticket(
     original_ticket = dynamodb_helper.get_ticket(ticket_id) or {}
     order_id = original_ticket.get("order_id")
     order = dynamodb_helper.get_order(order_id) if order_id else {}
-    event_id = order.get("event_id") or original_ticket.get("event_id")
+    event_id = (order.get("event_id") if isinstance(order, dict) else None) or original_ticket.get("event_id")
     event = dynamodb_helper.get_event(event_id) if event_id else {}
 
     ticket_code = original_ticket.get("ticket_code") or f"AP-{secrets.token_hex(4).upper()}"
@@ -265,10 +265,12 @@ def purchase_resale_ticket(
         "buyer_ticket_id": ticket_id,
     })
 
+    event_title = (event.get("title") if isinstance(event, dict) else "Event") or "Event"
+
     _send_resale_emails(
         listing.get("seller_email"), listing.get("seller_name"),
         body.buyer_email, body.buyer_name,
-        event.get("title", "Event"), ticket_code, str(listing.get("asking_price")),
+        event_title, ticket_code, str(listing.get("asking_price")),
     )
 
     return {"message": "Purchase successful", "ticket_code": ticket_code}
