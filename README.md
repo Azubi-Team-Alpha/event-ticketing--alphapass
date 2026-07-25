@@ -13,6 +13,19 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 ---
 
+## 📚 Project Documentation Hub
+
+All technical architecture, DevOps pipelines, developer manuals, and presentation materials are organized under the [`docs/`](docs/) directory:
+
+- 🏗️ **[Infrastructure Guide (`docs/INFRASTRUCTURE.md`)](docs/INFRASTRUCTURE.md):** Complete AWS serverless topology, 13 DynamoDB table definitions, API Gateway REST proxy, Lambda compute specs, S3 hosting, and IAM least-privilege policies.
+- ⚙️ **[CI/CD & DevOps Manual (`docs/CICD.md`)](docs/CICD.md):** GitHub Actions automated multi-stage pipeline, `pytest` test runner, Terraform automation, pre-deploy sanitation scripts, dynamic API URL injection, and teardown workflows.
+- 🐍 **[Backend Architecture Guide (`docs/BACKEND.md`)](docs/BACKEND.md):** FastAPI modular router breakdown (10 routers), Mangum ASGI wrapper, ReportLab PDF ticket generator, Boto3 DynamoDB DAO helpers, and test suite details.
+- 🎤 **[Presentation & Team Defense Guide (`docs/PRESENTATION.md`)](docs/PRESENTATION.md):** Slide-by-slide outline, visual recommendations, and speaker talk tracks divided for a 3-presenter team defense.
+- 📖 **[OpenAPI Reference (`docs/API_REFERENCE.md`)](docs/API_REFERENCE.md):** Full REST API specification and request/response schemas.
+- 🔌 **[SDK Integration Guide (`docs/integration.md`)](docs/integration.md):** Frontend-Backend JS SDK (`app-api.js`) and API integration patterns.
+
+---
+
 ## Core Features & Modules
 
 - **Public Event Explorer & Discovery**: Browse published events with category filtering, keyword search, city filtering, and price indicators.
@@ -47,10 +60,10 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 The platform operates on a serverless AWS cloud infrastructure:
 
-- **Frontend Client**: Static web pages hosted on Amazon S3 Website Hosting.
+- **Frontend Client**: Static web pages hosted on Amazon S3 Website Hosting with Cloudflare Proxy SSL.
 - **API Router**: Amazon API Gateway REST Proxy forwarding HTTP requests to AWS Lambda.
 - **Compute Layer**: AWS Lambda executing Python 3.12 + FastAPI via Mangum wrapper.
-- **Database Storage**: Amazon DynamoDB running single-table and multi-table key-value storage.
+- **Database Storage**: Amazon DynamoDB running single-table and multi-table key-value storage (13 tables).
 - **Object Storage**: Amazon S3 bucket storing event banner images and generated PDF ticket passes.
 - **Messaging & Alerts**: Amazon SNS/SES for transactional notifications.
 
@@ -72,54 +85,7 @@ The platform operates on a serverless AWS cloud infrastructure:
 | `alphapass-platform-settings-[env]` | `SettingKey` | Core platform settings (commission rate, maintenance mode) |
 | `alphapass-audit-logs-[env]` | `LogID` | Governance audit log tracking security events |
 | `alphapass-event-categories-[env]` | `CategoryID` | Event category definitions and metadata |
-
----
-
-## API Endpoint Overview
-
-### Public & Guest Endpoints
-- `GET /health` — Health check
-- `GET /events` — List published events (supports `category_id`, `search`, `city`, pagination)
-- `GET /events/{id}` — Single event details & ticket pass tiers
-- `GET /events/categories` — List event categories
-- `POST /orders` — Create guest order & issue formatted ticket pass codes
-- `POST /orders/lookup` — Retrieve ticket wallet by purchaser email / order ID
-- `POST /orders/validate-promo` — Validate promo discount code
-- `POST /orders/{id}/cancel` — Cancel guest order
-- `GET /tickets/{code}` — Fetch ticket pass details
-- `GET /tickets/{code}/pdf` — Download printable ticket PDF
-- `GET /resale/listings` — Browse active resale ticket passes
-- `POST /resale/tickets/{code}` — List ticket pass for secondary resale
-- `POST /resale/{id}/purchase` — Purchase a secondary resale ticket pass
-- `POST /transfers/{code}/transfer` — Transfer ticket pass to another recipient
-
-### Organizer Portal Endpoints (Auth: `Bearer <organizer_token>`)
-- `POST /auth/organizer/signup` — Register organizer account
-- `POST /auth/organizer/login` — Authenticate organizer & obtain JWT
-- `GET /organizer/dashboard` — Organizer metrics, earnings, and sales summary
-- `GET /events/organizer/my-events` — List organizer created events
-- `POST /events/organizer` — Create new event listing
-- `PUT /events/organizer/{id}` — Update event settings, ticket resale toggles, and group discounts
-- `POST /events/organizer/{id}/publish` — Publish event live
-- `POST /events/organizer/{id}/ticket-types` — Add ticket pass tier to event
-- `POST /events/upload-banner` — Upload cover image directly to AWS S3
-- `GET /organizer/events/{id}/attendees` — Export attendee roster (JSON, CSV, or PDF)
-- `POST /checkin/scan` — Gate entry ticket pass code check-in scanner
-
-### Admin Governance Endpoints (Auth: `Bearer <admin_token>`)
-- `POST /auth/admin/login` — Authenticate administrator
-- `GET /admin/dashboard` — Platform-wide metrics & fees summary
-- `GET /admin/events` — List all events (including drafts and pending)
-- `PUT /admin/events/{id}/approve` — Approve or reject pending event
-- `GET /admin/payouts` — List organizer revenue payout requests
-- `PUT /admin/payouts/{id}/process` — Process organizer payout request
-- `GET /admin/refunds` — List pending order refund requests
-- `PUT /admin/orders/{id}/refund` — Approve or reject order refund request
-- `GET /admin/resale` — List secondary marketplace resale listings
-- `PUT /admin/resale/{id}/approve` — Approve or reject secondary resale listing
-- `PUT /admin/config/commission` — Update global platform commission rate
-- `POST /admin/categories` — Create event category
-- `GET /admin/audit-logs` — List platform audit logs
+| `alphapass-registrations-[env]` | `RegistrationID` | Registration queues & temporary holds |
 
 ---
 
@@ -131,9 +97,9 @@ alphapass/
 │   ├── app/
 │   │   ├── core/             # Security (JWT), Config, S3 Uploader, PDF Generator, Utils
 │   │   ├── db/               # DynamoDB Client Helper
-│   │   ├── routers/          # API Routers (events, orders, tickets, checkin, admin, resale, etc.)
+│   │   ├── routers/          # 10 API Routers (events, orders, tickets, checkin, admin, resale, etc.)
 │   │   └── schemas/          # Pydantic Input/Output Validation Schemas
-│   ├── tests/                # Test suite (45 unit & integration tests)
+│   ├── tests/                # Test suite (46 unit & integration tests)
 │   ├── index.py              # AWS Lambda Mangum Handler
 │   └── requirements.txt      # Python dependencies
 ├── frontend/                 # Client SPA Web Pages
@@ -148,11 +114,14 @@ alphapass/
 │   ├── admin.html            # Admin governance console & moderation queues
 │   └── js/                   # Shared API SDK (app-api.js), Config (config.js)
 ├── docs/                     # Comprehensive Architecture & Integration Docs
-│   ├── integration.md        # Full Frontend-Backend SDK Integration Guide
-│   ├── deployment.md         # AWS Serverless Deployment Playbook
-│   └── API_REFERENCE.md      # Full OpenAPI Specification & Endpoint Reference
+│   ├── INFRASTRUCTURE.md     # AWS Serverless & DynamoDB Topology Guide
+│   ├── CICD.md               # GitHub Actions Automation & DevOps Pipeline Guide
+│   ├── BACKEND.md            # FastAPI Backend & Developer Architecture Guide
+│   ├── PRESENTATION.md       # Internship Project Presentation & Team Speaker Guide
+│   ├── API_REFERENCE.md      # Full OpenAPI Specification & Endpoint Reference
+│   └── integration.md        # Full Frontend-Backend SDK Integration Guide
 ├── infra/                    # Terraform Infrastructure-as-Code Modules
-│   ├── modules/              # DynamoDB, Lambda, S3, APIGW, SNS modules
+│   ├── modules/              # DynamoDB, Lambda, S3, APIGW, SNS, CloudWatch, Budgets modules
 │   └── main.tf               # Terraform main execution file
 └── README.md                 # Project Overview & Operational Documentation
 ```
