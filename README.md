@@ -17,8 +17,6 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 All technical architecture, DevOps pipelines, developer manuals, presentation materials, and live demonstration scripts are organized under the [`docs/`](docs/) directory:
 
-- **[Presentation & Team Defense Guide (`docs/PRESENTATION.md`)](docs/PRESENTATION.md):** 5-slide deck outline, team member roles (Mustapha, David, Emmanuel, Daniel, Zakaria, Evame), live links, and speaker talk tracks.
-- **[Live Demonstration Guide & Script (`docs/LIVE_DEMO_GUIDE.md`)](docs/LIVE_DEMO_GUIDE.md):** Step-by-step walkthrough script for the live application demo across Organizer, Buyer, Wallet, Gate Scanner, and Admin personas.
 - **[Infrastructure Guide (`docs/INFRASTRUCTURE.md`)](docs/INFRASTRUCTURE.md):** Complete AWS serverless topology, 13 DynamoDB table definitions, API Gateway REST proxy, Lambda compute specs, S3 hosting, and IAM least-privilege policies.
 - **[CI/CD & DevOps Manual (`docs/CICD.md`)](docs/CICD.md):** GitHub Actions automated multi-stage pipeline, `pytest` test runner, Terraform automation, pre-deploy sanitation scripts, dynamic API URL injection, and teardown workflows.
 - **[Backend Architecture Guide (`docs/BACKEND.md`)](docs/BACKEND.md):** FastAPI modular router breakdown (10 routers), Mangum ASGI wrapper, ReportLab PDF ticket generator, Boto3 DynamoDB DAO helpers, and test suite details.
