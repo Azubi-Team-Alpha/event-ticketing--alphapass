@@ -4,7 +4,7 @@
 
 # --- S3 Bucket for Frontend Static Web Assets ---
 resource "aws_s3_bucket" "frontend" {
-  bucket        = var.custom_bucket_name != "" ? var.custom_bucket_name : "alphapass-frontend-${var.environment}"
+  bucket        = var.bucket_name
   force_destroy = true
 
   tags = {

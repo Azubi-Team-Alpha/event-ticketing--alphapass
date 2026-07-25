@@ -12,7 +12,7 @@ variable "environment" {
 
 variable "notification_email" {
   type        = string
-  default     = "admin@alphapass.com"
+  default     = "admin@alphapass.alphateam.live"
   description = "Email address for notifications, budget alerts, and alarms"
 }
 
@@ -29,8 +29,8 @@ variable "ses_sender_email" {
   description = "Verified SES sender address used for all transactional emails (must be verified in AWS SES)"
 }
 
-variable "custom_bucket_name" {
+variable "frontend_bucket_name" {
   type        = string
-  default     = ""
-  description = "Optional explicit bucket name (set to domain name like alphapass.alphateam.live for direct S3 CNAME binding)"
+  default     = "alphapass.alphateam.live"
+  description = "Name of the S3 bucket for static website hosting (matches custom domain)"
 }

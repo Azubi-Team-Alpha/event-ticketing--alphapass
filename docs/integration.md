@@ -15,7 +15,7 @@ flowchart TD
     end
 
     subgraph AWS_Static ["Frontend Tier (S3 Web Hosting)"]
-        S3_Web["AWS S3 Bucket Website Endpoint<br>(http://alphapass-frontend-dev.s3-website-us-east-1.amazonaws.com)"]
+        S3_Web["AWS S3 Bucket Website Endpoint<br>(http://alphapass.alphateam.live.s3-website-us-east-1.amazonaws.com)"]
     end
 
     subgraph AWS_API ["API & Compute Tier"]
