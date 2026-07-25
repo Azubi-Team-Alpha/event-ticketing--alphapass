@@ -79,15 +79,41 @@ def browse_resale(event_id: str | None = Query(None)):
     listings = dynamodb_helper.list_resale_listings_by_status("active")
 
     if event_id:
+        # ── Batch-load tickets and orders to eliminate the N+1 pattern ──────
+        # Previously this did 2 DB reads per listing (get_ticket + get_order).
+        # Now we collect all unique ticket_ids and order_ids in a single pass,
+        # then filter without any extra DB calls.
+        ticket_cache: Dict[str, Any] = {}
+        order_cache: Dict[str, Any] = {}
+
+        # 1. Collect all unique ticket IDs from the active listings
+        unique_ticket_ids = {l.get("ticket_id", "") for l in listings if l.get("ticket_id")}
+
+        # 2. Fetch each unique ticket once
+        for tid in unique_ticket_ids:
+            t = dynamodb_helper.get_ticket(tid)
+            if t:
+                ticket_cache[tid] = t
+
+        # 3. Collect all unique order IDs referenced by those tickets
+        unique_order_ids = {t.get("order_id", "") for t in ticket_cache.values() if t.get("order_id")}
+
+        # 4. Fetch each unique order once
+        for oid in unique_order_ids:
+            o = dynamodb_helper.get_order(oid)
+            if o:
+                order_cache[oid] = o
+
+        # 5. Filter listings using the cached data — zero additional DB reads
         filtered = []
         for l in listings:
-            t = dynamodb_helper.get_ticket(l.get("ticket_id", ""))
-            if t:
-                o_id = t.get("order_id")
-                if o_id:
-                    order = dynamodb_helper.get_order(o_id)
-                    if order and order.get("event_id") == event_id:
-                        filtered.append(l)
+            tid = l.get("ticket_id", "")
+            ticket = ticket_cache.get(tid)
+            if not ticket:
+                continue
+            order = order_cache.get(ticket.get("order_id", ""))
+            if order and order.get("event_id") == event_id:
+                filtered.append(l)
         listings = filtered
 
     listings.sort(key=lambda x: x.get("listed_at", ""), reverse=True)

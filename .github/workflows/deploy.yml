@@ -170,7 +170,7 @@ jobs:
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
 
           # Output raw endpoints prominently to Workflow Step Summary & Action Notice
-          echo "### 🚀 AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "### AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
           echo "- **Frontend Platform S3 URL:** [http://$FRONTEND_URL](http://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
           echo "- **REST API Gateway Endpoint:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
           echo "- **AWS Lambda Backend Function:** \`$LAMBDA_NAME\`" >> $GITHUB_STEP_SUMMARY

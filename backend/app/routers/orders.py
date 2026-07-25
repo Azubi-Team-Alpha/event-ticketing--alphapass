@@ -219,26 +219,16 @@ def create_order(
     guest_email_norm = body.guest_email.strip().lower()
 
     for item in body.items:
-        tt = next((t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)), None)
+        tt = next(
+            (t for t in ticket_types if t.get("id") == item.ticket_type_id and t.get("is_active", True)),
+            None,
+        )
         if not tt:
-            active_tts = [t for t in ticket_types if t.get("is_active", True)]
-            if active_tts:
-                tt = active_tts[0]
-            else:
-                default_tt_id = item.ticket_type_id or "tt-gen"
-                def_price = str(event.get("min_price") or "100.00")
-                tt = {
-                    "id": default_tt_id,
-                    "name": "General Admission",
-                    "price": def_price,
-                    "quantity": 1000,
-                    "quantity_sold": 0,
-                    "purchase_limit": 10,
-                    "min_purchase": 1,
-                    "is_active": True,
-                }
-                ticket_types.append(tt)
-                dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
+            raise HTTPException(
+                400,
+                f"Ticket type '{item.ticket_type_id}' is not available for this event. "
+                "Please select a valid ticket tier.",
+            )
 
         avail = int(tt.get("quantity", 0)) - int(tt.get("quantity_sold", 0))
         if item.quantity > avail:
@@ -265,7 +255,22 @@ def create_order(
             "line_total": str(line),
         })
 
-        # Update sold count on event ticket_type (in-memory; written back below)
+        # ── Atomic inventory reservation ──────────────────────────────────────
+        # Use a conditional DynamoDB write to atomically increment quantity_sold
+        # only if sufficient stock remains, preventing concurrent oversell.
+        reserved = dynamodb_helper.atomic_reserve_ticket_inventory(
+            event_id=body.event_id,
+            ticket_type_id=item.ticket_type_id,
+            quantity=item.quantity,
+        )
+        if not reserved:
+            raise HTTPException(
+                400,
+                f"Tickets for '{tt.get('name')}' sold out while processing your order. "
+                "Please try again.",
+            )
+        # Reflect the reservation in the local copy so subsequent items in the
+        # same order can read an accurate availability without another DB hit.
         tt["quantity_sold"] = int(tt.get("quantity_sold", 0)) + item.quantity
 
         for _ in range(item.quantity):
@@ -354,8 +359,8 @@ def create_order(
         t["event_id"] = body.event_id
         dynamodb_helper.create_ticket(t["TicketID"], t)
 
-    # Update event ticket_types in DynamoDB
-    dynamodb_helper.update_event(body.event_id, {"ticket_types": ticket_types})
+    # NOTE: ticket_types quantity_sold is already updated atomically per item
+    # above via atomic_reserve_ticket_inventory. No full write-back needed here.
 
     # Send order confirmation email
     _send_order_confirmation(all_tickets, order_id, guest_email_norm, body.guest_name, event, total)

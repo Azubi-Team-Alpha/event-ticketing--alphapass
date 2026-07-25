@@ -10,7 +10,7 @@ on:
 
 jobs:
   teardown:
-    name: 💥 Destroy AWS Infrastructure
+    name: Destroy AWS Infrastructure
     runs-on: ubuntu-latest
     steps:
       - name: Verify Confirmation Input
