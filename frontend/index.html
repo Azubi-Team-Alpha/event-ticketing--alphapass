@@ -343,7 +343,8 @@
                         const evtId = evt.id || evt.EventID;
                         const catName = evt.category?.name || evt.category_name || 'Featured Event';
                         const banner = evt.banner_image_url || evt.image_url || 'img/header-img.jpg';
-                        const desc = evt.description ? (evt.description.length > 130 ? evt.description.substring(0, 130) + '...' : evt.description) : 'Experience live digital ticket check-in and instant pass verification with AlphaPass.';
+                        const rawHeroDesc = (evt.description || evt.summary || evt.details || evt.policies || 'Experience live digital ticket check-in and instant pass verification with AlphaPass.').trim();
+                        const desc = rawHeroDesc.length > 130 ? rawHeroDesc.substring(0, 130) + '...' : rawHeroDesc;
                         return `
                         <div class="carousel-item ${idx === 0 ? 'active' : ''}" style="min-height: 480px; background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.88)), url('${banner}') center/cover no-repeat;">
                             <div class="carousel-caption d-flex flex-column align-items-center justify-content-center h-100">
@@ -370,7 +371,8 @@
                         const price = parseFloat(evt.min_price || 0);
                         const catName = evt.category?.name || evt.category_name || 'Featured Pass';
                         const banner = evt.banner_image_url || evt.image_url || 'img/header-img.jpg';
-                        const desc = evt.description ? (evt.description.length > 100 ? evt.description.substring(0, 100) + '...' : evt.description) : 'No description provided.';
+                        const rawGridDesc = (evt.description || evt.summary || evt.details || evt.policies || 'Join us for an exciting live event with instant digital pass ticketing and verified entry.').trim();
+                        const desc = rawGridDesc.length > 100 ? rawGridDesc.substring(0, 100) + '...' : rawGridDesc;
                         const dateStr = evt.starts_at ? new Date(evt.starts_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Upcoming';
                         const evtId = evt.id || evt.EventID;
                         return `
