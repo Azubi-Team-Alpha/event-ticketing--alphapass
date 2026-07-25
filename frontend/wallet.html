@@ -53,7 +53,7 @@
                 <h4 class="fw-bold mb-3"><i class="fa fa-search text-primary me-2"></i> Search Ticket Wallet</h4>
                 <form id="walletLookupForm" class="row g-3">
                     <div class="col-md-9">
-                        <input type="text" id="lookupEmail" class="form-control py-3" placeholder="Enter Guest Email, Order ID, or Ticket Pass Code (e.g. alice@example.com or ORD-882103)" required>
+                        <input type="text" id="lookupCode" class="form-control py-3" placeholder="Enter Booking Code, Order ID, or Ticket Pass Code (e.g. AP-0A96D0C3 or ORD-882103)" required>
                     </div>
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold" id="lookupBtn"><i class="fa fa-search me-1"></i> Search Wallet</button>
@@ -66,7 +66,7 @@
                 <div class="text-center py-5 text-muted">
                     <i class="fa fa-search-location fa-4x text-primary opacity-50 mb-3"></i>
                     <h5 class="fw-bold text-dark">Search Ticket Wallet</h5>
-                    <p class="small text-muted mb-0">Enter your Guest Email address, Order ID, or Ticket Pass Code above to retrieve your passes.</p>
+                    <p class="small text-muted mb-0">Enter your Booking Code (Order ID) or Ticket Pass Code above to retrieve your passes.</p>
                 </div>
             </div>
         </div>
@@ -150,6 +150,7 @@
 
     <script>
         let currentSelectedCode = null;
+        let currentSelectedOwnerEmail = '';
 
         async function fetchWallet(query) {
             const container = document.getElementById('walletResultsContainer');
@@ -158,7 +159,7 @@
                     <div class="text-center py-5 text-muted">
                         <i class="fa fa-search-location fa-4x text-primary opacity-50 mb-3"></i>
                         <h5 class="fw-bold text-dark">Search Ticket Wallet</h5>
-                        <p class="small text-muted mb-0">Enter your Guest Email address, Order ID, or Ticket Pass Code above to retrieve your passes.</p>
+                        <p class="small text-muted mb-0">Enter your Booking Code (Order ID) or Ticket Pass Code above to retrieve your passes.</p>
                     </div>
                 `;
                 return;
@@ -168,7 +169,7 @@
 
             try {
                 const q = query.trim();
-                const payload = { search_query: q, email: q, order_id: q, ticket_code: q };
+                const payload = { search_query: q, booking_code: q, order_id: q, ticket_code: q };
                 const order = await apiFetch('/orders/lookup', {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -189,6 +190,7 @@
                             ${order.tickets.map(tkt => {
                                 const isResale = tkt.status === 'resold' || tkt.status === 'resale_pending' || tkt.status === 'resale_listed';
                                 const attNameEsc = (tkt.attendee_name || order.guest_name || 'Guest').replace(/'/g, "\\'");
+                                const ownerEmailEsc = (tkt.attendee_email || order.guest_email || '').replace(/'/g, "\\'");
                                 return `
                                 <div class="col-md-6">
                                     <div class="card border border-light shadow-sm p-4 rounded-3 bg-light">
@@ -206,10 +208,10 @@
 
                                         <div class="d-grid gap-2">
                                             <a href="${API_BASE_URL}/tickets/${tkt.ticket_code}/pdf" target="_blank" download="ticket-${tkt.ticket_code}.pdf" class="btn btn-outline-primary rounded-pill btn-sm fw-bold"><i class="fa fa-download me-1"></i> Download PDF Ticket</a>
-                                            <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
+                                            <button class="btn btn-outline-secondary rounded-pill btn-sm fw-bold" onclick="openTransferModal('${tkt.ticket_code}', '${ownerEmailEsc}')"><i class="fa fa-exchange-alt me-1"></i> Transfer Pass</button>
                                             ${isResale
                                                 ? `<button class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="cancelResaleListing('${tkt.ticket_code}')"><i class="fa fa-ban me-1"></i> Cancel Resale Listing</button>`
-                                                : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}', '${attNameEsc}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
+                                                : `<button class="btn btn-outline-warning text-dark rounded-pill btn-sm fw-bold" onclick="openResaleModal('${tkt.ticket_code}', '${attNameEsc}', '${ownerEmailEsc}')"><i class="fa fa-store me-1"></i> List for Resale</button>`
                                             }
                                         </div>
                                     </div>
@@ -225,22 +227,23 @@
             }
         }
 
-        function openTransferModal(code) {
+        function openTransferModal(code, ownerEmail) {
             currentSelectedCode = code;
+            currentSelectedOwnerEmail = ownerEmail || '';
             document.getElementById('transferTicketCode').textContent = code;
             const modal = new bootstrap.Modal(document.getElementById('transferModal'));
             modal.show();
         }
 
-        function openResaleModal(code, attendeeName) {
+        function openResaleModal(code, attendeeName, ownerEmail) {
             currentSelectedCode = code;
+            currentSelectedOwnerEmail = ownerEmail || '';
             document.getElementById('resaleTicketCode').textContent = code;
-            const email = document.getElementById('lookupEmail').value.trim();
             if (document.getElementById('resaleSellerEmail')) {
-                document.getElementById('resaleSellerEmail').value = email || '';
+                document.getElementById('resaleSellerEmail').value = ownerEmail || '';
             }
             if (document.getElementById('resaleSellerName')) {
-                document.getElementById('resaleSellerName').value = attendeeName || (email ? email.split('@')[0] : 'Seller');
+                document.getElementById('resaleSellerName').value = attendeeName || (ownerEmail ? ownerEmail.split('@')[0] : 'Seller');
             }
             const modal = new bootstrap.Modal(document.getElementById('resaleModal'));
             modal.show();
@@ -265,15 +268,16 @@
             }
 
             // ONLY auto-fetch if redirected directly with URL search parameters (e.g. from checkout page)
-            const initialQuery = urlOrderId || urlEmail || urlTicketCode || '';
+            const initialQuery = urlOrderId || urlTicketCode || urlEmail || '';
             if (initialQuery) {
-                document.getElementById('lookupEmail').value = initialQuery;
+                const lookupElem = document.getElementById('lookupCode');
+                if (lookupElem) lookupElem.value = initialQuery;
                 fetchWallet(initialQuery);
             }
 
             document.getElementById('walletLookupForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const q = document.getElementById('lookupEmail').value.trim();
+                const q = document.getElementById('lookupCode').value.trim();
                 fetchWallet(q);
             });
 
@@ -281,7 +285,7 @@
                 e.preventDefault();
                 const toName = document.getElementById('transferToName').value.trim();
                 const toEmail = document.getElementById('transferToEmail').value.trim();
-                const fromEmail = document.getElementById('lookupEmail').value.trim();
+                const fromEmail = currentSelectedOwnerEmail || (document.getElementById('lookupCode') ? document.getElementById('lookupCode').value.trim() : '');
 
                 try {
                     await apiFetch(`/transfers/${currentSelectedCode}/transfer?guest_email=${encodeURIComponent(fromEmail)}`, {
@@ -290,7 +294,7 @@
                     });
                     bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
                     showToast(`Ticket ${currentSelectedCode} transferred successfully to ${toName}!`, 'success');
-                    fetchWallet(fromEmail);
+                    fetchWallet(currentSelectedCode || fromEmail);
                 } catch (err) {
                     showToast('Transfer failed: ' + err.message, 'danger');
                 }
@@ -300,7 +304,7 @@
                 e.preventDefault();
                 const price = parseFloat(document.getElementById('resalePrice').value);
                 const sellerName = document.getElementById('resaleSellerName').value.trim();
-                const sellerEmail = document.getElementById('resaleSellerEmail').value.trim() || document.getElementById('lookupEmail').value.trim();
+                const sellerEmail = document.getElementById('resaleSellerEmail').value.trim() || currentSelectedOwnerEmail;
 
                 if (!sellerName || !sellerEmail) {
                     showToast('Please provide seller name and email.', 'danger');

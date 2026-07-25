@@ -29,8 +29,13 @@ def transfer_ticket(
     event = dynamodb_helper.get_event(order.get("event_id", "") or ticket.get("event_id", "")) or {}
 
     # Verify ownership
-    if guest_email and order.get("guest_email", "").lower() != guest_email.lower():
-        raise HTTPException(403, "Email does not match this ticket's order")
+    if guest_email and guest_email.strip():
+        ge = guest_email.strip().lower()
+        if "@" in ge:
+            order_email = (order.get("guest_email") or "").strip().lower()
+            ticket_email = (ticket.get("attendee_email") or ticket.get("guest_email") or "").strip().lower()
+            if ge != order_email and ge != ticket_email:
+                raise HTTPException(403, "Email does not match this ticket's order")
 
     # Check event allows transfers
     if not event.get("allow_transfers", True):

@@ -2,6 +2,12 @@ resource "aws_api_gateway_rest_api" "serverless_api" {
   name        = "alphapass-serverless-api-${var.environment}"
   description = "API Gateway endpoint routing to AlphaPass Lambda backend"
 
+  binary_media_types = [
+    "application/pdf",
+    "image/*",
+    "*/*"
+  ]
+
   endpoint_configuration {
     types = ["REGIONAL"]
   }
@@ -58,6 +64,15 @@ resource "aws_api_gateway_deployment" "deployment" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.serverless_api.id
+
+  triggers = {
+    redeployment = sha256(jsonencode([
+      aws_api_gateway_rest_api.serverless_api.binary_media_types,
+      aws_api_gateway_resource.proxy.id,
+      aws_api_gateway_method.proxy_method.id,
+      aws_api_gateway_integration.lambda_integration.id
+    ]))
+  }
 
   lifecycle {
     create_before_destroy = true

@@ -112,16 +112,19 @@
                     return;
                 }
 
-                grid.innerHTML = listings.map(l => `
+                grid.innerHTML = listings.map(l => {
+                    const rawCode = String(l.ticket_code || l.ticket_id || '');
+                    const maskedCode = rawCode.length > 6 ? `${rawCode.substring(0, 3)}****${rawCode.substring(rawCode.length - 4)}` : 'AP-****PASS';
+                    return `
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
                             <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center">
                                 <span class="badge bg-warning text-dark fw-bold">VERIFIED RESALE</span>
-                                <code>${l.ticket_code || l.ticket_id || 'RESALE-PASS'}</code>
+                                <code>${maskedCode}</code>
                             </div>
                             <div class="card-body p-4 d-flex flex-column">
                                 <h5 class="fw-bold text-dark mb-2">${l.event_title || 'Verified Event Pass'}</h5>
-                                <div class="text-muted small mb-3">Seller: ${l.seller_email || l.seller_name || 'Verified Seller'}</div>
+                                <div class="text-muted small mb-3">Seller: ${l.seller_name || (l.seller_email ? l.seller_email.split('@')[0] + '***' : 'Verified Seller')}</div>
                                 
                                 <div class="d-flex justify-content-between align-items-center my-3 p-3 bg-light rounded">
                                     <div>
@@ -138,7 +141,8 @@
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             } catch (err) {
                 grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">Failed to load resale listings.</div>';
             }
