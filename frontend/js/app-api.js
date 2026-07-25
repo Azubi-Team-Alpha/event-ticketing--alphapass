@@ -3,15 +3,17 @@
  * Connects frontend pages to AWS API Gateway + Lambda backend
  */
 
-const API_BASE_URL = window.ALPHAPASS_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : '');
-
-// Warn loudly in console if API URL is not configured
-if (!API_BASE_URL) {
-    console.error(
-        '[AlphaPass] ALPHAPASS_API_URL is not set! ' +
-        'All API calls will fail. Set window.ALPHAPASS_API_URL in your config or index.html.'
-    );
+function getApiBaseUrl() {
+    if (window.ALPHAPASS_API_URL && window.ALPHAPASS_API_URL.trim() !== '') {
+        return window.ALPHAPASS_API_URL.trim();
+    }
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://127.0.0.1:8000';
+    }
+    return 'https://yrn3zdmv50.execute-api.us-east-1.amazonaws.com/dev';
 }
+
+const API_BASE_URL = getApiBaseUrl();
 
 // ── Generic API Fetch Handler ────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
@@ -44,7 +46,8 @@ async function apiFetch(path, options = {}) {
     };
 
     try {
-        const response = await fetch(`${API_BASE_URL}${path}`, { ...fetchOptions, headers });
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}${path}`, { ...fetchOptions, headers });
 
         // ── 401 handling: token expired or invalid ─────────────────────────
         if (response.status === 401) {
