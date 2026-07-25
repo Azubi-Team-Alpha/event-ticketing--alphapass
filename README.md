@@ -15,12 +15,12 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 ## 📚 Project Documentation Hub
 
-All technical architecture, DevOps pipelines, developer manuals, and presentation materials are organized under the [`docs/`](docs/) directory:
+All technical architecture, DevOps pipelines, developer manuals, presentation materials, and live demonstration scripts are organized under the [`docs/`](docs/) directory:
+
 
 - 🏗️ **[Infrastructure Guide (`docs/INFRASTRUCTURE.md`)](docs/INFRASTRUCTURE.md):** Complete AWS serverless topology, 13 DynamoDB table definitions, API Gateway REST proxy, Lambda compute specs, S3 hosting, and IAM least-privilege policies.
 - ⚙️ **[CI/CD & DevOps Manual (`docs/CICD.md`)](docs/CICD.md):** GitHub Actions automated multi-stage pipeline, `pytest` test runner, Terraform automation, pre-deploy sanitation scripts, dynamic API URL injection, and teardown workflows.
 - 🐍 **[Backend Architecture Guide (`docs/BACKEND.md`)](docs/BACKEND.md):** FastAPI modular router breakdown (10 routers), Mangum ASGI wrapper, ReportLab PDF ticket generator, Boto3 DynamoDB DAO helpers, and test suite details.
-- 🎤 **[Presentation & Team Defense Guide (`docs/PRESENTATION.md`)](docs/PRESENTATION.md):** Slide-by-slide outline, visual recommendations, and speaker talk tracks divided for a 3-presenter team defense.
 - 📖 **[OpenAPI Reference (`docs/API_REFERENCE.md`)](docs/API_REFERENCE.md):** Full REST API specification and request/response schemas.
 - 🔌 **[SDK Integration Guide (`docs/integration.md`)](docs/integration.md):** Frontend-Backend JS SDK (`app-api.js`) and API integration patterns.
 
@@ -114,10 +114,11 @@ alphapass/
 │   ├── admin.html            # Admin governance console & moderation queues
 │   └── js/                   # Shared API SDK (app-api.js), Config (config.js)
 ├── docs/                     # Comprehensive Architecture & Integration Docs
+│   ├── PRESENTATION.md       # 9-Slide Deck Outline & Team Speaker Notes
+│   ├── LIVE_DEMO_GUIDE.md    # Step-by-Step Live Demo Execution Script
 │   ├── INFRASTRUCTURE.md     # AWS Serverless & DynamoDB Topology Guide
 │   ├── CICD.md               # GitHub Actions Automation & DevOps Pipeline Guide
 │   ├── BACKEND.md            # FastAPI Backend & Developer Architecture Guide
-│   ├── PRESENTATION.md       # Internship Project Presentation & Team Speaker Guide
 │   ├── API_REFERENCE.md      # Full OpenAPI Specification & Endpoint Reference
 │   └── integration.md        # Full Frontend-Backend SDK Integration Guide
 ├── infra/                    # Terraform Infrastructure-as-Code Modules
