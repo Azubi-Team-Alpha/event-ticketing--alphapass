@@ -28,3 +28,9 @@ variable "ses_sender_email" {
   default     = "noreply@alphapass.alphateam.live"
   description = "Verified SES sender address used for all transactional emails (must be verified in AWS SES)"
 }
+
+variable "custom_bucket_name" {
+  type        = string
+  default     = ""
+  description = "Optional explicit bucket name (set to domain name like alphapass.alphateam.live for direct S3 CNAME binding)"
+}

@@ -8,3 +8,9 @@ variable "cors_allowed_origins" {
   default     = ["*"]
   description = "Allowed origins for S3 bucket CORS policy"
 }
+
+variable "custom_bucket_name" {
+  type        = string
+  default     = ""
+  description = "Optional explicit bucket name (must match domain name if using direct CNAME)"
+}
