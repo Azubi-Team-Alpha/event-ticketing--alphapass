@@ -604,7 +604,11 @@
             const exportPdfBtn = document.getElementById('adminExportPdfBtn');
             const token = localStorage.getItem('admin_token') || '';
             if (exportCsvBtn) exportCsvBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=csv&token=${encodeURIComponent(token)}`;
-            if (exportPdfBtn) exportPdfBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=pdf&token=${encodeURIComponent(token)}`;
+            if (exportPdfBtn) {
+                exportPdfBtn.href = `${API_BASE_URL}/organizer/events/${eventId}/attendees?export=pdf&token=${encodeURIComponent(token)}`;
+                exportPdfBtn.setAttribute('target', '_blank');
+                exportPdfBtn.setAttribute('download', `attendees-event-${eventId}.pdf`);
+            }
 
             const tbody = document.getElementById('adminAttendeesTableBody');
             tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Loading attendees...</td></tr>';

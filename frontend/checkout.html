@@ -328,6 +328,8 @@
                     if (downloadBtn) {
                         if (tCode) {
                             downloadBtn.href = `${API_BASE_URL}/tickets/${tCode}/pdf`;
+                            downloadBtn.setAttribute('target', '_blank');
+                            downloadBtn.setAttribute('download', `ticket-${tCode}.pdf`);
                         } else {
                             downloadBtn.href = `${API_BASE_URL}/orders/${orderId}/summary`;
                         }
