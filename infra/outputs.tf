@@ -3,6 +3,11 @@ output "api_endpoint" {
   description = "Base URL of the serverless REST API Gateway stage"
 }
 
+output "api_gateway_id" {
+  value       = module.api_gateway.api_gateway_id
+  description = "REST API Gateway ID"
+}
+
 output "dynamodb_table_events" {
   value = module.dynamodb.events_table_name
 }
