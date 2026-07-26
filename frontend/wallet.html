@@ -17,16 +17,16 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link href="css/style.css?v=5" rel="stylesheet">
 </head>
 
 <body>
 
     <!-- Mobile Offcanvas Overlay -->
-    <div class="ap-offcanvas-overlay" id="apOverlay" onclick="closeAPNav()"></div>
+    <div class="ap-offcanvas-overlay" id="apOverlay" style="display: none;" onclick="closeAPNav()"></div>
 
     <!-- Mobile Offcanvas Sidebar -->
-    <nav class="ap-offcanvas" id="apSidebar" aria-label="Mobile Navigation">
+    <nav class="ap-offcanvas" id="apSidebar" style="display: none;" aria-label="Mobile Navigation">
         <div class="ap-offcanvas-header">
             <a href="index.html" class="brand"><i class="fas fa-ticket-alt"></i> AlphaPass</a>
             <button class="ap-offcanvas-close" onclick="closeAPNav()" aria-label="Close menu"><i class="fa fa-times"></i></button>
@@ -383,6 +383,22 @@
             } catch (err) {
                 showToast('Failed to cancel resale listing: ' + err.message, 'danger');
             }
+        }
+    </script>
+    <script>
+        function openAPNav() {
+            var sidebar = document.getElementById('apSidebar');
+            var overlay = document.getElementById('apOverlay');
+            if (sidebar) { sidebar.style.display = 'flex'; sidebar.classList.add('open'); }
+            if (overlay) { overlay.style.display = 'block'; overlay.classList.add('open'); }
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAPNav() {
+            var sidebar = document.getElementById('apSidebar');
+            var overlay = document.getElementById('apOverlay');
+            if (sidebar) { sidebar.classList.remove('open'); sidebar.style.display = 'none'; }
+            if (overlay) { overlay.classList.remove('open'); overlay.style.display = 'none'; }
+            document.body.style.overflow = '';
         }
     </script>
 </body>

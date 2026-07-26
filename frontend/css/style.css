@@ -1055,41 +1055,38 @@ body {
 .ap-offcanvas {
     position: fixed;
     top: 0;
-    left: -290px;
+    left: 0;
     width: 280px;
     height: 100vh;
-    background: #1E293B;
-    z-index: 9999;
-    transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.32s;
+    background: #1E293B !important;
+    color: #FFFFFF !important;
+    z-index: 99999;
     overflow-y: auto;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.35);
-    display: flex;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.45);
+    display: none;
     flex-direction: column;
-    will-change: left;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    visibility: hidden;
 }
 
 .ap-offcanvas.open {
-    left: 0;
-    visibility: visible;
+    display: flex !important;
 }
 
 .ap-offcanvas-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: 9998;
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.65);
+    z-index: 99998;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
 }
 
 .ap-offcanvas-overlay.open {
-    display: block;
+    display: block !important;
 }
 
 .ap-offcanvas-header {
