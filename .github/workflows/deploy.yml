@@ -126,6 +126,8 @@ jobs:
         run: |
           cd infra
           terraform init
+          # Automatically import S3 website bucket into state if it already exists in AWS account
+          terraform import module.s3.aws_s3_bucket.frontend alphapass.alphateam.live 2>/dev/null || true
 
       - name: Terraform Plan
         run: |
