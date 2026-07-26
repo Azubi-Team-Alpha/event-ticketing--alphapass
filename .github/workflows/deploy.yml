@@ -63,8 +63,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     env:
-      TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
-      TF_VAR_ses_sender_email: ${{ secrets.SES_SENDER_EMAIL }}
+      TF_VAR_secret_key: ${{ secrets.SECRET_KEY || 'alphapass-default-secret-key-dev' }}
+      TF_VAR_ses_sender_email: ${{ secrets.SES_SENDER_EMAIL || 'noreply@alphapass.alphateam.live' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
