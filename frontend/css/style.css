@@ -1059,16 +1059,21 @@ body {
     width: 280px;
     height: 100vh;
     background: #1E293B;
-    z-index: 1100;
-    transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.32s;
     overflow-y: auto;
     box-shadow: 4px 0 24px rgba(0,0,0,0.35);
     display: flex;
     flex-direction: column;
+    will-change: left;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    visibility: hidden;
 }
 
 .ap-offcanvas.open {
     left: 0;
+    visibility: visible;
 }
 
 .ap-offcanvas-overlay {
@@ -1076,8 +1081,11 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.55);
-    z-index: 1099;
+    z-index: 9998;
     backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
 .ap-offcanvas-overlay.open {
@@ -1179,6 +1187,14 @@ body {
 @media (max-width: 991.98px) {
     .mobile-topbar {
         display: flex;
+    }
+
+    /* Mobile search bar — shown below navbar on index + events */
+    .mobile-search-bar {
+        display: flex !important;
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
     }
 
     /* Hide desktop-only bars that have no mobile fallback */
