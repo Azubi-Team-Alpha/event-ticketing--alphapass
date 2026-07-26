@@ -66,6 +66,10 @@ jobs:
             fi
           done
 
+      - name: Generate placeholder SECRET_KEY for Terraform
+        id: secret_key
+        run: echo "value=$(python3 -c 'import secrets; print(secrets.token_hex(32))')" >> $GITHUB_OUTPUT
+
       - name: Terraform Destroy (Automated Non-Interactive)
         continue-on-error: true
         run: |
@@ -74,7 +78,7 @@ jobs:
           ENV="dev"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
 
-          terraform destroy -var="environment=${ENV}" -var="secret_key=${{ secrets.SECRET_KEY || 'placeholder-teardown-only' }}" -auto-approve || true
+          terraform destroy -var="environment=${ENV}" -var="secret_key=${{ steps.secret_key.outputs.value }}" -auto-approve || true
 
           # 2. Delete AWS Budget
           BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
@@ -83,12 +87,13 @@ jobs:
             aws budgets delete-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null || true
           fi
 
-          # 3. Delete API Gateway REST APIs
-          API_IDS=$(aws api-gateway get-rest-apis --region "$REGION" --query "items[?contains(name, 'alphapass-serverless-api')].id" --output text 2>/dev/null || true)
+          # 3. Delete ALL API Gateway REST APIs with 'alphapass' in the name
+          API_IDS=$(aws apigateway get-rest-apis --region "$REGION" --query "items[?contains(name, 'alphapass')].id" --output text 2>/dev/null || true)
           for API_ID in $API_IDS; do
             if [ -n "$API_ID" ] && [ "$API_ID" != "None" ]; then
               echo "Deleting API Gateway REST API: $API_ID"
-              aws api-gateway delete-rest-api --rest-api-id "$API_ID" --region "$REGION" 2>/dev/null || true
+              aws apigateway delete-rest-api --rest-api-id "$API_ID" --region "$REGION" 2>/dev/null || true
+              sleep 2
             fi
           done
 

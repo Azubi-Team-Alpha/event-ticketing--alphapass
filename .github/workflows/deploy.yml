@@ -97,10 +97,6 @@ jobs:
     steps:
       - name: Validate required secrets
         run: |
-          if [ -z "${{ secrets.SECRET_KEY }}" ]; then
-            echo "::error::SECRET_KEY GitHub secret is not set. Deployment aborted to prevent deploying with a weak default key."
-            exit 1
-          fi
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
             echo "::error::AWS credentials secrets are not set."
             exit 1
@@ -173,12 +169,16 @@ jobs:
           # Import S3 bucket into state if it already exists (idempotent)
           terraform import module.s3.aws_s3_bucket.frontend alphapass.alphateam.live 2>/dev/null || true
 
+      - name: Generate SECRET_KEY
+        id: secret_key
+        run: echo "value=$(python3 -c 'import secrets; print(secrets.token_hex(32))')" >> $GITHUB_OUTPUT
+
       - name: Terraform Plan
         run: |
           cd infra
           terraform plan \
             -var="environment=dev" \
-            -var="secret_key=${{ secrets.SECRET_KEY }}" \
+            -var="secret_key=${{ steps.secret_key.outputs.value }}" \
             -var="ses_sender_email=${TF_VAR_ses_sender_email}"
 
       - name: Terraform Apply
@@ -186,7 +186,7 @@ jobs:
           cd infra
           terraform apply \
             -var="environment=dev" \
-            -var="secret_key=${{ secrets.SECRET_KEY }}" \
+            -var="secret_key=${{ steps.secret_key.outputs.value }}" \
             -var="ses_sender_email=${TF_VAR_ses_sender_email}" \
             -auto-approve
 
