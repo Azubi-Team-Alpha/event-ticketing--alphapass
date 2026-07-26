@@ -211,8 +211,22 @@ jobs:
           echo "API Endpoint: $API_URL"
           echo "Frontend S3 URL: http://$FRONTEND_URL"
 
-          # Inject real deployed API Gateway endpoint into frontend/js/config.js
-          printf '/**\n * AlphaPass Global Frontend Configuration\n * Dynamically generated during CI/CD deployment\n * Active API Endpoint: %s\n */\nif (typeof window.ALPHAPASS_API_URL === '"'"'undefined'"'"' || !window.ALPHAPASS_API_URL) {\n    if (window.location.hostname === '"'"'localhost'"'"' || window.location.hostname === '"'"'127.0.0.1'"'"') {\n        window.ALPHAPASS_API_URL = '"'"'http://127.0.0.1:8000'"'"';\n    } else {\n        window.ALPHAPASS_API_URL = '"'"'%s'"'"';\n    }\n}\n' "$API_URL" "$API_URL" > ../frontend/js/config.js
+          # -- Dynamically inject the live API Gateway URL into config.js --------
+          # envsubst substitutes ${API_URL} and ${DEPLOY_TS} from the committed
+          # template file — no heredoc, no YAML-unsafe characters in the workflow.
+          DEPLOY_TS=$(date -u +%Y%m%d%H%M%S)
+          export API_URL DEPLOY_TS
+          envsubst '${API_URL} ${DEPLOY_TS}' < ../frontend/js/config.template.js > ../frontend/js/config.js
+
+          echo "config.js written with API_URL=${API_URL}"
+          cat ../frontend/js/config.js
+
+          # -- Bump config.js cache-buster version in every HTML file ------------
+          # Replaces js/config.js?v=<anything> with js/config.js?v=<DEPLOY_TS>
+          # so browsers immediately fetch the new config.js after each deploy.
+          find ../frontend -maxdepth 1 -name "*.html" -exec sed -i "s|js/config\.js?v=[^'\"]*|js/config.js?v=${DEPLOY_TS}|g" {} +
+          echo "Cache-buster updated to v=${DEPLOY_TS} in all HTML files."
+
 
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
 

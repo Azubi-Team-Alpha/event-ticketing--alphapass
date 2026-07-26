@@ -11,31 +11,23 @@ app = FastAPI(
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+# NOTE: allow_credentials must be False when allow_origins=["*"]; browsers
+# reject credentialed requests to wildcard origins per the CORS spec.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key",
+                   "X-Amz-Security-Token", "Accept", "Origin"],
     expose_headers=["*"],
 )
 
 
-@app.options("/{full_path:path}")
-def options_handler(full_path: str):
-    """Fallback handler for preflight OPTIONS requests."""
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        },
-    )
-
-
-
 # ── Routers ───────────────────────────────────────────────────────────────────
+# Routers are included BEFORE the catch-all OPTIONS handler so that
+# router-specific routes take priority, and the catch-all only handles
+# any path not matched by a router.
 from app.routers import health, auth, events, tickets, orders, transfers, resale, checkin, organizer, admin  # noqa: E402
 
 app.include_router(health.router,     tags=["Health"])
@@ -48,3 +40,21 @@ app.include_router(resale.router,     prefix="/resale",    tags=["Resale"])
 app.include_router(checkin.router,    prefix="/checkin",   tags=["Check-in"])
 app.include_router(organizer.router,  prefix="/organizer", tags=["Organizer"])
 app.include_router(admin.router,      prefix="/admin",     tags=["Admin"])
+
+
+# ── Catch-all OPTIONS handler (preflight fallback) ────────────────────────────
+# Registered LAST so it only matches paths not handled by any router above.
+# API Gateway's MOCK integration should intercept OPTIONS before Lambda
+# is invoked, but this handler ensures CORS headers are present even if
+# OPTIONS reaches the Lambda function (e.g. during local development).
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    """Fallback handler for preflight OPTIONS requests not matched by a router."""
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token, Accept, Origin",
+        },
+    )
