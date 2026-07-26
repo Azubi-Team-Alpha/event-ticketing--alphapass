@@ -1,10 +1,9 @@
 # AlphaPass — Project Submission & Step-by-Step Implementation Report
 
-**Program:** Azubi Cloud & AI Academy — Project 2 Final Defense  
+**Program:** Azubi AWS Cloud & AI Training — Capstone Project 2  
 **Team:** Team Alpha  
 **Project Title:** AlphaPass — Serverless Event Ticketing, Resale Exchange & Governance Platform  
-**Live Application:** [pass.alphateam.live](https://pass.alphateam.live)  
-**API Endpoint:** [api.alphapass.alphateam.live](https://api.alphapass.alphateam.live)  
+**Live Application:** [alphapass.alphateam.live](https://alphapass.alphateam.live)  
 **Repository:** [Azubi-Team-Alpha/event-ticketing--alphapass](https://github.com/Azubi-Team-Alpha/event-ticketing--alphapass)  
 **Date:** July 2026  
 
