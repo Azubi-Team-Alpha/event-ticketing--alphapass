@@ -5,8 +5,8 @@ variable "environment" {
 
 variable "bucket_name" {
   type        = string
-  default     = "alphapass-frontend-app-dev"
-  description = "Name of the S3 bucket for static website hosting"
+  default     = "alphapass.alphateam.live"
+  description = "Name of the S3 bucket for static website hosting (matches domain name for Cloudflare CNAME routing)"
 }
 
 variable "cors_allowed_origins" {
