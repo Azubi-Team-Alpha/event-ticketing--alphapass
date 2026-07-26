@@ -55,6 +55,8 @@ htmlcov/
 /infra/.terraform/
 *.tfstate
 *.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
 crash.log
 crash.*.log
 *.tfvars
@@ -71,5 +73,13 @@ terraform.rc
 infra/modules/lambda/lambda.zip
 infra/modules/lambda/build/
 /infra/modules/lambda/build/
+lambda_build/
+lambda_package.zip
+
+# --- Test artifacts ---
+backend/test_ticket.pdf
+test_ticket.pdf
+backend/test.db
+test.db
 
 .secrets/*

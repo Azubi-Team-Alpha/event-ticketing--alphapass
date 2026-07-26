@@ -4,8 +4,9 @@ resource "aws_api_gateway_rest_api" "serverless_api" {
 
   binary_media_types = [
     "application/pdf",
-    "image/*",
-    "*/*"
+    "image/jpeg",
+    "image/png",
+    "image/webp"
   ]
 
   endpoint_configuration {
@@ -188,6 +189,18 @@ resource "aws_api_gateway_stage" "stage" {
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = aws_api_gateway_rest_api.serverless_api.id
   stage_name    = var.environment
+}
+
+# Default throttling to protect Lambda from traffic spikes
+resource "aws_api_gateway_method_settings" "throttle" {
+  rest_api_id = aws_api_gateway_rest_api.serverless_api.id
+  stage_name  = aws_api_gateway_stage.stage.stage_name
+  method_path = "*/*"
+
+  settings {
+    throttling_burst_limit = 100
+    throttling_rate_limit  = 50
+  }
 }
 
 # Permission to allow API Gateway to invoke Lambda

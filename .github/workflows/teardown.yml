@@ -12,8 +12,6 @@ jobs:
   teardown:
     name: Destroy AWS Infrastructure
     runs-on: ubuntu-latest
-    env:
-      TF_VAR_secret_key: ${{ secrets.SECRET_KEY || 'alphapass-default-secret-key-dev' }}
     steps:
       - name: Verify Confirmation Input
         run: |
@@ -76,7 +74,7 @@ jobs:
           ENV="dev"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
 
-          terraform destroy -var="environment=${ENV}" -var="secret_key=${TF_VAR_secret_key}" -auto-approve || true
+          terraform destroy -var="environment=${ENV}" -var="secret_key=${{ secrets.SECRET_KEY || 'placeholder-teardown-only' }}" -auto-approve || true
 
           # 2. Delete AWS Budget
           BUDGET_NAME="alphapass-free-tier-budget-${ENV}"

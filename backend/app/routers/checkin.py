@@ -89,10 +89,10 @@ def _do_scan(ticket_code: str) -> CheckInResponse:
 @router.post("/scan", response_model=CheckInResponse)
 def scan_ticket(
     body: CheckInRequest,
-    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+    organizer: AttrDict = Depends(get_current_organizer),
 ):
     """
-    Scan a QR code for event check-in.
+    Scan a QR code for event check-in. Requires organizer authentication.
     """
     return _do_scan(body.ticket_code)
 
