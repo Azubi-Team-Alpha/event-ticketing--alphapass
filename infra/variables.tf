@@ -31,6 +31,6 @@ variable "ses_sender_email" {
 
 variable "frontend_bucket_name" {
   type        = string
-  default     = "alphapass.alphateam.live"
-  description = "Name of the S3 bucket for static website hosting (matches custom domain)"
+  default     = "alphapass-frontend-app-dev"
+  description = "Name of the S3 bucket for static website hosting"
 }
