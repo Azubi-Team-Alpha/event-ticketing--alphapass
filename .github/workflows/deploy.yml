@@ -117,6 +117,48 @@ jobs:
             fi
           fi
 
+          # Delete existing DynamoDB tables if present prior to fresh deployment (prevents ResourceInUseException)
+          TABLES=$(aws dynamodb list-tables --region "$REGION" --query "TableNames[?starts_with(@, 'alphapass-')]" --output text 2>/dev/null || true)
+          for TABLE in $TABLES; do
+            if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
+              echo "Found existing DynamoDB table $TABLE prior to deployment. Purging..."
+              aws dynamodb delete-table --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
+            fi
+          done
+
+          if [ -n "$TABLES" ] && [ "$TABLES" != "None" ]; then
+            for TABLE in $TABLES; do
+              if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
+                aws dynamodb wait table-not-exists --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
+              fi
+            done
+          fi
+
+          # Delete IAM Role & Policy if present prior to deployment (prevents EntityAlreadyExists)
+          ROLE_NAME="alphapass-lambda-role-${ENV}"
+          POLICY_NAME="alphapass-lambda-policy-${ENV}"
+          
+          ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$ROLE_NAME" --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null || true)
+          for POL_ARN in $ATTACHED_POLICIES; do
+            if [ -n "$POL_ARN" ] && [ "$POL_ARN" != "None" ]; then
+              echo "Detaching policy $POL_ARN from role $ROLE_NAME..."
+              aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POL_ARN" 2>/dev/null || true
+            fi
+          done
+
+          if aws iam get-role --role-name "$ROLE_NAME" 2>/dev/null; then
+            echo "Found existing IAM role $ROLE_NAME prior to deployment. Clearing..."
+            aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
+          fi
+
+          if [ -n "$ACCOUNT_ID" ]; then
+            POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
+            if aws iam get-policy --policy-arn "$POLICY_ARN" 2>/dev/null; then
+              echo "Found existing IAM policy $POLICY_ARN prior to deployment. Clearing..."
+              aws iam delete-policy --policy-arn "$POLICY_ARN" 2>/dev/null || true
+            fi
+          fi
+
       - name: Setup HashiCorp Terraform
         uses: hashicorp/setup-terraform@v3
         with:

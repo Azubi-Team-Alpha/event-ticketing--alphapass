@@ -72,7 +72,11 @@ jobs:
         continue-on-error: true
         run: |
           cd infra
-          terraform destroy -var="environment=dev" -var="secret_key=${TF_VAR_secret_key}" -auto-approve
+          REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
+          ENV="dev"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
+
+          terraform destroy -var="environment=${ENV}" -var="secret_key=${TF_VAR_secret_key}" -auto-approve || true
 
           # 2. Delete AWS Budget
           BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
@@ -117,14 +121,39 @@ jobs:
             fi
           done
 
+          # Wait for DynamoDB tables to be completely removed
+          if [ -n "$TABLES" ] && [ "$TABLES" != "None" ]; then
+            for TABLE in $TABLES; do
+              if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
+                aws dynamodb wait table-not-exists --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
+              fi
+            done
+          fi
+
           # 8. Delete IAM Role & Policy
           ROLE_NAME="alphapass-lambda-role-${ENV}"
           POLICY_NAME="alphapass-lambda-policy-${ENV}"
-          POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
 
-          aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POLICY_ARN" 2>/dev/null || true
-          aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
-          aws iam delete-policy --policy-arn "$POLICY_ARN" 2>/dev/null || true
+          ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$ROLE_NAME" --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null || true)
+          for POL_ARN in $ATTACHED_POLICIES; do
+            if [ -n "$POL_ARN" ] && [ "$POL_ARN" != "None" ]; then
+              echo "Detaching policy $POL_ARN from role $ROLE_NAME..."
+              aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POL_ARN" 2>/dev/null || true
+            fi
+          done
+
+          if aws iam get-role --role-name "$ROLE_NAME" 2>/dev/null; then
+            echo "Deleting IAM Role: $ROLE_NAME"
+            aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
+          fi
+
+          if [ -n "$ACCOUNT_ID" ]; then
+            POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
+            if aws iam get-policy --policy-arn "$POLICY_ARN" 2>/dev/null; then
+              echo "Deleting IAM Policy: $POLICY_ARN"
+              aws iam delete-policy --policy-arn "$POLICY_ARN" 2>/dev/null || true
+            fi
+          fi
 
           echo "=== AWS Resource Teardown Completed Successfully ==="
 
