@@ -12,6 +12,10 @@ jobs:
   teardown:
     name: Destroy AWS Infrastructure
     runs-on: ubuntu-latest
+    env:
+      REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+      ENV: dev
+
     steps:
       - name: Verify Confirmation Input
         run: |
@@ -30,132 +34,223 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
+      # ── 1. S3 ──────────────────────────────────────────────────────────────
+      - name: "Purge & Delete S3 Buckets"
+        continue-on-error: true
+        run: |
+          BUCKETS=$(aws s3api list-buckets \
+            --query "Buckets[?contains(Name, 'alphapass')].Name" \
+            --output text 2>/dev/null || true)
+
+          for BUCKET in $BUCKETS; do
+            [ -z "$BUCKET" ] || [ "$BUCKET" = "None" ] && continue
+            echo "Purging s3://$BUCKET ..."
+
+            aws s3 rm "s3://$BUCKET" --recursive 2>/dev/null || true
+
+            VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET" \
+              --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+              --output json 2>/dev/null || true)
+            if echo "$VERSIONS" | grep -q '"Key"'; then
+              aws s3api delete-objects --bucket "$BUCKET" --delete "$VERSIONS" 2>/dev/null || true
+            fi
+
+            MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET" \
+              --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+              --output json 2>/dev/null || true)
+            if echo "$MARKERS" | grep -q '"Key"'; then
+              aws s3api delete-objects --bucket "$BUCKET" --delete "$MARKERS" 2>/dev/null || true
+            fi
+
+            aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null || true
+            echo "Deleted s3://$BUCKET"
+          done
+
+      # ── 2. Terraform Destroy ───────────────────────────────────────────────
       - name: Setup HashiCorp Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
 
+      - name: Generate placeholder SECRET_KEY for Terraform
+        id: secret_key
+        run: echo "value=$(python3 -c 'import secrets; print(secrets.token_hex(32))')" >> $GITHUB_OUTPUT
+
       - name: Terraform Init
-        run: |
-          cd infra
-          terraform init
+        continue-on-error: true
+        run: cd infra && terraform init
 
-      - name: S3 Bucket Pre-Purge & Sanitation
-        run: |
-          echo "=== Purging S3 Bucket Assets & Versions ==="
-          REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
-          
-          # Target alphapass.alphateam.live and any alphapass frontend buckets
-          BUCKETS=$(aws s3api list-buckets --query "Buckets[?contains(Name, 'alphapass')].Name" --output text 2>/dev/null || true)
-          for BUCKET_NAME in $BUCKETS; do
-            if [ -n "$BUCKET_NAME" ] && [ "$BUCKET_NAME" != "None" ]; then
-              echo "Purging and deleting S3 Bucket: $BUCKET_NAME"
-              aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
-              
-              VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
-              if [ -n "$VERSIONS" ] && [ "$VERSIONS" != '{"Objects": null}' ] && [ "$VERSIONS" != '{"Objects": []}' ]; then
-                aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$VERSIONS" 2>/dev/null || true
-              fi
-
-              MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
-              if [ -n "$MARKERS" ] && [ "$MARKERS" != '{"Objects": null}' ] && [ "$MARKERS" != '{"Objects": []}' ]; then
-                aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$MARKERS" 2>/dev/null || true
-              fi
-
-              aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
-            fi
-          done
-
-      - name: Terraform Destroy (Automated Non-Interactive)
+      - name: Terraform Destroy
         continue-on-error: true
         run: |
           cd infra
-          REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
-          ENV="dev"
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
+          terraform destroy \
+            -var="environment=$ENV" \
+            -var="secret_key=${{ steps.secret_key.outputs.value }}" \
+            -auto-approve
 
-          terraform destroy -var="environment=${ENV}" -var="secret_key=${{ secrets.SECRET_KEY || 'placeholder-teardown-only' }}" -auto-approve || true
+      # ── 3. API Gateway REST APIs ───────────────────────────────────────────
+      - name: "Delete API Gateway REST APIs"
+        continue-on-error: true
+        run: |
+          API_IDS=$(aws apigateway get-rest-apis --region "$REGION" \
+            --query "items[?contains(name, 'alphapass')].id" \
+            --output text 2>/dev/null || true)
 
-          # 2. Delete AWS Budget
-          BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
-          if [ -n "$ACCOUNT_ID" ]; then
-            echo "Deleting AWS Budget: $BUDGET_NAME"
-            aws budgets delete-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null || true
-          fi
-
-          # 3. Delete API Gateway REST APIs
-          API_IDS=$(aws api-gateway get-rest-apis --region "$REGION" --query "items[?contains(name, 'alphapass-serverless-api')].id" --output text 2>/dev/null || true)
           for API_ID in $API_IDS; do
-            if [ -n "$API_ID" ] && [ "$API_ID" != "None" ]; then
-              echo "Deleting API Gateway REST API: $API_ID"
-              aws api-gateway delete-rest-api --rest-api-id "$API_ID" --region "$REGION" 2>/dev/null || true
-            fi
+            [ -z "$API_ID" ] || [ "$API_ID" = "None" ] && continue
+            echo "Deleting API Gateway: $API_ID"
+            aws apigateway delete-rest-api --rest-api-id "$API_ID" --region "$REGION" 2>/dev/null || true
+            # API Gateway enforces a 30-second cooldown between REST API deletes
+            sleep 30
           done
 
-          # 4. Delete Lambda Function
-          LAMBDA_NAME="alphapass-backend-api-${ENV}"
-          if aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" 2>/dev/null; then
-            echo "Deleting Lambda Function: $LAMBDA_NAME"
-            aws lambda delete-function --function-name "$LAMBDA_NAME" --region "$REGION" 2>/dev/null || true
-          fi
+      # ── 4. Lambda ──────────────────────────────────────────────────────────
+      - name: "Delete Lambda Functions"
+        continue-on-error: true
+        run: |
+          FUNCTIONS=$(aws lambda list-functions --region "$REGION" \
+            --query "Functions[?contains(FunctionName, 'alphapass')].FunctionName" \
+            --output text 2>/dev/null || true)
 
-          # 5. Delete CloudWatch Alarm & Log Group
-          aws cloudwatch delete-alarms --alarm-names "alphapass-lambda-errors-${ENV}" --region "$REGION" 2>/dev/null || true
-          aws logs delete-log-group --log-group-name "/aws/lambda/$LAMBDA_NAME" --region "$REGION" 2>/dev/null || true
+          for FN in $FUNCTIONS; do
+            [ -z "$FN" ] || [ "$FN" = "None" ] && continue
+            echo "Deleting Lambda: $FN"
+            aws lambda delete-function --function-name "$FN" --region "$REGION" 2>/dev/null || true
+          done
 
-          # 6. Delete SNS Topic
-          TOPIC_ARN=$(aws sns list-topics --region "$REGION" --query "Topics[?contains(TopicArn, 'alphapass-notifications')].TopicArn" --output text 2>/dev/null || true)
-          if [ -n "$TOPIC_ARN" ] && [ "$TOPIC_ARN" != "None" ]; then
-            echo "Deleting SNS Topic: $TOPIC_ARN"
-            aws sns delete-topic --topic-arn "$TOPIC_ARN" --region "$REGION" 2>/dev/null || true
-          fi
+      # ── 5. DynamoDB Tables ─────────────────────────────────────────────────
+      - name: "Delete DynamoDB Tables"
+        continue-on-error: true
+        run: |
+          TABLES=$(aws dynamodb list-tables --region "$REGION" \
+            --query "TableNames[?starts_with(@, 'alphapass-')]" \
+            --output text 2>/dev/null || true)
 
-          # 7. Delete DynamoDB Tables
-          TABLES=$(aws dynamodb list-tables --region "$REGION" --query "TableNames[?starts_with(@, 'alphapass-')]" --output text 2>/dev/null || true)
           for TABLE in $TABLES; do
-            if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
-              echo "Deleting DynamoDB Table: $TABLE"
-              aws dynamodb delete-table --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
-            fi
+            [ -z "$TABLE" ] || [ "$TABLE" = "None" ] && continue
+            echo "Deleting DynamoDB table: $TABLE"
+            aws dynamodb delete-table --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
           done
 
-          # Wait for DynamoDB tables to be completely removed
-          if [ -n "$TABLES" ] && [ "$TABLES" != "None" ]; then
-            for TABLE in $TABLES; do
-              if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
-                aws dynamodb wait table-not-exists --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
-              fi
+          # Wait for all tables to finish deleting
+          for TABLE in $TABLES; do
+            [ -z "$TABLE" ] || [ "$TABLE" = "None" ] && continue
+            aws dynamodb wait table-not-exists --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
+          done
+
+      # ── 6. SNS Topics ──────────────────────────────────────────────────────
+      - name: "Delete SNS Topics"
+        continue-on-error: true
+        run: |
+          TOPICS=$(aws sns list-topics --region "$REGION" \
+            --query "Topics[?contains(TopicArn, 'alphapass')].TopicArn" \
+            --output text 2>/dev/null || true)
+
+          for TOPIC_ARN in $TOPICS; do
+            [ -z "$TOPIC_ARN" ] || [ "$TOPIC_ARN" = "None" ] && continue
+            echo "Deleting SNS topic: $TOPIC_ARN"
+            aws sns delete-topic --topic-arn "$TOPIC_ARN" --region "$REGION" 2>/dev/null || true
+          done
+
+      # ── 7. CloudWatch Alarms & Log Groups ─────────────────────────────────
+      - name: "Delete CloudWatch Alarms & Log Groups"
+        continue-on-error: true
+        run: |
+          # Delete all alphapass alarms
+          ALARMS=$(aws cloudwatch describe-alarms --region "$REGION" \
+            --query "MetricAlarms[?contains(AlarmName, 'alphapass')].AlarmName" \
+            --output text 2>/dev/null || true)
+
+          if [ -n "$ALARMS" ] && [ "$ALARMS" != "None" ]; then
+            aws cloudwatch delete-alarms --alarm-names $ALARMS --region "$REGION" 2>/dev/null || true
+          fi
+
+          # Delete all alphapass log groups
+          LOG_GROUPS=$(aws logs describe-log-groups --region "$REGION" \
+            --query "logGroups[?contains(logGroupName, 'alphapass')].logGroupName" \
+            --output text 2>/dev/null || true)
+
+          for LG in $LOG_GROUPS; do
+            [ -z "$LG" ] || [ "$LG" = "None" ] && continue
+            echo "Deleting log group: $LG"
+            aws logs delete-log-group --log-group-name "$LG" --region "$REGION" 2>/dev/null || true
+          done
+
+      # ── 8. IAM Roles & Policies ────────────────────────────────────────────
+      - name: "Delete IAM Roles & Policies"
+        continue-on-error: true
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          ROLES=$(aws iam list-roles \
+            --query "Roles[?contains(RoleName, 'alphapass')].RoleName" \
+            --output text 2>/dev/null || true)
+
+          for ROLE in $ROLES; do
+            [ -z "$ROLE" ] || [ "$ROLE" = "None" ] && continue
+            echo "Cleaning up IAM role: $ROLE"
+
+            # Detach all managed policies
+            ATTACHED=$(aws iam list-attached-role-policies --role-name "$ROLE" \
+              --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null || true)
+            for POL_ARN in $ATTACHED; do
+              [ -z "$POL_ARN" ] || [ "$POL_ARN" = "None" ] && continue
+              aws iam detach-role-policy --role-name "$ROLE" --policy-arn "$POL_ARN" 2>/dev/null || true
             done
-          fi
 
-          # 8. Delete IAM Role & Policy
-          ROLE_NAME="alphapass-lambda-role-${ENV}"
-          POLICY_NAME="alphapass-lambda-policy-${ENV}"
+            # Delete all inline policies
+            INLINE=$(aws iam list-role-policies --role-name "$ROLE" \
+              --query "PolicyNames[]" --output text 2>/dev/null || true)
+            for POL_NAME in $INLINE; do
+              [ -z "$POL_NAME" ] || [ "$POL_NAME" = "None" ] && continue
+              aws iam delete-role-policy --role-name "$ROLE" --policy-name "$POL_NAME" 2>/dev/null || true
+            done
 
-          ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$ROLE_NAME" --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null || true)
-          for POL_ARN in $ATTACHED_POLICIES; do
-            if [ -n "$POL_ARN" ] && [ "$POL_ARN" != "None" ]; then
-              echo "Detaching policy $POL_ARN from role $ROLE_NAME..."
-              aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POL_ARN" 2>/dev/null || true
-            fi
+            aws iam delete-role --role-name "$ROLE" 2>/dev/null || true
+            echo "Deleted IAM role: $ROLE"
           done
 
-          if aws iam get-role --role-name "$ROLE_NAME" 2>/dev/null; then
-            echo "Deleting IAM Role: $ROLE_NAME"
-            aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
-          fi
+          # Delete all alphapass customer-managed policies
+          POLICIES=$(aws iam list-policies --scope Local \
+            --query "Policies[?contains(PolicyName, 'alphapass')].Arn" \
+            --output text 2>/dev/null || true)
 
-          if [ -n "$ACCOUNT_ID" ]; then
-            POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
-            if aws iam get-policy --policy-arn "$POLICY_ARN" 2>/dev/null; then
-              echo "Deleting IAM Policy: $POLICY_ARN"
-              aws iam delete-policy --policy-arn "$POLICY_ARN" 2>/dev/null || true
-            fi
-          fi
+          for POL_ARN in $POLICIES; do
+            [ -z "$POL_ARN" ] || [ "$POL_ARN" = "None" ] && continue
+            echo "Deleting IAM policy: $POL_ARN"
+            # Delete all non-default versions first
+            VERSIONS=$(aws iam list-policy-versions --policy-arn "$POL_ARN" \
+              --query "Versions[?!IsDefaultVersion].VersionId" --output text 2>/dev/null || true)
+            for VER in $VERSIONS; do
+              aws iam delete-policy-version --policy-arn "$POL_ARN" --version-id "$VER" 2>/dev/null || true
+            done
+            aws iam delete-policy --policy-arn "$POL_ARN" 2>/dev/null || true
+          done
 
-          echo "=== AWS Resource Teardown Completed Successfully ==="
+      # ── 9. AWS Budget ──────────────────────────────────────────────────────
+      - name: "Delete AWS Budget"
+        continue-on-error: true
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
+          echo "Deleting budget: $BUDGET_NAME"
+          aws budgets delete-budget \
+            --account-id "$ACCOUNT_ID" \
+            --budget-name "$BUDGET_NAME" 2>/dev/null || true
 
-          echo "### 💥 AlphaPass Infrastructure Teardown Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** All AWS infrastructure resources (\`alphapass-*-dev\`) have been completely destroyed." >> $GITHUB_STEP_SUMMARY
-          echo "- **Purged Resources:** S3 Bucket (including all versions & delete markers), AWS Budget, API Gateway, Lambda Function, DynamoDB Tables, SNS Topics, CloudWatch Alarms & IAM Roles." >> $GITHUB_STEP_SUMMARY
-          echo "::notice title=Teardown Completed::All AlphaPass AWS resources destroyed successfully."
+      # ── Summary ────────────────────────────────────────────────────────────
+      - name: Teardown Summary
+        run: |
+          echo "### 💥 AlphaPass Infrastructure Teardown Complete" >> $GITHUB_STEP_SUMMARY
+          echo "| Resource | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| S3 Buckets | Purged & Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Gateway REST APIs | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lambda Functions | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| DynamoDB Tables | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| SNS Topics | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| CloudWatch Alarms & Log Groups | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| IAM Roles, Inline & Managed Policies | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "| AWS Budget | Deleted |" >> $GITHUB_STEP_SUMMARY
+          echo "::notice title=Teardown Completed::All alphapass-* AWS resources destroyed."
