@@ -4,13 +4,17 @@
  */
 
 function getApiBaseUrl() {
+    // Authoritative source: window.ALPHAPASS_API_URL is injected by config.js during CI/CD
     if (window.ALPHAPASS_API_URL && window.ALPHAPASS_API_URL.trim() !== '') {
         return window.ALPHAPASS_API_URL.trim();
     }
+    // Local development fallback
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://127.0.0.1:8000';
     }
-    return 'https://yrn3zdmv50.execute-api.us-east-1.amazonaws.com/dev';
+    // Production: config.js MUST inject ALPHAPASS_API_URL — this should never be reached
+    console.error('[AlphaPass] ALPHAPASS_API_URL is not set! Check that config.js was deployed correctly.');
+    return '';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -69,7 +73,7 @@ async function apiFetch(path, options = {}) {
         const data = await response.json();
         return normalizeResponse(path, data);
     } catch (err) {
-        console.error(`[AlphaPass API Error] Request to ${API_BASE_URL}${path} failed:`, err.message);
+        console.error(`[AlphaPass API Error] Request to ${getApiBaseUrl()}${path} failed:`, err.message);
         throw err;
     }
 }
