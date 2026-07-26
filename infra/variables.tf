@@ -12,7 +12,7 @@ variable "environment" {
 
 variable "notification_email" {
   type        = string
-  default     = "admin@alphapass.alphateam.live"
+  default     = "mustapha.haadi@azubiafrica.org"
   description = "Email address for notifications, budget alerts, and alarms"
 }
 
