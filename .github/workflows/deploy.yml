@@ -90,7 +90,7 @@ jobs:
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
           
           # Purge S3 bucket if it exists prior to fresh deployment (prevents BucketAlreadyExists)
-          BUCKET_NAME="alphapass.alphateam.live"
+          BUCKET_NAME="alphapass-frontend-app-dev"
           if aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null; then
             echo "Found existing S3 bucket $BUCKET_NAME prior to deployment. Clearing..."
             aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
