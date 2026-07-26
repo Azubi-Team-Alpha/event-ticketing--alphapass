@@ -65,10 +65,11 @@ resource "aws_api_gateway_method" "options_proxy" {
 }
 
 resource "aws_api_gateway_integration" "options_proxy_integration" {
-  rest_api_id = aws_api_gateway_rest_api.serverless_api.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.options_proxy.http_method
-  type        = "MOCK"
+  rest_api_id          = aws_api_gateway_rest_api.serverless_api.id
+  resource_id          = aws_api_gateway_resource.proxy.id
+  http_method          = aws_api_gateway_method.options_proxy.http_method
+  type                 = "MOCK"
+  passthrough_behavior = "WHEN_NO_MATCH"
 
   request_templates = {
     "application/json" = "{\"statusCode\": 200}"
@@ -105,12 +106,63 @@ resource "aws_api_gateway_integration_response" "options_proxy_integration_respo
   ]
 }
 
+# --- Dedicated OPTIONS Method for Root Path (Preflight CORS 0ms Mock) ---
+resource "aws_api_gateway_method" "options_root" {
+  rest_api_id   = aws_api_gateway_rest_api.serverless_api.id
+  resource_id   = aws_api_gateway_rest_api.serverless_api.root_resource_id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_root_integration" {
+  rest_api_id          = aws_api_gateway_rest_api.serverless_api.id
+  resource_id          = aws_api_gateway_rest_api.serverless_api.root_resource_id
+  http_method          = aws_api_gateway_method.options_root.http_method
+  type                 = "MOCK"
+  passthrough_behavior = "WHEN_NO_MATCH"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "options_root_response" {
+  rest_api_id = aws_api_gateway_rest_api.serverless_api.id
+  resource_id = aws_api_gateway_rest_api.serverless_api.root_resource_id
+  http_method = aws_api_gateway_method.options_root.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "options_root_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.serverless_api.id
+  resource_id = aws_api_gateway_rest_api.serverless_api.root_resource_id
+  http_method = aws_api_gateway_method.options_root.http_method
+  status_code = aws_api_gateway_method_response.options_root_response.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Accept,Origin'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT,DELETE,PATCH'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.options_root_integration
+  ]
+}
+
 # --- API Gateway Deployment ---
 resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.lambda_integration,
     aws_api_gateway_integration.lambda_integration_root,
-    aws_api_gateway_integration_response.options_proxy_integration_response
+    aws_api_gateway_integration_response.options_proxy_integration_response,
+    aws_api_gateway_integration_response.options_root_integration_response
   ]
 
   rest_api_id = aws_api_gateway_rest_api.serverless_api.id
@@ -121,7 +173,8 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
       aws_api_gateway_integration.lambda_integration.id,
-      aws_api_gateway_integration_response.options_proxy_integration_response.id
+      aws_api_gateway_integration_response.options_proxy_integration_response.id,
+      aws_api_gateway_integration_response.options_root_integration_response.id
     ]))
   }
 
