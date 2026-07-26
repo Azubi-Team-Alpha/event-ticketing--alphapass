@@ -23,21 +23,19 @@ try:
 except Exception:
     pass
 
-# 2. Fallback: Query AWS CLI and find healthy active API
+# 2. Fallback: Use known working API ID
 try:
-    cmd = ['aws', 'apigateway', 'get-rest-apis', '--region', 'us-east-1', '--query', \"items[?name=='alphapass-serverless-api-dev'].id\", '--output', 'json']
-    raw = subprocess.check_output(cmd, stderr=subprocess.DEVNULL).decode()
-    ids = json.loads(raw)
-    for api_id in ids:
-        url = f'https://{api_id}.execute-api.us-east-1.amazonaws.com/dev'
-        try:
-            req = urllib.request.urlopen(f'{url}/health', timeout=3)
-            data = req.read().decode()
-            if 'status' in data and 'ok' in data:
-                print(url)
-                exit(0)
-        except Exception:
-            continue
+    # Use the verified working API Gateway instance
+    api_id = '5pk6j1j5bj'
+    url = f'https://{api_id}.execute-api.us-east-1.amazonaws.com/dev'
+    try:
+        req = urllib.request.urlopen(f'{url}/health', timeout=3)
+        data = req.read().decode()
+        if 'status' in data and 'ok' in data:
+            print(url)
+            exit(0)
+    except Exception:
+        pass
 except Exception:
     pass
 
@@ -45,8 +43,11 @@ print('')
 ")
 
 if [ -z "$API_URL" ]; then
-    echo "⚠️ Fallback: Using default active stage URL..."
-    API_URL="https://yrn3zdmv50.execute-api.us-east-1.amazonaws.com/dev"
+    echo "❌ Error: Could not detect active API Gateway endpoint"
+    echo "   Please ensure:"
+    echo "   1. Terraform output is available: cd infra && terraform output -raw api_endpoint"
+    echo "   2. Or API Gateway is deployed and accessible via AWS CLI"
+    exit 1
 fi
 
 echo "✅ Active API Endpoint: $API_URL"
