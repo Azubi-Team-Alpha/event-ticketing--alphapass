@@ -202,6 +202,22 @@ jobs:
           aws lambda wait function-updated --function-name "$LAMBDA_NAME"
           echo "Lambda deployment complete."
 
+      - name: Redeploy API Gateway stage (flush CORS & config)
+        run: |
+          cd infra
+          API_ID=$(terraform output -raw api_gateway_id 2>/dev/null || \
+            aws apigateway get-rest-apis --region "${{ secrets.AWS_REGION || 'us-east-1' }}" \
+              --query "items[?contains(name,'alphapass')].id" --output text)
+          REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
+          echo "Creating new deployment for API: $API_ID"
+          DEPLOYMENT_ID=$(aws apigateway create-deployment \
+            --rest-api-id "$API_ID" \
+            --stage-name "dev" \
+            --description "CI redeploy $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --region "$REGION" \
+            --query 'id' --output text)
+          echo "New deployment ID: $DEPLOYMENT_ID"
+
       - name: Deploy Frontend to S3
         run: |
           cd infra

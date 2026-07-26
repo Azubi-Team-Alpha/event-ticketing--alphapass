@@ -173,7 +173,13 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_rest_api.serverless_api.binary_media_types,
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
+      aws_api_gateway_method.options_proxy.id,
+      aws_api_gateway_method.options_root.id,
       aws_api_gateway_integration.lambda_integration.id,
+      aws_api_gateway_integration.options_proxy_integration.id,
+      aws_api_gateway_integration.options_root_integration.id,
+      aws_api_gateway_method_response.options_proxy_response.id,
+      aws_api_gateway_method_response.options_root_response.id,
       aws_api_gateway_integration_response.options_proxy_integration_response.id,
       aws_api_gateway_integration_response.options_root_integration_response.id
     ]))
