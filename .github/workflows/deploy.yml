@@ -170,13 +170,20 @@ jobs:
           echo "Frontend S3 URL: http://$FRONTEND_URL"
 
           # Inject real deployed API Gateway endpoint into frontend/js/config.js
-          cat <<EOF > ../frontend/js/config.js
-          /**
-           * AlphaPass Global Frontend Configuration
-           * Dynamically generated during CI/CD deployment
-           */
-          window.ALPHAPASS_API_URL = '$API_URL';
-          EOF
+          cat > ../frontend/js/config.js << ENDOFCONFIG
+/**
+ * AlphaPass Global Frontend Configuration
+ * Dynamically generated during CI/CD deployment on $(date -u +%Y-%m-%dT%H:%M:%SZ)
+ * Active API Endpoint: ${API_URL}
+ */
+if (typeof window.ALPHAPASS_API_URL === 'undefined' || !window.ALPHAPASS_API_URL) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.ALPHAPASS_API_URL = 'http://127.0.0.1:8000';
+    } else {
+        window.ALPHAPASS_API_URL = '${API_URL}';
+    }
+}
+ENDOFCONFIG
 
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
 
