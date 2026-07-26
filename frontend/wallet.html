@@ -22,6 +22,38 @@
 
 <body>
 
+    <!-- Mobile Offcanvas Overlay -->
+    <div class="ap-offcanvas-overlay" id="apOverlay" onclick="closeAPNav()"></div>
+
+    <!-- Mobile Offcanvas Sidebar -->
+    <nav class="ap-offcanvas" id="apSidebar" aria-label="Mobile Navigation">
+        <div class="ap-offcanvas-header">
+            <a href="index.html" class="brand"><i class="fas fa-ticket-alt"></i> AlphaPass</a>
+            <button class="ap-offcanvas-close" onclick="closeAPNav()" aria-label="Close menu"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="ap-offcanvas-body">
+            <div class="ap-offcanvas-section">Navigation</div>
+            <a href="index.html" class="ap-offcanvas-link"><i class="fa fa-home"></i> Home</a>
+            <a href="events.html" class="ap-offcanvas-link"><i class="fa fa-calendar-alt"></i> Browse Events</a>
+            <a href="wallet.html" class="ap-offcanvas-link active"><i class="fa fa-wallet"></i> Ticket Wallet</a>
+            <a href="cart.html" class="ap-offcanvas-link"><i class="fa fa-shopping-cart"></i> Cart</a>
+            <div class="ap-offcanvas-section">Portals</div>
+            <a href="organizer.html" class="ap-offcanvas-link"><i class="fa fa-briefcase"></i> Organizer Portal</a>
+            <a href="admin.html" class="ap-offcanvas-link"><i class="fa fa-user-shield"></i> Admin Console</a>
+            <div class="ap-offcanvas-section">Support</div>
+            <a href="contact.html" class="ap-offcanvas-link"><i class="fa fa-headset"></i> Help & Contact</a>
+        </div>
+        <div class="ap-offcanvas-footer"><small>&copy; AlphaPass &mdash; Event Ticketing Platform</small></div>
+    </nav>
+
+    <!-- Mobile Sticky Topbar -->
+    <div class="mobile-topbar" id="mobileTopbar">
+        <a href="index.html" class="mobile-brand"><i class="fas fa-ticket-alt"></i> AlphaPass</a>
+        <button class="mobile-nav-toggle" onclick="openAPNav()" aria-label="Open menu">
+            <i class="fa fa-bars"></i> Menu
+        </button>
+    </div>
+
     <!-- Topbar Start -->
     <div class="container-fluid px-5 d-none border-bottom d-lg-block">
         <div class="row gx-0 align-items-center">
@@ -147,6 +179,18 @@
     <script src="js/main.js"></script>
     <script src="js/config.js?v=3"></script>
     <script src="js/app-api.js?v=3"></script>
+    <script>
+        function openAPNav() {
+            document.getElementById('apSidebar').classList.add('open');
+            document.getElementById('apOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAPNav() {
+            document.getElementById('apSidebar').classList.remove('open');
+            document.getElementById('apOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    </script>
 
     <script>
         let currentSelectedCode = null;
