@@ -89,7 +89,7 @@ module "budgets" {
 }
 
 # --- Module: Frontend Static Hosting (S3 Direct Website Hosting) ---
-module "frontend_hosting" {
+module "s3" {
   source      = "./modules/s3"
   environment = var.environment
   bucket_name = var.frontend_bucket_name
