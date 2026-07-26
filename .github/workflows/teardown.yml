@@ -42,21 +42,13 @@ jobs:
           cd infra
           terraform init
 
-      - name: Terraform Destroy (Automated Non-Interactive)
-        continue-on-error: true
+      - name: S3 Bucket Pre-Purge & Sanitation
         run: |
-          cd infra
-          terraform destroy -var="environment=dev" -var="secret_key=${TF_VAR_secret_key}" -auto-approve
-
-      - name: AWS CLI Comprehensive Resource Purge
-        run: |
-          echo "=== Starting Complete AWS Resource Teardown & Purge ==="
+          echo "=== Purging S3 Bucket Assets & Versions ==="
           REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
-          ENV="dev"
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
           
-          # 1. Delete S3 Bucket (including all object versions & delete markers)
-          BUCKETS=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'alphapass-frontend-')].Name" --output text 2>/dev/null || true)
+          # Target alphapass.alphateam.live and any alphapass frontend buckets
+          BUCKETS=$(aws s3api list-buckets --query "Buckets[?contains(Name, 'alphapass')].Name" --output text 2>/dev/null || true)
           for BUCKET_NAME in $BUCKETS; do
             if [ -n "$BUCKET_NAME" ] && [ "$BUCKET_NAME" != "None" ]; then
               echo "Purging and deleting S3 Bucket: $BUCKET_NAME"
@@ -75,6 +67,12 @@ jobs:
               aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
             fi
           done
+
+      - name: Terraform Destroy (Automated Non-Interactive)
+        continue-on-error: true
+        run: |
+          cd infra
+          terraform destroy -var="environment=dev" -var="secret_key=${TF_VAR_secret_key}" -auto-approve
 
           # 2. Delete AWS Budget
           BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
