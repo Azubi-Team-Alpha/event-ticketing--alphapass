@@ -68,6 +68,12 @@ AWS Lambda Function (Python 3.12 + FastAPI + Mangum ASGI)
   └── Amazon SNS & SES (Email & System Alerts)
 ```
 
+> [!NOTE]  
+> **📸 SCREENSHOT 1 LOCATION: SYSTEM ARCHITECTURE DIAGRAM**  
+> Insert your high-resolution system architecture diagram below (`docs/alphapass-architecture-diagram.drawio.png`).
+
+![Screenshot 1: System Architecture Diagram](alphapass-architecture-diagram.drawio.png)
+
 ### Component Breakdown
 - **Frontend Hosting:** Amazon S3 Website Hosting bucket serving static HTML5, CSS3, JavaScript, and asset files with custom domain routing (`pass.alphateam.live`).
 - **API Entry Point:** Amazon API Gateway REST Proxy forwarding incoming HTTP requests to AWS Lambda with CORS preflight handling.
@@ -98,9 +104,21 @@ AlphaPass uses a high-performance NoSQL strategy across **13 Amazon DynamoDB tab
 | 12 | `alphapass-event-categories-dev` | `CategoryID` | Platform event categories (Music, Tech, Business, Arts, etc.) |
 | 13 | `alphapass-registrations-dev` | `RegistrationID` | Temporary reservation queues |
 
+> [!NOTE]  
+> **📸 SCREENSHOT 2 LOCATION: DYNAMODB 13 TABLES CONSOLE**  
+> Take a screenshot from AWS Console → DynamoDB → Tables showing all 13 `alphapass-*-dev` tables and place it below.
+
+![Screenshot 2: AWS DynamoDB 13 Tables Console](images/02_dynamodb_tables.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 3 LOCATION: DYNAMODB TICKETS TABLE INDEXES (GSIs)**  
+> Take a screenshot from AWS Console → DynamoDB → `alphapass-tickets-dev` → Indexes tab showing Global Secondary Indexes (`ticket_code-index`, `order_id-index`, `attendee_email-index`).
+
+![Screenshot 3: DynamoDB Tickets Table Indexes](images/03_dynamodb_indexes.png)
+
 ---
 
-## ⚙️ 6. Backend API Engine & Security
+## ⚙️ 6. Backend API Engine & OpenAPI Documentation
 
 The backend application is written in **Python 3.12** using **FastAPI** and packaged for AWS Lambda using **Mangum**.
 
@@ -112,21 +130,15 @@ The backend application is written in **Python 3.12** using **FastAPI** and pack
   Listings exceeding this asking price are rejected server-side.
 - **Atomic Database Operations:** Uses DynamoDB atomic update expressions to decrement ticket inventory and increment promo code counters, preventing overselling race conditions.
 
----
+> [!NOTE]  
+> **📸 SCREENSHOT 4 LOCATION: FASTAPI INTERACTIVE SWAGGER UI**  
+> Open browser at `https://api.alphapass.alphateam.live/docs` or `http://localhost:8000/docs` and take a screenshot of the FastAPI Swagger documentation.
 
-## 📱 7. Frontend User Experience & Mobile Responsiveness
-
-The AlphaPass frontend is a responsive web application built with **HTML5, CSS3, Vanilla JavaScript, and Bootstrap 5**.
-
-### Mobile-First Redesign
-All 8 primary pages feature a unified mobile-first navigation system:
-- **Sticky Mobile Topbar:** Visible on viewports `< 992px`, featuring the AlphaPass brand and hamburger toggle button.
-- **Offcanvas Slide-in Sidebar:** Dark panel (`#1E293B`) with category-grouped navigation, active page indicators, and touch-friendly targets (≥44px).
-- **Responsive Layout Grids:** Metric cards collapse into 2×2 grids on mobile, table columns hide non-essential details gracefully, and action buttons go full-width.
+![Screenshot 4: FastAPI Interactive Swagger UI Docs](images/04_swagger_api_docs.png)
 
 ---
 
-## 🏗️ 8. Infrastructure-as-Code (Terraform)
+## 🏗️ 7. Infrastructure-as-Code (Terraform) & Cloud Resources
 
 The entire AWS infrastructure is declared idempotently using **HashiCorp Terraform (`>= 1.5.0`)** under `infra/`:
 - `modules/dynamodb`: Provisions all 13 DynamoDB tables and GSIs.
@@ -137,9 +149,27 @@ The entire AWS infrastructure is declared idempotently using **HashiCorp Terrafo
 - `modules/cloudwatch`: Sets up 7-day log groups and error alarms.
 - `modules/budgets`: Configures AWS spending alert rules.
 
+> [!NOTE]  
+> **📸 SCREENSHOT 5 LOCATION: AWS LAMBDA FUNCTION CONFIGURATION**  
+> Take a screenshot from AWS Console → Lambda → `alphapass-backend-api-dev` showing Python 3.12 runtime, 512MB memory, and environment variables.
+
+![Screenshot 5: AWS Lambda Function Configuration](images/05_lambda_configuration.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 6 LOCATION: AWS API GATEWAY REST PROXY**  
+> Take a screenshot from AWS Console → API Gateway → `alphapass-serverless-api-dev` showing the `{proxy+}` resource routes.
+
+![Screenshot 6: AWS API Gateway Proxy Resources](images/06_api_gateway_resources.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 7 LOCATION: TERRAFORM APPLY EXECUTION RESULT**  
+> Take a screenshot of terminal or GitHub Actions logs showing `terraform apply` output (e.g., `Apply complete! Resources: 25 added`).
+
+![Screenshot 7: Terraform Apply Terminal Execution Result](images/07_terraform_apply.png)
+
 ---
 
-## 🔄 9. CI/CD Pipelines & Automated DevOps
+## 🔄 8. CI/CD Pipelines & Automated DevOps
 
 AlphaPass uses **GitHub Actions** (`.github/workflows/deploy.yml` and `teardown.yml`):
 1. **Automated Testing:** Runs `pytest` test suite (46 tests).
@@ -148,6 +178,97 @@ AlphaPass uses **GitHub Actions** (`.github/workflows/deploy.yml` and `teardown.
 4. **Terraform Automation:** Executes `terraform apply` in automated non-interactive mode.
 5. **Dynamic API URL Injection:** Injects live API Gateway URL directly into `frontend/js/config.js`.
 6. **S3 Asset Synchronization:** Deploys web assets to S3 static website hosting bucket.
+
+> [!NOTE]  
+> **📸 SCREENSHOT 8 LOCATION: GITHUB ACTIONS CI/CD DEPLOYMENT PIPELINE**  
+> Take a screenshot from GitHub Repository → Actions → AlphaPass CI/CD Deployment workflow run showing green checkmarks.
+
+![Screenshot 8: GitHub Actions CI/CD Deployment Pipeline Log](images/08_github_actions_pipeline.png)
+
+---
+
+## 📱 9. End-to-End User Experience & Application Results
+
+### 9.1 Buyer Journey (Event Discovery, Details, Cart & Checkout)
+1. **Public Explorer (`index.html` / `events.html`):** Buyers can browse published events, search by title, filter by category (`Technology`, `Music`, `Business`), city, and date.
+2. **Single Event Details (`single.html`):** View venue metadata, event dates, policy badges (*Resale Allowed*, *Refundable*), and select pass tiers (`General Admission`, `VIP Pass`).
+3. **Cart & Promo Code Validation (`cart.html`):** Enter promo code `AZUBI20` $\rightarrow$ System validates promo code in DynamoDB and applies a 20% discount instantly.
+4. **Guest Checkout (`checkout.html`):** Complete order with guest contact details and payment selection. Unique Order ID and formatted ticket pass codes are issued immediately.
+
+> [!NOTE]  
+> **📸 SCREENSHOT 9 LOCATION: FRONTEND HOME PAGE & EVENT DIRECTORY**  
+> Take a screenshot of the browser on `pass.alphateam.live` (`index.html` or `events.html`) showing the published event grid.
+
+![Screenshot 9: Frontend Home Page & Event Directory](images/09_homepage_events.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 10 LOCATION: SINGLE EVENT DETAIL PAGE**  
+> Take a screenshot of `single.html` showing event details, venue info, and ticket tier selectors.
+
+![Screenshot 10: Single Event Detail & Ticket Pass Selection](images/10_single_event_details.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 11 LOCATION: SHOPPING CART & PROMO CODE DISCOUNT**  
+> Take a screenshot of `cart.html` showing promo code `AZUBI20` applied and the subtotal discount calculation.
+
+![Screenshot 11: Shopping Cart & Promo Discount Applied](images/11_cart_promo_discount.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 12 LOCATION: CHECKOUT CONFIRMATION & PASS CODES**  
+> Take a screenshot of `checkout.html` displaying order success, Order ID, and issued ticket pass codes.
+
+![Screenshot 12: Checkout Confirmation & Issued Pass Codes](images/12_checkout_confirmation.png)
+
+---
+
+### 9.2 Ticket Pass Wallet, Vector PDF Ticket & Resale Market
+1. **Digital Ticket Wallet (`wallet.html`):** Buyers enter their purchaser email or Order ID to retrieve all active ticket passes.
+2. **Download Printable PDF Ticket:** Click **"Download PDF"** to generate and open a 300-DPI vector PDF ticket formatted with event details, attendee name, and embedded QR code matrix.
+3. **Peer-to-Peer Transfer:** Enter a recipient's email address to transfer pass ownership securely.
+4. **List Ticket for Resale:** Enter asking price $\rightarrow$ Platform validates asking price against organizer price cap $\rightarrow$ Ticket pass appears live on secondary resale marketplace (`resale.html`).
+
+> [!NOTE]  
+> **📸 SCREENSHOT 13 LOCATION: DIGITAL TICKET WALLET & REPORTLAB PDF TICKET**  
+> Take a screenshot of `wallet.html` displaying active passes alongside an open downloaded ReportLab PDF ticket pass with QR code.
+
+![Screenshot 13: Digital Ticket Wallet & ReportLab PDF Ticket](images/13_ticket_wallet_pdf.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 14 LOCATION: SECONDARY RESALE MARKETPLACE**  
+> Take a screenshot of `resale.html` showing active price-capped secondary ticket resale listings.
+
+![Screenshot 14: Secondary Resale Marketplace](images/14_secondary_resale.png)
+
+---
+
+### 9.3 Gate Entry Check-in Scanner
+1. **Gate Staff Scanner (`checkin.html`):** Event staff scan or enter ticket pass codes.
+2. **First Scan (Valid Pass):** Displays **GREEN SUCCESS ALERT** (*Check-in Successful*, attendee name, timestamp). DynamoDB atomically updates `is_used = True`.
+3. **Second Scan (Duplicate Attempt):** Re-entering the same ticket code displays **RED DANGER ALERT** (*Entry Rejected — Duplicate Ticket Already Used!*).
+
+> [!NOTE]  
+> **📸 SCREENSHOT 15 LOCATION: GATE ENTRY SCANNER SUCCESS & DUPLICATE REJECTION**  
+> Take a split screenshot of `checkin.html` showing the GREEN SUCCESS alert on first scan and RED REJECTION alert on second scan.
+
+![Screenshot 15: Gate Scanner Validation & Duplicate Rejection](images/15_gate_scanner_checkin.png)
+
+---
+
+### 9.4 Organizer Portal & Admin Governance Console
+1. **Organizer Portal (`organizer.html`):** Organizers log in to view real-time sales revenue, ticket sales charts, create new events, upload cover banner images, manage ticket tiers, and request earnings payouts.
+2. **Admin Governance Console (`admin.html`):** Platform administrators monitor platform revenue, approve/reject pending events, process organizer revenue payouts, review refund requests, and set global platform commission rates.
+
+> [!NOTE]  
+> **📸 SCREENSHOT 16 LOCATION: ORGANIZER DASHBOARD & ANALYTICS**  
+> Take a screenshot of `organizer.html` showing revenue metrics, ticket sales overview, and event creation wizard.
+
+![Screenshot 16: Organizer Dashboard & Analytics](images/16_organizer_dashboard.png)
+
+> [!NOTE]  
+> **📸 SCREENSHOT 17 LOCATION: ADMIN GOVERNANCE CONSOLE (6 TABS)**  
+> Take a screenshot of `admin.html` showing platform overview stats, organizer payout settlement queue, and commission settings.
+
+![Screenshot 17: Admin Governance Console & Payout Queue](images/17_admin_governance_console.png)
 
 ---
 
@@ -165,36 +286,56 @@ AlphaPass includes a **46-test automated backend test suite** (`backend/tests/`)
 - Tickets, Check-in, & PDF Exports: PASSED (6/6)
 ```
 
----
+> [!NOTE]  
+> **📸 SCREENSHOT 18 LOCATION: TERMINAL PYTEST 46/46 PASSED EXECUTION**  
+> Take a screenshot of your terminal executing `.venv/bin/pytest -v` inside `backend/` showing 46 passed tests.
 
-## 📷 11. Screenshot Inventory & Media Guide
-
-For final submission PDF exports, insert screenshots into the designated placeholders below:
-
-| # | Screenshot Description | Target Location / Command |
-|---|---|---|
-| **1** | System Architecture Diagram | `docs/alphapass-architecture-diagram.drawio.png` |
-| **2** | AWS DynamoDB 13 Tables List | AWS Console → DynamoDB → Tables |
-| **3** | DynamoDB Tickets Table Indexes (GSIs) | AWS Console → DynamoDB → `alphapass-tickets-dev` → Indexes |
-| **4** | FastAPI Interactive Swagger UI | Browser → `http://localhost:8000/docs` |
-| **5** | AWS Lambda Function Configuration | AWS Console → Lambda → `alphapass-backend-api-dev` |
-| **6** | AWS API Gateway Proxy Resources | AWS Console → API Gateway → `alphapass-serverless-api-dev` |
-| **7** | Terraform Apply Execution Result | Terminal / GitHub Actions → `terraform apply` |
-| **8** | GitHub Actions CI/CD Pipeline Log | GitHub Repository → Actions → Workflow Run |
-| **9** | Frontend Home Page & Event Directory | Browser → `index.html` / `events.html` |
-| **10** | Single Event Page & Ticket Selection | Browser → `single.html` |
-| **11** | Shopping Cart & Promo Discount Applied | Browser → `cart.html` (`AZUBI20` applied) |
-| **12** | Checkout Confirmation & Pass Codes | Browser → `checkout.html` |
-| **13** | Digital Ticket Wallet & Vector PDF Ticket | Browser → `wallet.html` & open PDF |
-| **14** | Secondary Resale Marketplace | Browser → `resale.html` |
-| **15** | Gate Scanner Success & Duplicate Rejection | Browser → `checkin.html` (Success & Rejection alerts) |
-| **16** | Organizer Dashboard & Analytics | Browser → `organizer.html` |
-| **17** | Admin Governance Console (6 Tabs) | Browser → `admin.html` |
-| **18** | Terminal Pytest 46/46 Passed Summary | Terminal → `.venv/bin/pytest -v` |
-| **19** | AWS Budgets Console Dashboard | AWS Console → AWS Budgets |
+![Screenshot 18: Terminal Pytest 46/46 Passed Execution Summary](images/18_pytest_test_results.png)
 
 ---
 
-## 🎯 12. Project Conclusion
+## 💸 11. Cost Guardrails & AWS Spending Budget
+
+1. **Zero Idle Billing:** Compute (Lambda) and Database (DynamoDB On-Demand) incur $0 cost when no users are active.
+2. **Free-Tier Protection:** S3 hosting, Lambda requests, and DynamoDB read/write capacity fall within AWS Free-Tier limits.
+3. **AWS Spending Alert (`infra/modules/budgets/`):** Configured via Terraform to dispatch email alerts if estimated charges exceed threshold limits.
+
+> [!NOTE]  
+> **📸 SCREENSHOT 19 LOCATION: AWS BUDGETS CONSOLE DASHBOARD**  
+> Take a screenshot from AWS Console → AWS Budgets showing the `alphapass-free-tier-budget-dev` budget alert configuration.
+
+![Screenshot 19: AWS Budgets Console Dashboard](images/19_aws_budgets_dashboard.png)
+
+---
+
+## 📷 12. Complete Screenshot File Location Summary
+
+To insert your screenshots, simply drop your `.png` or `.jpg` image files into the `docs/images/` folder using the exact filenames listed below:
+
+| # | Image Filename | Where to Capture | Section in Report |
+|---|---|---|---|
+| **1** | `docs/alphapass-architecture-diagram.drawio.png` | Architecture Diagram | Section 4 |
+| **2** | `docs/images/02_dynamodb_tables.png` | AWS Console → DynamoDB → Tables | Section 5 |
+| **3** | `docs/images/03_dynamodb_indexes.png` | AWS Console → DynamoDB → Tickets → Indexes | Section 5 |
+| **4** | `docs/images/04_swagger_api_docs.png` | `api.alphapass.alphateam.live/docs` | Section 6 |
+| **5** | `docs/images/05_lambda_configuration.png` | AWS Console → Lambda → `alphapass-backend-api-dev` | Section 7 |
+| **6** | `docs/images/06_api_gateway_resources.png` | AWS Console → API Gateway → `alphapass-serverless-api-dev` | Section 7 |
+| **7** | `docs/images/07_terraform_apply.png` | Terminal / GitHub Actions → `terraform apply` | Section 7 |
+| **8** | `docs/images/08_github_actions_pipeline.png` | GitHub Repository → Actions | Section 8 |
+| **9** | `docs/images/09_homepage_events.png` | Browser → `pass.alphateam.live` | Section 9.1 |
+| **10** | `docs/images/10_single_event_details.png` | Browser → `pass.alphateam.live/single.html` | Section 9.1 |
+| **11** | `docs/images/11_cart_promo_discount.png` | Browser → `pass.alphateam.live/cart.html` | Section 9.1 |
+| **12** | `docs/images/12_checkout_confirmation.png` | Browser → `pass.alphateam.live/checkout.html` | Section 9.1 |
+| **13** | `docs/images/13_ticket_wallet_pdf.png` | Browser → `pass.alphateam.live/wallet.html` & PDF | Section 9.2 |
+| **14** | `docs/images/14_secondary_resale.png` | Browser → `pass.alphateam.live/resale.html` | Section 9.2 |
+| **15** | `docs/images/15_gate_scanner_checkin.png` | Browser → `pass.alphateam.live/checkin.html` | Section 9.3 |
+| **16** | `docs/images/16_organizer_dashboard.png` | Browser → `pass.alphateam.live/organizer.html` | Section 9.4 |
+| **17** | `docs/images/17_admin_governance_console.png` | Browser → `pass.alphateam.live/admin.html` | Section 9.4 |
+| **18** | `docs/images/18_pytest_test_results.png` | Terminal → `pytest` 46 passed | Section 10 |
+| **19** | `docs/images/19_aws_budgets_dashboard.png` | AWS Console → AWS Budgets | Section 11 |
+
+---
+
+## 🎯 13. Project Conclusion
 
 Team Alpha has successfully designed, implemented, tested, and deployed AlphaPass on AWS. The platform achieves over 90% hosting cost savings, sub-second API latency, anti-scalping protection, mobile responsiveness across all devices, and 100% automated CI/CD deployment.
