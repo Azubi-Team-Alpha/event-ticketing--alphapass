@@ -17,6 +17,7 @@ Part of the **Azubi Cloud & AI Academy Internship Portfolio (Project 2 — Team 
 
 All technical architecture, DevOps pipelines, developer manuals, presentation materials, and live demonstration scripts are organized under the [`docs/`](docs/) directory:
 
+- **[Project Submission Report (`docs/SUBMISSION_REPORT.md`)](docs/SUBMISSION_REPORT.md):** Complete portfolio defense report covering business story, AWS serverless topology, 13 DynamoDB tables, 10 FastAPI routers, mobile responsive redesign, Terraform IaC, GitHub Actions CI/CD, and screenshot inventory.
 - **[Infrastructure Guide (`docs/INFRASTRUCTURE.md`)](docs/INFRASTRUCTURE.md):** Complete AWS serverless topology, 13 DynamoDB table definitions, API Gateway REST proxy, Lambda compute specs, S3 hosting, and IAM least-privilege policies.
 - **[CI/CD & DevOps Manual (`docs/CICD.md`)](docs/CICD.md):** GitHub Actions automated multi-stage pipeline, `pytest` test runner, Terraform automation, pre-deploy sanitation scripts, dynamic API URL injection, and teardown workflows.
 - **[Backend Architecture Guide (`docs/BACKEND.md`)](docs/BACKEND.md):** FastAPI modular router breakdown (10 routers), Mangum ASGI wrapper, ReportLab PDF ticket generator, Boto3 DynamoDB DAO helpers, and test suite details.
