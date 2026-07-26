@@ -68,24 +68,22 @@ resource "aws_s3_bucket_cors_configuration" "frontend" {
 }
 
 # --- Public Read Bucket Policy for Website Hosting ---
-data "aws_iam_policy_document" "public_read" {
-  statement {
-    sid       = "PublicReadGetObject"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.frontend.arn}/*"]
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-  }
-}
-
 resource "aws_s3_bucket_policy" "frontend" {
   bucket     = aws_s3_bucket.frontend.id
-  policy     = data.aws_iam_policy_document.public_read.json
   depends_on = [aws_s3_bucket_public_access_block.frontend]
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "arn:aws:s3:::${var.bucket_name}/*"
+      }
+    ]
+  })
 }
 
 # Note: Frontend static website assets are uploaded via `aws s3 sync` in CI/CD pipeline
