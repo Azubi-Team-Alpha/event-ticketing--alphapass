@@ -367,6 +367,18 @@
             });
         });
     </script>
+    <script>
+        function openAPNav() {
+            document.getElementById('apSidebar').classList.add('open');
+            document.getElementById('apOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAPNav() {
+            document.getElementById('apSidebar').classList.remove('open');
+            document.getElementById('apOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    </script>
 </body>
 
 </html>
