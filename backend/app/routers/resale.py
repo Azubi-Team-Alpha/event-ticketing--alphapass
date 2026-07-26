@@ -239,46 +239,41 @@ def purchase_resale_ticket(
 
     ticket_id = str(listing.get("ticket_id") or "")
     original_ticket = dynamodb_helper.get_ticket(ticket_id) or {}
-    order = dynamodb_helper.get_order(original_ticket.get("order_id", "")) or {}
-    event = dynamodb_helper.get_event(order.get("event_id", "") or original_ticket.get("event_id", "")) or {}
+    order_id = original_ticket.get("order_id")
+    order = dynamodb_helper.get_order(order_id) if order_id else {}
+    event_id = (order.get("event_id") if isinstance(order, dict) else None) or original_ticket.get("event_id")
+    event = dynamodb_helper.get_event(event_id) if event_id else {}
 
-    # Invalidate original ticket
-    dynamodb_helper.update_ticket(ticket_id, {"status": "resold"})
+    ticket_code = original_ticket.get("ticket_code") or f"AP-{secrets.token_hex(4).upper()}"
 
-    # Issue new ticket to buyer
-    new_ticket_id = str(uuid.uuid4())
-    new_code = f"AP-{secrets.token_hex(4).upper()}"
-    new_ticket_data = {
-        "TicketID": new_ticket_id,
-        "id": new_ticket_id,
-        "order_item_id": original_ticket.get("order_item_id"),
-        "order_id": original_ticket.get("order_id"),
-        "event_id": original_ticket.get("event_id"),
-        "ticket_code": new_code,
+    # Transfer ticket ownership to buyer and ensure status is active
+    dynamodb_helper.update_ticket(ticket_id, {
         "attendee_name": body.buyer_name,
         "attendee_email": body.buyer_email,
         "status": "active",
         "is_used": False,
-        "issued_at": datetime.now(timezone.utc).isoformat(),
-    }
-    dynamodb_helper.create_ticket(new_ticket_id, new_ticket_data)
+        "resold_at": datetime.now(timezone.utc).isoformat(),
+        "previous_owner_email": listing.get("seller_email") or original_ticket.get("attendee_email", ""),
+    })
 
-    # Update listing
+    # Update listing status
     dynamodb_helper.update_resale_listing(listing_id, {
         "status": "sold",
         "sold_at": datetime.now(timezone.utc).isoformat(),
         "buyer_name": body.buyer_name,
         "buyer_email": body.buyer_email,
-        "buyer_ticket_id": new_ticket_id,
+        "buyer_ticket_id": ticket_id,
     })
+
+    event_title = (event.get("title") if isinstance(event, dict) else "Event") or "Event"
 
     _send_resale_emails(
         listing.get("seller_email"), listing.get("seller_name"),
         body.buyer_email, body.buyer_name,
-        event.get("title", "Event"), new_code, str(listing.get("asking_price")),
+        event_title, ticket_code, str(listing.get("asking_price")),
     )
 
-    return {"message": "Purchase successful", "ticket_code": new_code}
+    return {"message": "Purchase successful", "ticket_code": ticket_code}
 
 
 def _send_resale_emails(seller_email, seller_name, buyer_email, buyer_name, event_title, ticket_code, price):
