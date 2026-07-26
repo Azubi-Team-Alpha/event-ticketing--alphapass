@@ -71,7 +71,7 @@ def test_attendee_pdf_export(client: TestClient, sample_event, organizer_headers
     assert resp.content.startswith(b"%PDF-")
 
 
-def test_resale_purchase_transfers_and_allows_checkin(client, mock_dynamodb_tables):
+def test_resale_purchase_transfers_and_allows_checkin(client, mock_dynamodb_tables, organizer_headers):
     """Verify that after resale purchase, ticket details transfer to buyer and check-in succeeds."""
     from app.db.dynamodb import dynamodb_helper
 
@@ -117,7 +117,7 @@ def test_resale_purchase_transfers_and_allows_checkin(client, mock_dynamodb_tabl
     assert updated_t["is_used"] is False
 
     # 5. Verify check-in scan succeeds for the buyer
-    scan_resp = client.post(f"/checkin/scan", json={"ticket_code": t_code})
+    scan_resp = client.post(f"/checkin/scan", json={"ticket_code": t_code}, headers=organizer_headers)
     assert scan_resp.status_code == 200
     scan_json = scan_resp.json()
     assert scan_json["valid"] is True
