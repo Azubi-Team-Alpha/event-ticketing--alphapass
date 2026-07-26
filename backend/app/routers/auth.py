@@ -138,7 +138,7 @@ def organizer_signup(body: OrganizerRegister, background_tasks: BackgroundTasks)
     })
     
     _log("organizer", org_id, body.email, "organizer.signup")
-    background_tasks.add_task(_send_verification_email, body.email, body.full_name, token)
+    _send_verification_email(body.email, body.full_name, token)
     
     return OrganizerResponse(
         id=org_id,
@@ -239,7 +239,7 @@ def request_password_reset(body: PasswordResetRequest, background_tasks: Backgro
             "reset_token": token,
             "reset_token_expires": expires,
         })
-        background_tasks.add_task(_send_reset_email, org["email"], org["full_name"], token)
+        _send_reset_email(org["email"], org["full_name"], token)
     return {"message": "If that email exists, a reset link has been sent"}
 
 
