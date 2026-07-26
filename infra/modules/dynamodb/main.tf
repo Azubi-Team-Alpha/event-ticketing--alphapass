@@ -28,6 +28,10 @@ resource "aws_dynamodb_table" "events" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Events Table"
   }
@@ -41,6 +45,10 @@ resource "aws_dynamodb_table" "registrations" {
   attribute {
     name = "RegistrationID"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -88,6 +96,10 @@ resource "aws_dynamodb_table" "organizers" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Organizers Table"
   }
@@ -111,6 +123,10 @@ resource "aws_dynamodb_table" "admins" {
     name            = "email-index"
     hash_key        = "email"
     projection_type = "ALL"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -146,6 +162,10 @@ resource "aws_dynamodb_table" "orders" {
     name            = "guest_email-index"
     hash_key        = "guest_email"
     projection_type = "ALL"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -193,6 +213,10 @@ resource "aws_dynamodb_table" "tickets" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Tickets Table"
   }
@@ -216,6 +240,10 @@ resource "aws_dynamodb_table" "promo_codes" {
     name            = "event_id-index"
     hash_key        = "event_id"
     projection_type = "ALL"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -253,6 +281,10 @@ resource "aws_dynamodb_table" "resale_listings" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Resale Listings Table"
   }
@@ -276,6 +308,10 @@ resource "aws_dynamodb_table" "transfers" {
     name            = "ticket_id-index"
     hash_key        = "ticket_id"
     projection_type = "ALL"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -303,6 +339,10 @@ resource "aws_dynamodb_table" "payouts" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Organizer Payouts Table"
   }
@@ -316,6 +356,10 @@ resource "aws_dynamodb_table" "platform_settings" {
   attribute {
     name = "SettingKey"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
@@ -333,6 +377,10 @@ resource "aws_dynamodb_table" "audit_logs" {
     type = "S"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name = "AlphaPass Audit Logs Table"
   }
@@ -346,6 +394,10 @@ resource "aws_dynamodb_table" "event_categories" {
   attribute {
     name = "CategoryID"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {

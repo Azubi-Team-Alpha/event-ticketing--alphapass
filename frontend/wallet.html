@@ -370,7 +370,7 @@
         });
 
         async function cancelResaleListing(code) {
-            const email = document.getElementById('lookupEmail').value.trim();
+            const email = document.getElementById('lookupCode').value.trim();
             if (!confirm(`Are you sure you want to remove ticket ${code} from the resale market?`)) return;
 
             try {

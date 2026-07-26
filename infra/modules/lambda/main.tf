@@ -1,3 +1,7 @@
+# Fetch current AWS account ID for use in scoped IAM policies
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 # Build python dependencies into deployment directory
 resource "null_resource" "build_lambda_package" {
   triggers = {
@@ -88,14 +92,16 @@ resource "aws_iam_policy" "lambda_policy" {
         ]
         Resource = var.sns_topic_arn
       },
-      # SES Email sending
+      # SES Email sending — scoped to the verified sender identity only
       {
         Effect = "Allow"
         Action = [
           "ses:SendEmail",
           "ses:SendRawEmail"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:identity/${var.ses_sender_email}"
+        ]
       },
       # S3 Access for QR codes and ticket assets
       {
@@ -158,5 +164,5 @@ resource "aws_lambda_function" "api_backend" {
 # CloudWatch Log Group for Lambda
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
   name              = "/aws/lambda/${aws_lambda_function.api_backend.function_name}"
-  retention_in_days = 7
+  retention_in_days = 30
 }

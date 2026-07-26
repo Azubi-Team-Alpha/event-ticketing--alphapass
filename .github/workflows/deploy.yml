@@ -10,7 +10,7 @@ on:
 jobs:
   # ── STAGE 1: AUTOMATED UNIT & INTEGRATION TESTING ───────────────────────────
   test:
-    name:  Run Backend Unit & Integration Tests
+    name: Run Backend Unit & Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -34,7 +34,7 @@ jobs:
 
   # ── STAGE 2: BUILD & PACKAGE LAMBDA ARTIFACT ─────────────────────────────────
   package:
-    name:  Package Backend Dependencies
+    name: Package Backend Lambda Artifact
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -46,15 +46,45 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Production Dependencies into Backend
+      - name: Build Lambda deployment package
         run: |
-          pip install --target backend/ -r backend/requirements.txt --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.12 --upgrade
+          # Install production deps into a clean build directory (NOT into backend/)
+          # Exclude dev/test packages and AWS SDK (provided by Lambda runtime)
+          mkdir -p lambda_build
+          pip install \
+            --target lambda_build/ \
+            --platform manylinux2014_x86_64 \
+            --only-binary=:all: \
+            --implementation cp \
+            --python-version 3.12 \
+            --upgrade \
+            -r backend/requirements.txt
 
-      - name: Cache Packaged Backend Artifact
+          # Remove packages already provided by the Lambda runtime or only needed for tests
+          rm -rf lambda_build/boto3* lambda_build/botocore* lambda_build/s3transfer* \
+                 lambda_build/jmespath* lambda_build/urllib3* lambda_build/moto* \
+                 lambda_build/pytest* lambda_build/httpx* lambda_build/responses* \
+                 lambda_build/async_timeout* lambda_build/werkzeug* \
+                 lambda_build/jinja2* lambda_build/markupsafe*
+
+          # Remove bytecode to keep the zip small
+          find lambda_build -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+          find lambda_build -name "*.pyc" -delete 2>/dev/null || true
+
+          # Copy application source
+          cp -r backend/app lambda_build/
+          cp backend/index.py lambda_build/
+
+          # Create the zip artifact
+          cd lambda_build && zip -r ../lambda_package.zip . -q
+          cd ..
+          echo "Lambda package size: $(du -sh lambda_package.zip | cut -f1)"
+
+      - name: Upload Lambda zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: packaged-backend
-          path: backend/
+          name: lambda-package
+          path: lambda_package.zip
           retention-days: 1
 
   # ── STAGE 3: INFRASTRUCTURE & FRONTEND DEPLOYMENT ──────────────────────────
@@ -63,17 +93,27 @@ jobs:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     env:
-      TF_VAR_secret_key: ${{ secrets.SECRET_KEY || 'alphapass-default-secret-key-dev' }}
       TF_VAR_ses_sender_email: ${{ secrets.SES_SENDER_EMAIL || 'noreply@alphapass.alphateam.live' }}
     steps:
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.SECRET_KEY }}" ]; then
+            echo "::error::SECRET_KEY GitHub secret is not set. Deployment aborted to prevent deploying with a weak default key."
+            exit 1
+          fi
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "::error::AWS credentials secrets are not set."
+            exit 1
+          fi
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Download Packaged Backend Artifact
+      - name: Download Lambda zip artifact
         uses: actions/download-artifact@v4
         with:
-          name: packaged-backend
-          path: backend/
+          name: lambda-package
+          path: .
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -82,25 +122,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
-      - name: Pre-Deploy Infrastructure Sanitation (Purge Conflicting Orphaned Resources)
+      - name: Pre-Deploy Sanitation (S3 bucket & AWS Budget only — data is preserved)
         run: |
-          echo "=== Pre-Deploy Infrastructure Sanitation ==="
+          echo "=== Pre-Deploy Sanitation (non-destructive to data) ==="
           REGION="${{ secrets.AWS_REGION || 'us-east-1' }}"
           ENV="dev"
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
-          
-          # Purge S3 bucket if it exists prior to fresh deployment (prevents BucketAlreadyExists)
+
+          # Clear S3 bucket contents so Terraform can recreate/update it cleanly
+          # (versioned objects block bucket deletion; this does NOT delete DynamoDB data)
           BUCKET_NAME="alphapass.alphateam.live"
           if aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null; then
-            echo "Found existing S3 bucket $BUCKET_NAME prior to deployment. Clearing..."
+            echo "Clearing S3 bucket $BUCKET_NAME contents before sync..."
             aws s3 rm "s3://$BUCKET_NAME" --recursive 2>/dev/null || true
-            
-            VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+
+            VERSIONS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" \
+              --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+              --output json 2>/dev/null || true)
             if [ -n "$VERSIONS" ] && [ "$VERSIONS" != '{"Objects": null}' ] && [ "$VERSIONS" != '{"Objects": []}' ]; then
               aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$VERSIONS" 2>/dev/null || true
             fi
 
-            MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json 2>/dev/null || true)
+            MARKERS=$(aws s3api list-object-versions --bucket "$BUCKET_NAME" \
+              --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+              --output json 2>/dev/null || true)
             if [ -n "$MARKERS" ] && [ "$MARKERS" != '{"Objects": null}' ] && [ "$MARKERS" != '{"Objects": []}' ]; then
               aws s3api delete-objects --bucket "$BUCKET_NAME" --delete "$MARKERS" 2>/dev/null || true
             fi
@@ -108,54 +153,11 @@ jobs:
             aws s3api delete-bucket --bucket "$BUCKET_NAME" --region "$REGION" 2>/dev/null || true
           fi
 
-          # Delete AWS Budget if it exists prior to fresh deployment (prevents DuplicateRecordException)
+          # Remove AWS Budget to avoid DuplicateRecordException on re-apply
           BUDGET_NAME="alphapass-free-tier-budget-${ENV}"
           if [ -n "$ACCOUNT_ID" ]; then
             if aws budgets describe-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null; then
-              echo "Found existing AWS Budget $BUDGET_NAME prior to deployment. Clearing..."
               aws budgets delete-budget --account-id "$ACCOUNT_ID" --budget-name "$BUDGET_NAME" 2>/dev/null || true
-            fi
-          fi
-
-          # Delete existing DynamoDB tables if present prior to fresh deployment (prevents ResourceInUseException)
-          TABLES=$(aws dynamodb list-tables --region "$REGION" --query "TableNames[?starts_with(@, 'alphapass-')]" --output text 2>/dev/null || true)
-          for TABLE in $TABLES; do
-            if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
-              echo "Found existing DynamoDB table $TABLE prior to deployment. Purging..."
-              aws dynamodb delete-table --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
-            fi
-          done
-
-          if [ -n "$TABLES" ] && [ "$TABLES" != "None" ]; then
-            for TABLE in $TABLES; do
-              if [ -n "$TABLE" ] && [ "$TABLE" != "None" ]; then
-                aws dynamodb wait table-not-exists --table-name "$TABLE" --region "$REGION" 2>/dev/null || true
-              fi
-            done
-          fi
-
-          # Delete IAM Role & Policy if present prior to deployment (prevents EntityAlreadyExists)
-          ROLE_NAME="alphapass-lambda-role-${ENV}"
-          POLICY_NAME="alphapass-lambda-policy-${ENV}"
-          
-          ATTACHED_POLICIES=$(aws iam list-attached-role-policies --role-name "$ROLE_NAME" --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null || true)
-          for POL_ARN in $ATTACHED_POLICIES; do
-            if [ -n "$POL_ARN" ] && [ "$POL_ARN" != "None" ]; then
-              echo "Detaching policy $POL_ARN from role $ROLE_NAME..."
-              aws iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POL_ARN" 2>/dev/null || true
-            fi
-          done
-
-          if aws iam get-role --role-name "$ROLE_NAME" 2>/dev/null; then
-            echo "Found existing IAM role $ROLE_NAME prior to deployment. Clearing..."
-            aws iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
-          fi
-
-          if [ -n "$ACCOUNT_ID" ]; then
-            POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
-            if aws iam get-policy --policy-arn "$POLICY_ARN" 2>/dev/null; then
-              echo "Found existing IAM policy $POLICY_ARN prior to deployment. Clearing..."
-              aws iam delete-policy --policy-arn "$POLICY_ARN" 2>/dev/null || true
             fi
           fi
 
@@ -168,7 +170,7 @@ jobs:
         run: |
           cd infra
           terraform init
-          # Automatically import S3 website bucket into state if it already exists in AWS account
+          # Import S3 bucket into state if it already exists (idempotent)
           terraform import module.s3.aws_s3_bucket.frontend alphapass.alphateam.live 2>/dev/null || true
 
       - name: Terraform Plan
@@ -176,67 +178,59 @@ jobs:
           cd infra
           terraform plan \
             -var="environment=dev" \
-            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}" \
             -var="ses_sender_email=${TF_VAR_ses_sender_email}"
 
-      - name: Terraform Apply (Provision Infrastructure & Package Backend)
+      - name: Terraform Apply
         run: |
           cd infra
           terraform apply \
             -var="environment=dev" \
-            -var="secret_key=${TF_VAR_secret_key}" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}" \
             -var="ses_sender_email=${TF_VAR_ses_sender_email}" \
             -auto-approve
 
-      - name: Deploy Backend Application Code to AWS Lambda Function
+      - name: Deploy Backend Lambda code
         run: |
           cd infra
           LAMBDA_NAME=$(terraform output -raw lambda_function_name)
-          echo "Updating backend code on AWS Lambda function: $LAMBDA_NAME"
-          
-          # Explicitly trigger AWS Lambda code deployment with packaged ZIP artifact
+          echo "Deploying Lambda package to: $LAMBDA_NAME"
           aws lambda update-function-code \
             --function-name "$LAMBDA_NAME" \
-            --zip-file "fileb://modules/lambda/lambda.zip"
+            --zip-file "fileb://../lambda_package.zip"
+          # Wait for the update to complete before proceeding
+          aws lambda wait function-updated --function-name "$LAMBDA_NAME"
+          echo "Lambda deployment complete."
 
-      - name: Deploy Frontend Static Website Assets to AWS S3
+      - name: Deploy Frontend to S3
         run: |
           cd infra
           BUCKET_NAME=$(terraform output -raw frontend_bucket_name)
           API_URL=$(terraform output -raw api_endpoint)
           FRONTEND_URL=$(terraform output -raw frontend_website_endpoint)
           LAMBDA_NAME=$(terraform output -raw lambda_function_name)
-          
-          echo "S3 Bucket Target: $BUCKET_NAME"
-          echo "API Endpoint: $API_URL"
-          echo "Frontend S3 URL: http://$FRONTEND_URL"
 
-          # -- Dynamically inject the live API Gateway URL into config.js --------
-          # envsubst substitutes ${API_URL} and ${DEPLOY_TS} from the committed
-          # template file — no heredoc, no YAML-unsafe characters in the workflow.
+          echo "S3 Bucket: $BUCKET_NAME"
+          echo "API Endpoint: $API_URL"
+
+          # Inject live API Gateway URL into config.js from template
           DEPLOY_TS=$(date -u +%Y%m%d%H%M%S)
           export API_URL DEPLOY_TS
           envsubst '${API_URL} ${DEPLOY_TS}' < ../frontend/js/config.template.js > ../frontend/js/config.js
-
           echo "config.js written with API_URL=${API_URL}"
-          cat ../frontend/js/config.js
 
-          # -- Bump config.js cache-buster version in every HTML file ------------
-          # Replaces js/config.js?v=<anything> with js/config.js?v=<DEPLOY_TS>
-          # so browsers immediately fetch the new config.js after each deploy.
-          find ../frontend -maxdepth 1 -name "*.html" -exec sed -i "s|js/config\.js?v=[^'\"]*|js/config.js?v=${DEPLOY_TS}|g" {} +
-          echo "Cache-buster updated to v=${DEPLOY_TS} in all HTML files."
-
+          # Bump cache-buster version in all HTML files
+          find ../frontend -maxdepth 1 -name "*.html" \
+            -exec sed -i "s|js/config\.js?v=[^'\"]*|js/config.js?v=${DEPLOY_TS}|g" {} +
+          echo "Cache-buster updated to v=${DEPLOY_TS}"
 
           aws s3 sync ../frontend/ s3://$BUCKET_NAME --delete --cache-control "max-age=3600,public"
 
-          # Output raw endpoints prominently to Workflow Step Summary & Action Notice
-          echo "### AlphaPass Deployment Outputs & Raw Endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "- **Frontend Platform S3 URL:** [http://$FRONTEND_URL](http://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
-          echo "- **REST API Gateway Endpoint:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **AWS Lambda Backend Function:** \`$LAMBDA_NAME\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **S3 Hosting Bucket Target:** \`$BUCKET_NAME\`" >> $GITHUB_STEP_SUMMARY
-          
-          echo "::notice title=Deployment Raw Endpoints::Frontend: http://$FRONTEND_URL | API: $API_URL"
+          echo "### AlphaPass Deployment Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** [http://$FRONTEND_URL](http://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Endpoint:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lambda Function:** \`$LAMBDA_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **S3 Bucket:** \`$BUCKET_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "::notice title=Deployment Complete::Frontend: http://$FRONTEND_URL | API: $API_URL"
 
 
